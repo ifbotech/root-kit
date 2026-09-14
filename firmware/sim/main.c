@@ -8,13 +8,17 @@
  * Los dos últimos modos no abren ventana: sirven para revisar el arte en
  * cualquier lado, y para dejar capturas en el repo.
  */
+#define _POSIX_C_SOURCE 199309L   /* clock_gettime y struct timespec */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "../gfx/fb.h"
 #include "../gfx/font.h"
 #include "../ui/screen.h"
+#include "../art/tuga.h"
 #include "../core/mood.h"
 
 /* ------------------------------------------------------------- BMP ------- */
@@ -232,6 +236,108 @@ static int do_shot(const char *path, const char *mood_name, uint32_t t_ms)
     return 0;
 }
 
+/* ------------------------------------------------------------- bench ----- */
+/* Mide el costo de renderizar. El número que importa no es el absoluto de
+ * esta PC sino la proporción entre etapas: dice dónde conviene optimizar
+ * antes de tener la Guition en la mano, y queda como línea de base para
+ * comparar cuando llegue. Un ESP32-S3 a 240 MHz es groseramente un orden de
+ * magnitud más lento que un x86 de escritorio. */
+static double ahora_ms(void)
+{
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (double)ts.tv_sec * 1000.0 + (double)ts.tv_nsec / 1e6;
+}
+
+#define BENCH_N 2000
+
+static int do_bench(void)
+{
+    static rk_color_t px[RK_CANVAS_W * RK_CANVAS_H];
+    rk_fb_t fb;
+    double  t0, ms, base = 0.0;
+    int     i, m;
+
+    rk_fb_init(&fb, px, RK_CANVAS_W, RK_CANVAS_H);
+    world_init();
+    for (i = 0; i < 40; i++) {
+        world_tick(1200u);
+    }
+
+    printf("lienzo %dx%d = %d pixeles, %d bytes por cuadro\n",
+           RK_CANVAS_W, RK_CANVAS_H, RK_CANVAS_W * RK_CANVAS_H,
+           RK_CANVAS_W * RK_CANVAS_H * (int)sizeof(rk_color_t));
+    printf("empujado a 320x480 por QSPI son %d bytes\n\n",
+           320 * 480 * (int)sizeof(rk_color_t));
+    printf("%-14s %11s %8s %8s\n", "ANIMO", "MS/CUADRO", "FPS", "REL");
+
+    for (m = 0; m < RK_MOOD_COUNT; m++) {
+        rk_plant_t *p = &g_st.plants[0];
+
+        p->verdict.mood     = (rk_mood_t)m;
+        p->verdict.severity = RK_SEV_WATCH;
+        p->verdict.reason   = rk_mood_reason((rk_mood_t)m);
+
+        for (i = 0; i < 100; i++) {          /* calentar cache */
+            rk_screen_draw(&fb, &g_st, (uint32_t)i * 37u);
+        }
+        t0 = ahora_ms();
+        for (i = 0; i < BENCH_N; i++) {
+            rk_screen_draw(&fb, &g_st, (uint32_t)i * 37u);
+        }
+        ms = (ahora_ms() - t0) / BENCH_N;
+        if (m == 0) {
+            base = ms;
+        }
+        printf("%-14s %11.4f %8.0f %7.2fx\n",
+               rk_mood_name((rk_mood_t)m), ms, 1000.0 / ms,
+               base > 0.0 ? ms / base : 1.0);
+    }
+
+    printf("\n%-26s %11s\n", "ETAPA", "MS");
+
+    t0 = ahora_ms();
+    for (i = 0; i < BENCH_N; i++) {
+        rk_fb_clear(&fb, 0x1234);
+    }
+    printf("%-26s %11.4f\n", "clear del framebuffer",
+           (ahora_ms() - t0) / BENCH_N);
+
+    t0 = ahora_ms();
+    for (i = 0; i < BENCH_N; i++) {
+        rk_vgradient(&fb, 0, 16, RK_CANVAS_W, 132, 0x1234, 0x4321);
+    }
+    printf("%-26s %11.4f\n", "gradiente de la escena",
+           (ahora_ms() - t0) / BENCH_N);
+
+    t0 = ahora_ms();
+    for (i = 0; i < BENCH_N; i++) {
+        rk_tuga_draw(&fb, 80, 80, RK_MOOD_HAPPY, RK_SEV_OK, (uint32_t)i * 37u);
+    }
+    printf("%-26s %11.4f\n", "el simbionte completo",
+           (ahora_ms() - t0) / BENCH_N);
+
+    t0 = ahora_ms();
+    for (i = 0; i < BENCH_N; i++) {
+        rk_text(&fb, 4, 4, "ABCDEFGHIJ 0123456789", 0xFFFF, 1);
+    }
+    printf("%-26s %11.4f\n", "21 glifos de texto",
+           (ahora_ms() - t0) / BENCH_N);
+
+    /* Lo que de verdad limita en la placa no es rasterizar sino empujar.
+     * A 80 MHz por cuatro lineas, el QSPI mueve unos 40 MB/s, asi que el
+     * cuadro completo tarda ~7,7 ms sin importar cuanto tardo en dibujarse.
+     * Conclusion: seguir optimizando el rasterizado rinde poco; el margen
+     * esta en solapar el envio por DMA con el dibujo del cuadro siguiente. */
+    printf("\n  cota del bus: %d bytes por QSPI a ~40 MB/s = %.1f ms/cuadro\n",
+           320 * 480 * 2, (320.0 * 480.0 * 2.0) / (40.0 * 1024.0 * 1024.0) * 1000.0);
+    printf("  el framebuffer logico son %d KB: entra en la SRAM interna del\n",
+           RK_CANVAS_W * RK_CANVAS_H * (int)sizeof(rk_color_t) / 1024);
+    printf("  S3 (512 KB) y no hace falta tocar PSRAM para rasterizar.\n\n");
+
+    return 0;
+}
+
 /* ------------------------------------------------------- interactivo ----- */
 #ifdef RK_WITH_SDL
 #include <SDL2/SDL.h>
@@ -343,6 +449,9 @@ int main(int argc, char **argv)
 {
     if (argc >= 3 && strcmp(argv[1], "--sheet") == 0) {
         return do_sheet(argv[2]);
+    }
+    if (argc >= 2 && strcmp(argv[1], "--bench") == 0) {
+        return do_bench();
     }
     if (argc >= 3 && strcmp(argv[1], "--shot") == 0) {
         return do_shot(argv[2],

@@ -1,5 +1,6 @@
 #include "fb.h"
 #include <stddef.h>
+#include <string.h>
 
 /* Raíz cuadrada entera por Newton. Converge de sobra para los radios que
  * usamos (< 128) y evita arrastrar libm al firmware. */
@@ -30,10 +31,30 @@ void rk_fb_init(rk_fb_t *fb, rk_color_t *px, int w, int h)
 
 void rk_fb_clear(rk_fb_t *fb, rk_color_t c)
 {
-    int n = fb->w * fb->h;
-    int i;
-    for (i = 0; i < n; i++) {
-        fb->px[i] = c;
+    /* De a dos pixeles por escritura. En el escritorio es una mejora modesta;
+     * en el ESP32 importa bastante mas, porque una escritura de 32 bits
+     * alineada cuesta lo mismo que una de 16 y el bus se aprovecha al doble. */
+    int       n = fb->w * fb->h;
+    uint16_t *p = fb->px;
+    uint32_t  par = ((uint32_t)c << 16) | (uint32_t)c;
+    uint32_t *p32;
+    int       i, pares;
+
+    if (n <= 0) {
+        return;
+    }
+    /* Alinear a 4 bytes si el buffer arranca impar. */
+    if (((uintptr_t)p & 3u) != 0u) {
+        *p++ = c;
+        n--;
+    }
+    p32   = (uint32_t *)(void *)p;
+    pares = n / 2;
+    for (i = 0; i < pares; i++) {
+        p32[i] = par;
+    }
+    if (n & 1) {
+        p[n - 1] = c;
     }
 }
 
@@ -144,15 +165,43 @@ void rk_vgradient(rk_fb_t *fb, int x, int y, int w, int h,
     }
 }
 
+/* Los tres blits comparten el mismo recorte: se calcula la interseccion una
+ * sola vez y despues se escribe con punteros directos. La version anterior
+ * llamaba a rk_px por pixel, o sea cuatro comparaciones de limites por cada
+ * uno; sobre los 6.912 pixeles del cuerpo de Tuga eso son ~27.000
+ * comparaciones por cuadro que no hacian falta. */
+typedef struct { int sx0, sy0, sx1, sy1; } clip_t;
+
+static bool blit_clip(const rk_fb_t *fb, const rk_sprite_t *s,
+                      int x, int y, clip_t *c)
+{
+    if (fb == NULL || s == NULL || s->idx == NULL || s->pal == NULL) {
+        return false;
+    }
+    c->sx0 = (x < 0) ? -x : 0;
+    c->sy0 = (y < 0) ? -y : 0;
+    c->sx1 = (x + (int)s->w > fb->w) ? fb->w - x : (int)s->w;
+    c->sy1 = (y + (int)s->h > fb->h) ? fb->h - y : (int)s->h;
+    return (c->sx0 < c->sx1) && (c->sy0 < c->sy1);
+}
+
 void rk_blit(rk_fb_t *fb, const rk_sprite_t *s, int x, int y)
 {
+    clip_t c;
     int i, j;
-    for (j = 0; j < s->h; j++) {
-        for (i = 0; i < s->w; i++) {
-            uint8_t v = s->idx[j * s->w + i];
-            if (v != 0) {
-                rk_px(fb, x + i, y + j, s->pal[v]);
+
+    if (!blit_clip(fb, s, x, y, &c)) {
+        return;
+    }
+    for (j = c.sy0; j < c.sy1; j++) {
+        const uint8_t *src = &s->idx[(size_t)j * s->w + c.sx0];
+        rk_color_t    *dst = &fb->px[(size_t)(y + j) * fb->w + x + c.sx0];
+        for (i = c.sx0; i < c.sx1; i++) {
+            uint8_t v = *src++;
+            if (v != 0u) {
+                *dst = s->pal[v];
             }
+            dst++;
         }
     }
 }
@@ -160,29 +209,55 @@ void rk_blit(rk_fb_t *fb, const rk_sprite_t *s, int x, int y)
 void rk_blit_tint(rk_fb_t *fb, const rk_sprite_t *s, int x, int y,
                   rk_color_t tint, uint8_t amount)
 {
+    clip_t c;
+    rk_color_t cache[256];
+    bool       hecho[256];
     int i, j;
-    if (amount == 0) {
+
+    if (amount == 0u) {
         rk_blit(fb, s, x, y);
         return;
     }
-    for (j = 0; j < s->h; j++) {
-        for (i = 0; i < s->w; i++) {
-            uint8_t v = s->idx[j * s->w + i];
-            if (v != 0) {
-                rk_px(fb, x + i, y + j, rk_mix(s->pal[v], tint, amount));
+    if (!blit_clip(fb, s, x, y, &c)) {
+        return;
+    }
+    /* La paleta tiene a lo sumo unas pocas decenas de entradas y el sprite
+     * miles de pixeles: conviene mezclar una vez por color y no por pixel. */
+    memset(hecho, 0, sizeof hecho);
+
+    for (j = c.sy0; j < c.sy1; j++) {
+        const uint8_t *src = &s->idx[(size_t)j * s->w + c.sx0];
+        rk_color_t    *dst = &fb->px[(size_t)(y + j) * fb->w + x + c.sx0];
+        for (i = c.sx0; i < c.sx1; i++) {
+            uint8_t v = *src++;
+            if (v != 0u) {
+                if (!hecho[v]) {
+                    cache[v] = rk_mix(s->pal[v], tint, amount);
+                    hecho[v] = true;
+                }
+                *dst = cache[v];
             }
+            dst++;
         }
     }
 }
 
 void rk_blit_solid(rk_fb_t *fb, const rk_sprite_t *s, int x, int y, rk_color_t c)
 {
+    clip_t cl;
     int i, j;
-    for (j = 0; j < s->h; j++) {
-        for (i = 0; i < s->w; i++) {
-            if (s->idx[j * s->w + i] != 0) {
-                rk_px(fb, x + i, y + j, c);
+
+    if (!blit_clip(fb, s, x, y, &cl)) {
+        return;
+    }
+    for (j = cl.sy0; j < cl.sy1; j++) {
+        const uint8_t *src = &s->idx[(size_t)j * s->w + cl.sx0];
+        rk_color_t    *dst = &fb->px[(size_t)(y + j) * fb->w + x + cl.sx0];
+        for (i = cl.sx0; i < cl.sx1; i++) {
+            if (*src++ != 0u) {
+                *dst = c;
             }
+            dst++;
         }
     }
 }

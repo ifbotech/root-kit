@@ -25,7 +25,11 @@ typedef struct {
     const rk_sprite_t *const *mouth;
     rk_color_t tint;
     uint8_t    tint_amt;
-    uint8_t    bob_amp;     /* amplitud de la respiración, en pixeles      */
+    /* Amplitud de la respiración en pixeles logicos. Por debajo de 3 el
+     * movimiento se pierde en el redondeo entero y el bicho parece congelado:
+     * lo detectó el test de regresión visual, que encontró dos instantes
+     * distintos produciendo exactamente el mismo cuadro. */
+    uint8_t    bob_amp;
     uint8_t    bob_speed;   /* fase por segundo                            */
     uint8_t    shiver;      /* jitter horizontal (tiritar)                 */
     uint8_t    dim;         /* penumbra: el bicho también se apaga          */
@@ -52,7 +56,7 @@ static const look_t LOOKS[RK_MOOD_COUNT] = {
 /* UNKNOWN     */ { &E_DIZZY,  &M_FLAT,  0,            0,   1, 30, 0,   0, false },
 /* OFFLINE     */ { &E_GLITCH, &M_FLAT,  TINT_MUERTO, 120,  0,  0, 0,  60, false },
 /* SLEEPING    */ { &E_BLINK,  &M_FLAT,  0,             0,  3, 14, 0,  95, false },
-/* HAPPY       */ { &E_HAPPY,  &M_SMILE, 0,             0,  2, 42, 0,   0, true  },
+/* HAPPY       */ { &E_HAPPY,  &M_SMILE, 0,             0,  4, 42, 0,   0, true  },
 /* THIRSTY     */ { &E_SLEEPY, &M_FROWN, TINT_SED,     70,  1, 22, 0,   0, true  },
 /* DROWNING    */ { &E_WIDE,   &M_OPEN,  TINT_AGUA,    85,  3, 64, 0,  25, false },
 /* COLD        */ { &E_SLEEPY, &M_WAVY,  TINT_FRIO,    90,  1, 26, 1,   0, false },

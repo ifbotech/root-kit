@@ -1,0 +1,125 @@
+/* proto.h — protocolo binario Spore <-> Terminal.
+ *
+ * Cada byte que viaja es tiempo de radio encendida, y la radio es lo único
+ * que consume de verdad en el Spore: una trama de 24 bytes contra un JSON de
+ * 180 es, a grandes rasgos, un 15% menos de tiempo de transmisión por ciclo.
+ * Por eso el formato es binario, fijo y sin campos opcionales.
+ *
+ * Decisiones que vale la pena no olvidar:
+ *
+ *  - Todo va en little endian, que es el orden nativo del ESP32 y del x86 del
+ *    simulador. Igual se codifica byte a byte, así que no depende del
+ *    alineamiento ni del endianness del compilador.
+ *  - La iluminancia va comprimida en 16 bits con mantisa y exponente: hace
+ *    falta cubrir de 1 a 100.000 lux, y con lineal a 16 bits habría que
+ *    sacrificar la resolución baja, justo donde vive el umbral de noche.
+ *  - CRC16-CCITT sobre todo menos el propio CRC. Con paquetes por radio en
+ *    2,4 GHz y vecinos ruidosos, una trama corrupta que pase por buena
+ *    mueve al simbionte a un estado equivocado.
+ *  - El número de secuencia permite descartar duplicados y detectar pérdidas
+ *    sin reloj compartido.
+ */
+#ifndef ROOTKIT_PROTO_H
+#define ROOTKIT_PROTO_H
+
+#include <stdint.h>
+#include <stdbool.h>
+#include <stddef.h>
+
+#define RK_PROTO_MAGIC    0x52u   /* 'R' */
+#define RK_PROTO_VERSION  1u
+
+#define RK_PKT_TELEMETRY  1u
+#define RK_PKT_HELLO      2u
+#define RK_PKT_CONFIG     3u      /* Terminal -> Spore */
+
+#define RK_TELEMETRY_LEN  24
+#define RK_HELLO_LEN      18
+#define RK_CONFIG_LEN     18
+#define RK_PKT_MAX        24
+
+/* Mapa de bytes, por si hace falta leerlo desde otro lenguaje:
+ *
+ *   TELEMETRY (24)  0 magic | 1 ver | 2 tipo | 3 flags | 4..9 id
+ *                  10 seq   | 12 soil% | 13 temp_dc | 15 rh%
+ *                  16 lux   | 18 batt_mv | 20 soil_raw | 22 crc
+ *   HELLO     (18)  0..9 cabecera | 10 hw | 11 fw_maj | 12 fw_min
+ *                  13 boot_count | 15 relleno | 16 crc
+ *   CONFIG    (18)  0..9 cabecera | 10 interval_s | 12 dry_raw
+ *                  14 wet_raw | 16 crc
+ */
+
+/* Banderas de la trama de telemetría. */
+#define RK_FLAG_LOW_BATT   0x01u
+#define RK_FLAG_FIRST_BOOT 0x02u
+#define RK_FLAG_CALIBRATED 0x04u
+#define RK_FLAG_SOIL_FAULT 0x08u  /* lectura fuera de rango físico  */
+
+typedef struct {
+    uint8_t  id[6];      /* derivado de la MAC, identifica al Spore     */
+    uint16_t seq;
+    uint8_t  flags;
+    uint8_t  soil_pct;
+    int16_t  temp_dc;
+    uint8_t  rh_pct;
+    uint32_t lux;
+    uint16_t batt_mv;
+    uint16_t soil_raw;   /* ADC crudo: permite recalibrar sin ir al maceta */
+} rk_telemetry_pkt_t;
+
+typedef struct {
+    uint8_t  id[6];
+    uint8_t  hw_rev;
+    uint8_t  fw_major;
+    uint8_t  fw_minor;
+    uint16_t boot_count;
+} rk_hello_pkt_t;
+
+typedef struct {
+    uint8_t  id[6];
+    uint16_t interval_s;    /* período base de muestreo                 */
+    uint16_t soil_dry_raw;  /* calibración: lectura en aire              */
+    uint16_t soil_wet_raw;  /* calibración: lectura sumergido            */
+    uint8_t  flags;
+} rk_config_pkt_t;
+
+typedef enum {
+    RK_PROTO_OK            =  0,
+    RK_PROTO_E_TRUNCATED   = -1,
+    RK_PROTO_E_MAGIC       = -2,
+    RK_PROTO_E_VERSION     = -3,
+    RK_PROTO_E_CRC         = -4,
+    RK_PROTO_E_TYPE        = -5,
+    RK_PROTO_E_LEN         = -6,
+    RK_PROTO_E_ARG         = -7
+} rk_proto_err_t;
+
+/* Codificación. Devuelven bytes escritos, o un rk_proto_err_t negativo. */
+int rk_proto_encode_telemetry(uint8_t *buf, size_t cap,
+                              const rk_telemetry_pkt_t *p);
+int rk_proto_encode_hello(uint8_t *buf, size_t cap, const rk_hello_pkt_t *p);
+int rk_proto_encode_config(uint8_t *buf, size_t cap, const rk_config_pkt_t *p);
+
+/* Inspección sin decodificar del todo: devuelve el tipo o un error. */
+int rk_proto_peek_type(const uint8_t *buf, size_t len);
+
+/* Decodificación. Devuelven RK_PROTO_OK o un error negativo. */
+int rk_proto_decode_telemetry(const uint8_t *buf, size_t len,
+                              rk_telemetry_pkt_t *out);
+int rk_proto_decode_hello(const uint8_t *buf, size_t len, rk_hello_pkt_t *out);
+int rk_proto_decode_config(const uint8_t *buf, size_t len,
+                           rk_config_pkt_t *out);
+
+/* Utilidades expuestas porque se testean por separado. */
+uint16_t rk_crc16(const uint8_t *data, size_t len);
+uint16_t rk_lux_encode(uint32_t lux);
+uint32_t rk_lux_decode(uint16_t code);
+
+/* ¿La secuencia `seq` es posterior a `last`? Maneja el envolvimiento de los
+ * 16 bits: una diferencia de más de media vuelta se interpreta como pasado,
+ * que es lo que evita que un duplicado viejo reviva tras el wrap. */
+bool rk_seq_is_new(uint16_t last, uint16_t seq);
+
+const char *rk_proto_strerror(int err);
+
+#endif /* ROOTKIT_PROTO_H */

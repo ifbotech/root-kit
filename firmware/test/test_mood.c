@@ -1,36 +1,17 @@
-/* Tests de la máquina de estados de ánimo.
- * Corre sin LVGL, sin SDL y sin hardware:  make test
- */
-#include <stdio.h>
+/* Tests de la máquina de estados de ánimo: prioridad entre necesidades,
+ * ciclo día/noche, histéresis en los bordes y detección de Spore caído. */
 #include <stddef.h>
+#include "rk_test.h"
 #include "../core/mood.h"
-
-static int total  = 0;
-static int fallas = 0;
 
 static void check(const char *caso, rk_mood_t esperado, rk_verdict_t got)
 {
-    total++;
-    if (esperado == got.mood) {
-        printf("  ok     %-40s -> %-12s %s\n",
-               caso, rk_mood_name(got.mood), got.reason);
-    } else {
-        fallas++;
-        printf("  FALLA  %-40s -> esperaba %s, obtuvo %s\n",
-               caso, rk_mood_name(esperado), rk_mood_name(got.mood));
-    }
+    CHECK_STR(caso, rk_mood_name(esperado), rk_mood_name(got.mood));
 }
 
 static void check_sev(const char *caso, rk_severity_t esperada, rk_verdict_t got)
 {
-    total++;
-    if (esperada == got.severity) {
-        printf("  ok     %-40s -> severidad %d\n", caso, (int)got.severity);
-    } else {
-        fallas++;
-        printf("  FALLA  %-40s -> esperaba severidad %d, obtuvo %d\n",
-               caso, (int)esperada, (int)got.severity);
-    }
+    CHECK_INT(caso, (int)esperada, (int)got.severity);
 }
 
 static rk_telemetry_t tel(uint8_t soil, int16_t temp_dc, uint8_t rh, uint32_t lux)
@@ -46,25 +27,22 @@ static rk_telemetry_t tel(uint8_t soil, int16_t temp_dc, uint8_t rh, uint32_t lu
     return t;
 }
 
-int main(void)
+void suite_mood(void)
 {
     const rk_species_t *m = rk_species_find("monstera");
     rk_mood_state_t st;
     rk_telemetry_t t;
     int i;
 
-    if (m == NULL) {
-        printf("no se encontró la especie de prueba\n");
-        return 1;
-    }
-    printf("Especie: %s  (suelo %u-%u%%, %d,%d-%d,%d C, HR>=%u%%, %lu-%lu lux)\n\n",
-           m->nombre, (unsigned)m->soil_min, (unsigned)m->soil_max,
-           m->temp_min_dc / 10, m->temp_min_dc % 10,
-           m->temp_max_dc / 10, m->temp_max_dc % 10,
-           (unsigned)m->rh_min,
-           (unsigned long)m->lux_min, (unsigned long)m->lux_max);
+    RK_SUITE("animo");
 
-    printf("Lecturas aisladas\n");
+    if (m == NULL) {
+        rk_t_fail("especie de prueba", "no se encontro monstera");
+        RK_SUITE_END();
+        return;
+    }
+
+    /* ---- lecturas aisladas -------------------------------------------- */
     rk_mood_state_init(&st);
     t = tel(40, 240, 60, 5000);
     check("todo en rango", RK_MOOD_HAPPY, rk_mood_eval(&st, m, &t));
@@ -73,13 +51,15 @@ int main(void)
     t = tel(15, 240, 60, 5000);
     check("tierra muy seca", RK_MOOD_THIRSTY, rk_mood_eval(&st, m, &t));
     rk_mood_state_init(&st);
-    check_sev("tierra muy seca es urgente", RK_SEV_URGENT, rk_mood_eval(&st, m, &t));
+    check_sev("tierra muy seca es urgente", RK_SEV_URGENT,
+              rk_mood_eval(&st, m, &t));
 
     rk_mood_state_init(&st);
     t = tel(22, 240, 60, 5000);
     check("tierra apenas seca", RK_MOOD_THIRSTY, rk_mood_eval(&st, m, &t));
     rk_mood_state_init(&st);
-    check_sev("tierra apenas seca es aviso", RK_SEV_WATCH, rk_mood_eval(&st, m, &t));
+    check_sev("tierra apenas seca es aviso", RK_SEV_WATCH,
+              rk_mood_eval(&st, m, &t));
 
     rk_mood_state_init(&st);
     t = tel(80, 240, 60, 5000);
@@ -87,11 +67,11 @@ int main(void)
 
     rk_mood_state_init(&st);
     t = tel(40, 100, 60, 5000);
-    check("10 C: frio", RK_MOOD_COLD, rk_mood_eval(&st, m, &t));
+    check("10 grados: frio", RK_MOOD_COLD, rk_mood_eval(&st, m, &t));
 
     rk_mood_state_init(&st);
     t = tel(40, 360, 60, 5000);
-    check("36 C: calor", RK_MOOD_HOT, rk_mood_eval(&st, m, &t));
+    check("36 grados: calor", RK_MOOD_HOT, rk_mood_eval(&st, m, &t));
 
     rk_mood_state_init(&st);
     t = tel(40, 240, 60, 200);
@@ -110,34 +90,76 @@ int main(void)
     t.age_s = 7200;
     check("telemetria vieja", RK_MOOD_OFFLINE, rk_mood_eval(&st, m, &t));
 
-    printf("\nPrioridad: el agua le gana al resto\n");
+    rk_mood_state_init(&st);
+    t = tel(40, 240, 60, 5000);
+    t.valid = false;
+    check("telemetria invalida", RK_MOOD_OFFLINE, rk_mood_eval(&st, m, &t));
+
+    check("especie NULL no explota", RK_MOOD_UNKNOWN,
+          rk_mood_eval(&st, NULL, &t));
+    check("telemetria NULL no explota", RK_MOOD_UNKNOWN,
+          rk_mood_eval(&st, m, NULL));
+
+    /* ---- prioridad: el agua le gana al resto --------------------------- */
     rk_mood_state_init(&st);
     t = tel(15, 100, 30, 200);
-    check("seca + fria + oscura + aire seco", RK_MOOD_THIRSTY, rk_mood_eval(&st, m, &t));
+    check("seca + fria + oscura gana el agua", RK_MOOD_THIRSTY,
+          rk_mood_eval(&st, m, &t));
 
-    printf("\nNoche: oscuridad sostenida deja de ser queja\n");
+    rk_mood_state_init(&st);
+    t = tel(40, 100, 30, 200);
+    check("sin problema de agua gana la temperatura", RK_MOOD_COLD,
+          rk_mood_eval(&st, m, &t));
+
+    rk_mood_state_init(&st);
+    t = tel(40, 240, 30, 200);
+    check("sin agua ni temperatura gana la luz", RK_MOOD_DARK,
+          rk_mood_eval(&st, m, &t));
+
+    /* ---- noche: la oscuridad sostenida deja de ser queja ---------------- */
     rk_mood_state_init(&st);
     t = tel(40, 240, 60, 0);
-    /* Dejamos el contador en MUESTRAS_NOCHE-2 para que las dos evaluaciones
-     * siguientes caigan justo a los lados del umbral. */
     for (i = 0; i < MUESTRAS_NOCHE - 2; i++) {
         rk_mood_eval(&st, m, &t);
     }
-    check("septima muestra a oscuras", RK_MOOD_DARK, rk_mood_eval(&st, m, &t));
-    check("octava muestra a oscuras", RK_MOOD_SLEEPING, rk_mood_eval(&st, m, &t));
+    check("septima muestra a oscuras todavia se queja", RK_MOOD_DARK,
+          rk_mood_eval(&st, m, &t));
+    check("octava muestra a oscuras ya duerme", RK_MOOD_SLEEPING,
+          rk_mood_eval(&st, m, &t));
 
     t = tel(15, 240, 60, 0);
-    check("de noche pero sin agua: gana el agua", RK_MOOD_THIRSTY, rk_mood_eval(&st, m, &t));
+    check("de noche pero sin agua gana el agua", RK_MOOD_THIRSTY,
+          rk_mood_eval(&st, m, &t));
 
-    printf("\nHisteresis: no titila en el borde\n");
+    /* Amanecer: una sola muestra con luz reinicia el contador de noche. */
+    rk_mood_state_init(&st);
+    t = tel(40, 240, 60, 0);
+    for (i = 0; i < MUESTRAS_NOCHE + 2; i++) {
+        rk_mood_eval(&st, m, &t);
+    }
+    t = tel(40, 240, 60, 5000);
+    check("al amanecer vuelve a estar contenta", RK_MOOD_HAPPY,
+          rk_mood_eval(&st, m, &t));
+
+    /* ---- histéresis: no titila en el borde ------------------------------ */
     rk_mood_state_init(&st);
     t = tel(24, 240, 60, 5000);
     check("24% arranca sediento", RK_MOOD_THIRSTY, rk_mood_eval(&st, m, &t));
     t = tel(27, 240, 60, 5000);
-    check("27% sigue sediento (banda)", RK_MOOD_THIRSTY, rk_mood_eval(&st, m, &t));
+    check("27% sigue sediento por la banda", RK_MOOD_THIRSTY,
+          rk_mood_eval(&st, m, &t));
     t = tel(32, 240, 60, 5000);
     check("32% ya sale del estado", RK_MOOD_HAPPY, rk_mood_eval(&st, m, &t));
 
-    printf("\n%d comprobaciones, %d fallas\n", total, fallas);
-    return fallas == 0 ? 0 : 1;
+    /* El mismo mecanismo del otro lado, en temperatura. */
+    rk_mood_state_init(&st);
+    t = tel(40, 175, 60, 5000);
+    check("17,5 grados entra en frio", RK_MOOD_COLD, rk_mood_eval(&st, m, &t));
+    t = tel(40, 188, 60, 5000);
+    check("18,8 grados sigue en frio por la banda", RK_MOOD_COLD,
+          rk_mood_eval(&st, m, &t));
+    t = tel(40, 210, 60, 5000);
+    check("21 grados ya sale", RK_MOOD_HAPPY, rk_mood_eval(&st, m, &t));
+
+    RK_SUITE_END();
 }
