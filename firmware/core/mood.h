@@ -60,4 +60,9 @@ rk_verdict_t rk_mood_eval(rk_mood_state_t     *st,
 
 const char *rk_mood_name(rk_mood_t m);
 
+/* Frase canónica del ánimo, en castellano y lista para pantalla. Es la misma
+ * que devuelve rk_mood_eval; existe aparte para que la UI y las capturas
+ * puedan pedirla sin tener que fabricar una telemetría que la provoque. */
+const char *rk_mood_reason(rk_mood_t m);
+
 #endif /* ROOTKIT_MOOD_H */

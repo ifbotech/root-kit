@@ -64,7 +64,7 @@ rk_verdict_t rk_mood_eval(rk_mood_state_t      *st,
     }
 
     if (!t->valid || t->age_s > OFFLINE_S) {
-        return mk(&v, st, RK_MOOD_OFFLINE, RK_SEV_WATCH, "el Spore no reporta");
+        return mk(&v, st, RK_MOOD_OFFLINE, RK_SEV_WATCH, "el spore no responde");
     }
 
     /* ---- Ciclo día / noche ------------------------------------------- */
@@ -94,12 +94,12 @@ rk_verdict_t rk_mood_eval(rk_mood_state_t      *st,
     if (t->soil_pct < seco) {
         rk_severity_t s = (t->soil_pct + URGENTE_SOIL_PCT < sp->soil_min)
                           ? RK_SEV_URGENT : RK_SEV_WATCH;
-        return mk(&v, st, RK_MOOD_THIRSTY, s, "la tierra está seca");
+        return mk(&v, st, RK_MOOD_THIRSTY, s, "tengo sed");
     }
     if (t->soil_pct > mojado) {
         rk_severity_t s = (t->soil_pct > sp->soil_max + 12)
                           ? RK_SEV_URGENT : RK_SEV_WATCH;
-        return mk(&v, st, RK_MOOD_DROWNING, s, "exceso de agua en la raíz");
+        return mk(&v, st, RK_MOOD_DROWNING, s, "me estoy ahogando");
     }
 
     /* ---- 2. Temperatura ----------------------------------------------- */
@@ -115,12 +115,12 @@ rk_verdict_t rk_mood_eval(rk_mood_state_t      *st,
     if (t->temp_dc < frio) {
         rk_severity_t s = (t->temp_dc < sp->temp_min_dc - URGENTE_TEMP_DC)
                           ? RK_SEV_URGENT : RK_SEV_WATCH;
-        return mk(&v, st, RK_MOOD_COLD, s, "hace frío para esta especie");
+        return mk(&v, st, RK_MOOD_COLD, s, "tengo frio");
     }
     if (t->temp_dc > calor) {
         rk_severity_t s = (t->temp_dc > sp->temp_max_dc + URGENTE_TEMP_DC)
                           ? RK_SEV_URGENT : RK_SEV_WATCH;
-        return mk(&v, st, RK_MOOD_HOT, s, "hace calor para esta especie");
+        return mk(&v, st, RK_MOOD_HOT, s, "tengo calor");
     }
 
     /* ---- 3. De noche no se juzga la luz ni la humedad del aire -------- */
@@ -139,10 +139,10 @@ rk_verdict_t rk_mood_eval(rk_mood_state_t      *st,
     }
 
     if (t->lux > lux_max) {
-        return mk(&v, st, RK_MOOD_SCORCHED, RK_SEV_WATCH, "demasiado sol directo");
+        return mk(&v, st, RK_MOOD_SCORCHED, RK_SEV_WATCH, "demasiado sol");
     }
     if (t->lux < lux_min) {
-        return mk(&v, st, RK_MOOD_DARK, RK_SEV_WATCH, "le falta luz");
+        return mk(&v, st, RK_MOOD_DARK, RK_SEV_WATCH, "necesito mas luz");
     }
 
     /* ---- 5. Humedad del aire: el problema más lento, va último -------- */
@@ -151,10 +151,10 @@ rk_verdict_t rk_mood_eval(rk_mood_state_t      *st,
         rh_min = (uint8_t)(rh_min + HYST_RH_PCT);
     }
     if (t->rh_pct < rh_min) {
-        return mk(&v, st, RK_MOOD_PARCHED_AIR, RK_SEV_WATCH, "el aire está muy seco");
+        return mk(&v, st, RK_MOOD_PARCHED_AIR, RK_SEV_WATCH, "el aire esta seco");
     }
 
-    return mk(&v, st, RK_MOOD_HAPPY, RK_SEV_OK, "todo en rango");
+    return mk(&v, st, RK_MOOD_HAPPY, RK_SEV_OK, "estoy perfecta");
 }
 
 const char *rk_mood_name(rk_mood_t m)
@@ -172,5 +172,22 @@ const char *rk_mood_name(rk_mood_t m)
     case RK_MOOD_DARK:        return "DARK";
     case RK_MOOD_PARCHED_AIR: return "PARCHED_AIR";
     default:                  return "??";
+    }
+}
+
+const char *rk_mood_reason(rk_mood_t m)
+{
+    switch (m) {
+    case RK_MOOD_OFFLINE:     return "el spore no responde";
+    case RK_MOOD_SLEEPING:    return "durmiendo";
+    case RK_MOOD_HAPPY:       return "estoy perfecta";
+    case RK_MOOD_THIRSTY:     return "tengo sed";
+    case RK_MOOD_DROWNING:    return "me estoy ahogando";
+    case RK_MOOD_COLD:        return "tengo frio";
+    case RK_MOOD_HOT:         return "tengo calor";
+    case RK_MOOD_SCORCHED:    return "demasiado sol";
+    case RK_MOOD_DARK:        return "necesito mas luz";
+    case RK_MOOD_PARCHED_AIR: return "el aire esta seco";
+    default:                  return "sin datos";
     }
 }
