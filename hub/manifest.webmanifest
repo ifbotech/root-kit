@@ -1,0 +1,12 @@
+{
+  "name": "ROOTKIT",
+  "short_name": "ROOTKIT",
+  "description": "Monitoreo de plantas y colección de simbiontes",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#14120e",
+  "theme_color": "#14120e",
+  "lang": "es"
+}

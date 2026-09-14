@@ -1,0 +1,47 @@
+name: pruebas
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Dependencias del simulador
+        # SDL2 sólo hace falta para compilar el simulador interactivo; las
+        # pruebas del núcleo y del render corren sin pantalla.
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends libsdl2-dev
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Compilar sin warnings
+        # -Werror sólo en CI: en desarrollo un warning no debe frenar una
+        # prueba rápida, pero nada llega a main con advertencias.
+        run: make -C firmware CFLAGS="-std=c99 -Wall -Wextra -Wpedantic -Werror -O2" test
+
+      - name: Pruebas del Hub
+        run: node --test hub/test/hub.test.mjs
+
+      - name: El arte y las referencias visuales estan al dia
+        run: |
+          python3 tools/gen_art.py
+          make -C firmware golden
+          if [ -n "$(git status --porcelain firmware/art firmware/test/golden.h)" ]; then
+            echo "Hay que regenerar y commitear:"
+            git --no-pager diff --stat firmware/art firmware/test/golden.h
+            exit 1
+          fi
+
+      - name: El simulador compila y captura
+        run: |
+          make -C firmware build/rootkit_sim
+          ./firmware/build/rootkit_sim --sheet /tmp/sheet.bmp
+          ./firmware/build/rootkit_sim --bench

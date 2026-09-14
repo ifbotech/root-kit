@@ -44,6 +44,30 @@ con ellos un agujero menos que sellar en un aparato que vive en tierra húmeda.
 meses, y mide sales disueltas en vez de agua, así que fertilizar altera la
 lectura. El propio aviso admite las dos cosas.
 
+## Comunicación
+
+**Protocolo binario, no JSON.** Una trama de telemetría son 24 bytes; el mismo
+contenido en JSON son unos 180. Cada byte es tiempo de radio encendida, y la
+radio es cerca de la mitad del presupuesto energético del Spore.
+
+**La iluminancia viaja con mantisa y exponente.** Hay que cubrir de 1 a 100.000
+lux. En 16 bits lineales habría que sacrificar la resolución baja, que es justo
+donde vive el umbral de noche.
+
+**CRC16-CCITT sobre toda la trama.** En 2,4 GHz con vecinos ruidosos, una trama
+corrupta que pase por buena mueve al simbionte a un estado equivocado con total
+convicción. Un test verifica que los 192 flips de un bit se detecten.
+
+**El Spore es deliberadamente tonto.** Mide, empaqueta y duerme; no conoce
+especies ni umbrales. Por batería, porque corregir los rangos de una especie
+para todos es tocar la Terminal y no seis nodos enterrados, y porque la lógica
+de ánimo tiene que existir en un solo lugar.
+
+**Medir y transmitir van desacoplados.** Medir cuesta 250 nAh y transmitir
+28.000: 110 veces más. Se mide seguido y se emite sólo ante un cambio, un cruce
+de umbral, un cambio de estado de batería o el latido de dos horas. Una semana
+simulada da 68% menos de radio que un intervalo fijo de 15 minutos.
+
 ## Software
 
 **El núcleo es C99 puro.** `firmware/core/` no depende de LVGL ni de ESP-IDF y
@@ -62,7 +86,32 @@ entre feliz y sediento cada vez que la lectura oscila un punto sobre el límite.
 las de temperatura.
 
 **Arte a 160 × 240, escalado 2× con enteros.** La pantalla es exactamente el
-doble, así que los pixeles quedan nítidos sin interpolación.
+doble, así que los pixeles quedan nítidos sin interpolación. Y hay una razón de
+performance además de la estética: el framebuffer lógico son 75 KB y entran en
+la SRAM interna del S3. Rasterizar a 320×480 serían 300 KB y habría que ir a
+PSRAM, que es un orden de magnitud más lenta.
+
+**Renderer propio en vez de LVGL.** El AXS15231B no soporta refresco parcial,
+así que la optimización principal de LVGL no aplica; un buffer RGB565 plano es
+exactamente lo que espera `esp_lcd_panel_draw_bitmap()`; y el pixel art
+necesita escalado por enteros, no el suavizado que LVGL asume.
+
+**El presupuesto energético vive en código testeado, no en una planilla.** Las
+cifras de autonomía salen de correr `make firmware`, así que si alguien cambia
+un parámetro del firmware el número se rompe en vez de quedar viejo en silencio.
+Los costos por evento van en nanoamperios-hora: en microamperios-hora enteros,
+una medición de 0,25 µAh se redondea a cero y desaparece del modelo.
+
+**Regresión visual por hash.** `firmware/test/golden.h` guarda un FNV-1a del
+framebuffer por cada estado de ánimo. Se versiona en vez de ignorarse porque el
+diff del archivo generado *es* la revisión del cambio visual.
+
+**El Hub es una vista, no una aplicación.** La foto obliga a tener el celular,
+pero no una app nativa: una página web abre la cámara con `<input capture>`.
+Sin App Store no hay cuota anual ni nadie revisando las mecánicas de colección
+contra las políticas de cajas de botín. La Terminal sirve la PWA por HTTP en la
+red local, porque una página HTTPS tiene prohibido pedirle datos a una IP
+privada.
 
 ## Producto
 
