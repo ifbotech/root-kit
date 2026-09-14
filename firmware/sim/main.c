@@ -2,8 +2,8 @@
  *
  *   ./build/rootkit_sim              interactivo, ventana 320x480
  *   ./build/rootkit_sim --sheet F    hoja de contacto con todos los ánimos
- *   ./build/rootkit_sim --shot F [M] un cuadro suelto, opcionalmente forzando
- *                                    el ánimo M
+ *   ./build/rootkit_sim --shot F [M] [T] un cuadro suelto, forzando el ánimo
+ *                                    M en el instante T de animación
  *
  * Los dos últimos modos no abren ventana: sirven para revisar el arte en
  * cualquier lado, y para dejar capturas en el repo.
@@ -206,7 +206,7 @@ static int do_sheet(const char *path)
     return 0;
 }
 
-static int do_shot(const char *path, const char *mood_name)
+static int do_shot(const char *path, const char *mood_name, uint32_t t_ms)
 {
     rk_color_t *px = calloc(RK_CANVAS_W * RK_CANVAS_H, sizeof(rk_color_t));
     rk_mood_t   m  = RK_MOOD_COUNT;
@@ -223,7 +223,7 @@ static int do_shot(const char *path, const char *mood_name)
             }
         }
     }
-    render_one(px, m, 1200u);
+    render_one(px, m, t_ms);
     if (save_bmp(path, px, RK_CANVAS_W, RK_CANVAS_H) != 0) {
         return 1;
     }
@@ -345,7 +345,9 @@ int main(int argc, char **argv)
         return do_sheet(argv[2]);
     }
     if (argc >= 3 && strcmp(argv[1], "--shot") == 0) {
-        return do_shot(argv[2], argc >= 4 ? argv[3] : NULL);
+        return do_shot(argv[2],
+                       argc >= 4 ? argv[3] : NULL,
+                       argc >= 5 ? (uint32_t)strtoul(argv[4], NULL, 10) : 1200u);
     }
     return run_window();
 }
