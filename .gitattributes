@@ -1,0 +1,4 @@
+# El proyecto se compila en WSL: LF en todo, siempre.
+* text=auto eol=lf
+*.png binary
+*.bmp binary
