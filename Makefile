@@ -78,6 +78,18 @@ verify: test
 	@echo "  verificando que el arte y las referencias esten al dia"
 	@python3 tools/gen_art.py > /dev/null
 	@$(MAKE) -C firmware --no-print-directory golden > /dev/null
+	@# git tiene que poder LEER el repositorio, y hay que comprobarlo mirando
+	@# su SALIDA y no su codigo de retorno: desde WSL sobre /mnt/c, git falla
+	@# con "dubious ownership", lo escribe en stderr y aun asi devuelve 0. Con
+	@# la salida vacia, el chequeo de abajo lo leia como "no hay cambios" y
+	@# pasaba en verde sin haber mirado nada.
+	@if [ -z "$$(git rev-parse --show-toplevel 2>/dev/null)" ]; then \
+	    echo "  FALLA: git no puede leer este repositorio, asi que no hay"; \
+	    echo "  forma de saber si el arte generado esta al dia."; \
+	    echo "  Desde WSL sobre /mnt/c hace falta, una sola vez:"; \
+	    echo "    git config --global --add safe.directory $$(pwd)"; \
+	    exit 1; \
+	 fi
 	@if [ -n "$$(git status --porcelain firmware/art firmware/test/golden.h)" ]; then \
 	    echo "  FALLA: hay que regenerar y commitear:"; \
 	    git status --porcelain firmware/art firmware/test/golden.h; \

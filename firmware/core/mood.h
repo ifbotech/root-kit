@@ -1,8 +1,8 @@
 /* mood.h — el corazón de ROOTKIT: telemetría cruda -> estado de ánimo.
  *
  * Este módulo es C99 puro, sin LVGL y sin ESP-IDF. Se compila igual en el
- * simulador de escritorio, en los tests y en la Terminal, y es lo único que
- * decide qué cara pone el simbionte. Todo el resto es presentación.
+ * simulador de escritorio, en los tests y en las dos placas, y es lo único
+ * que decide qué cara pone el simbionte. Todo el resto es presentación.
  */
 #ifndef ROOTKIT_MOOD_H
 #define ROOTKIT_MOOD_H
@@ -11,7 +11,7 @@
 #include "species.h"
 
 /* Detección de noche. Expuestas acá porque los tests y la UI las necesitan:
- * la Terminal quiere saber si el simbionte duerme o si de verdad falta luz. */
+ * la pantalla quiere saber si el simbionte duerme o si de verdad falta luz. */
 #define LUX_NOCHE        15u
 #define MUESTRAS_NOCHE    8    /* a una muestra cada 15 min ~ 2 h */
 

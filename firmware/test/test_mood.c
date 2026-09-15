@@ -1,5 +1,5 @@
 /* Tests de la máquina de estados de ánimo: prioridad entre necesidades,
- * ciclo día/noche, histéresis en los bordes y detección de Spore caído. */
+ * ciclo día/noche, histéresis en los bordes y detección de nodo caído. */
 #include <stddef.h>
 #include "rk_test.h"
 #include "../core/mood.h"

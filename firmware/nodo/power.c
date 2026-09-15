@@ -2,7 +2,7 @@
 #include <stddef.h>
 
 /* Curva de descarga de una 18650 de litio a corriente baja. A los microamperios
- * que consume el Spore la curva es prácticamente la de circuito abierto, que
+ * que consume un Mini la curva es prácticamente la de circuito abierto, que
  * es justo la condición en la que medimos: siempre con la radio apagada. */
 static const struct { uint16_t mv; uint8_t pct; } CURVA[] = {
     { 4200, 100 }, { 4100,  92 }, { 4000,  85 }, { 3900,  76 },
@@ -59,7 +59,7 @@ const rk_power_profile_t RK_PROFILE_INGENUO = {
 /* Nota de calibracion: los tres perfiles comparten el costo por medicion y
  * por emision; lo que cambia es cuantas veces al dia ocurre cada cosa y el
  * consumo en reposo. Las cuentas de tx_per_day del perfil adaptativo salen
- * de la simulacion de una semana de test_spore.c, no de una estimacion. */
+ * de la simulacion de una semana de test_nodo.c, no de una estimacion. */
 
 const rk_power_profile_t RK_PROFILE_FIJO = {
     40u,        /* LED fuera, LDO de bajo reposo                           */

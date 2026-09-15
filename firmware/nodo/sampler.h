@@ -14,7 +14,7 @@
  *   - una magnitud se movió más que su banda muerta,
  *   - se cruzó un umbral de la especie (cambia el ánimo del simbionte),
  *   - cambió el estado de batería baja,
- *   - o venció el latido, para que la Terminal no marque el Spore como caído.
+ *   - o venció el latido, para que el Prime no marque el nodo como caído.
  *
  * Además el período de medición se adapta: si todo está estable y lejos de
  * los bordes se estira, y si algo se acerca a un umbral se acorta. Una
@@ -75,7 +75,7 @@ void rk_sampler_init(rk_sampler_t *s, const rk_sampler_cfg_t *cfg);
 
 /* Un ciclo completo: se llama después de medir, con la lectura fresca y el
  * tiempo de encendido acumulado. Decide si transmitir y cuánto dormir.
- * `sp` puede ser NULL si el Spore todavía no tiene especie asignada. */
+ * `sp` puede ser NULL si el nodo todavía no tiene especie asignada. */
 rk_sampler_decision_t rk_sampler_step(rk_sampler_t *s,
                                       const rk_telemetry_pkt_t *now,
                                       uint32_t uptime_s,

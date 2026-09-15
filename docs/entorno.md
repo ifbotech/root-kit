@@ -37,6 +37,19 @@ En Windows hay que invocar la distro por nombre si la predeterminada es otra
 wsl.exe -d Ubuntu-24.04 -- bash -lc "cd /mnt/c/.../firmware && make test"
 ```
 
+Y una sola vez, para que `make verify` pueda usar git desde WSL sobre `/mnt/c`:
+
+```bash
+git config --global --add safe.directory /mnt/c/Users/<vos>/Documents/rootkit
+```
+
+Sin eso git falla con `dubious ownership`. Vale la pena saber por qué el
+Makefile lo comprueba explícitamente: en ese estado **git escribe el error en
+stderr y aun así devuelve 0**, así que el chequeo de frescura del arte leía su
+salida vacía como "no hay cambios" y pasaba en verde sin haber mirado nada. El
+target ahora exige que `git rev-parse --show-toplevel` devuelva algo antes de
+confiar en un `git status` vacío.
+
 ## La ventana muestra el kit, no una pantalla
 
 ```bash

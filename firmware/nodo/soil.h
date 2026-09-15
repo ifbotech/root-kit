@@ -8,7 +8,7 @@
  *
  *  - La calibración es por unidad. Dos sensores del mismo lote difieren
  *    fácil un 15% en los extremos, así que un mapeo fijo garantiza que la
- *    mitad de los Spores mientan.
+ *    mitad de los nodos mientan.
  *  - Toda lectura pasa por un control de plausibilidad. Un sensor
  *    desconectado, en corto o con el cable cortado por la humedad entrega
  *    valores perfectamente representables pero físicamente imposibles, y sin
@@ -36,7 +36,7 @@ typedef struct {
     uint16_t wet_raw;   /* lectura sumergido, la más baja    */
 } rk_soil_cal_t;
 
-/* Calibración de fábrica: sirve para arrancar y para que un Spore sin
+/* Calibración de fábrica: sirve para arrancar y para que un nodo sin
  * calibrar dé algo razonable, pero marca la trama como no calibrada. */
 extern const rk_soil_cal_t RK_SOIL_CAL_DEFAULT;
 

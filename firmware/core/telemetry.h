@@ -1,8 +1,8 @@
-/* telemetry.h — lo que un Spore le manda a la Terminal.
+/* telemetry.h — lo que un nodo mide en su maceta.
  *
  * Sin punto flotante a propósito: la temperatura viaja en décimas de grado
- * para que la misma struct sirva en el ESP32-C3 del Spore, en el ESP32-S3
- * de la Terminal y en el simulador de escritorio sin sorpresas de FPU.
+ * para que la misma struct sirva en el ESP32-C3 de un Mini, en el del Prime
+ * y en el simulador de escritorio sin sorpresas de FPU.
  */
 #ifndef ROOTKIT_TELEMETRY_H
 #define ROOTKIT_TELEMETRY_H
@@ -11,7 +11,7 @@
 #include <stdbool.h>
 
 typedef struct {
-    bool     valid;     /* false si nunca llegó una lectura de este Spore  */
+    bool     valid;     /* false si nunca llegó una lectura de este nodo   */
     uint32_t age_s;     /* segundos transcurridos desde la última lectura  */
     uint8_t  soil_pct;  /* 0-100, humedad volumétrica aproximada           */
     int16_t  temp_dc;   /* décimas de grado Celsius: 234 == 23,4 °C        */

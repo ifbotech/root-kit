@@ -1,4 +1,7 @@
-/* power.h — estado de carga y presupuesto energético del Spore.
+/* power.h — estado de carga y presupuesto energético de un nodo a batería.
+ *
+ * O sea, de un Mini: el Prime va enchufado. Vive acá y no en core/ porque es
+ * lo único del sistema que depende de que haya una celda.
  *
  * El modelo de consumo vive acá, en código testeado, y no en una planilla:
  * las cifras de autonomía que se publican salen de correr estas funciones,
@@ -11,7 +14,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-/* Debajo de esto avisamos; debajo del corte el Spore se duerme para siempre
+/* Debajo de esto avisamos; debajo del corte el nodo se duerme para siempre
  * en vez de arrastrar la celda por debajo del umbral seguro del litio. */
 #define RK_BATT_WARN_MV   3450u
 #define RK_BATT_CUTOFF_MV 3150u

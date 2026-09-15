@@ -6,7 +6,7 @@ const rk_sampler_cfg_t RK_SAMPLER_DEFAULT = {
     300u,      /* mide cada 5 min                                          */
     120u,      /* hasta cada 2 min si hay movimiento                       */
     1800u,     /* hasta cada 30 min si no pasa nada                        */
-    7200u,     /* latido cada 2 h: la Terminal da por caído a las 3 h      */
+    7200u,     /* latido cada 2 h: el Prime da por caído a las 6 h         */
     3u,        /* 3 puntos de humedad de suelo                             */
     5u,        /* 5 puntos de humedad relativa                             */
     8,         /* 0,8 grados                                               */
@@ -135,7 +135,7 @@ rk_sampler_decision_t rk_sampler_step(rk_sampler_t *s,
     /* ---- adaptar el período de medición -------------------------------- */
     /* Cerca de un umbral o con la planta moviéndose, acortamos hasta el piso.
      * Con todo quieto, estiramos de a poco: subir rápido y bajar despacio
-     * haría que el Spore reaccione tarde justo cuando importa. */
+     * haría que el nodo reaccione tarde justo cuando importa. */
     if (near_threshold(now, sp, s->cfg.near_margin) ||
         d.reason == RK_TX_UMBRAL || moved) {
         s->interval_s = s->cfg.min_interval_s;
