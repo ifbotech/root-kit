@@ -112,7 +112,11 @@ void rk_brote_draw(rk_fb_t *fb, int cx, int cy, const rk_companion_t *comp,
      * que para que el resplandor se apague HACIA AFUERA la mezcla tiene que
      * crecer a medida que el radio baja. Al revés queda un anillo brillante
      * con el centro apagado, que se lee como dona y no como aura. */
-    if (rk_brote_aura(etapa)) {
+    /* Sólo a partir de escala 2: a escala 1 —la ficha del selector del
+     * Prime— los cuatro discos del degradé caen en radios consecutivos y el
+     * aura se vuelve un bloque de color que se come al bicho. En la ficha la
+     * etapa ya se lee por las hojas. */
+    if (rk_brote_aura(etapa) && esc >= 2) {
         int r0 = RK_BROTE_W * esc / 2 + esc * 3;
         int pulso = rk_sin8((uint8_t)(t_ms / 14)) * esc / 127;
         int pasos = esc * 4;
