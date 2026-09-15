@@ -30,6 +30,9 @@ jobs:
       - name: Pruebas del Hub
         run: node --test hub/test/hub.test.mjs
 
+      - name: El catalogo del Hub sigue al del firmware
+        run: python3 tools/sync_catalog.py --check
+
       - name: El arte y las referencias visuales estan al dia
         run: |
           python3 tools/gen_art.py
@@ -44,4 +47,6 @@ jobs:
         run: |
           make -C firmware build/rootkit_sim
           ./firmware/build/rootkit_sim --sheet /tmp/sheet.bmp
+          ./firmware/build/rootkit_sim --caras /tmp/caras.bmp
+          ./firmware/build/rootkit_sim --gacha /tmp/gacha.bmp
           ./firmware/build/rootkit_sim --bench

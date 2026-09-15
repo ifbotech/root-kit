@@ -18,6 +18,8 @@ int main(void)
     suite_spore();
     suite_gfx();
     suite_render();
+    suite_companion();
+    suite_eyes();
 
     return rk_t_report();
 }

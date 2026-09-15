@@ -29,4 +29,10 @@ int rk_text_center(rk_fb_t *fb, int cx, int y, const char *s,
 int rk_text_shadow(rk_fb_t *fb, int x, int y, const char *s,
                    rk_color_t c, rk_color_t shadow, int scale);
 
+/* ¿Está encendido el pixel (col, row) del glifo? Lo usa el framebuffer
+ * monocromo del Spore, que no puede reutilizar rk_text porque escribe en un
+ * formato de páginas distinto. Compartir los glifos evita mantener dos
+ * tipografías que se desincronizan. */
+bool rk_glyph_pixel(char ch, int col, int row);
+
 #endif /* ROOTKIT_FONT_H */

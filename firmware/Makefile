@@ -14,10 +14,10 @@ CC      ?= cc
 CFLAGS  ?= -std=c99 -Wall -Wextra -Wpedantic -O2
 BUILD    = build
 
-CORE     = core/species.c core/mood.c
-GFX      = gfx/fb.c gfx/font.c
-ART      = art/tuga_data.c art/tuga.c
-UI       = ui/screen.c
+CORE     = core/species.c core/mood.c core/companion.c
+GFX      = gfx/fb.c gfx/font.c gfx/mono.c
+ART      = art/tuga_data.c art/tuga.c art/eyes.c
+UI       = ui/screen.c ui/gacha.c
 NET      = net/proto.c
 SPORE    = spore/soil.c spore/power.c spore/sampler.c
 
@@ -26,7 +26,8 @@ LIB      = $(CORE) $(GFX) $(ART) $(UI) $(NET) $(SPORE)
 
 TESTSRC  = test/rk_test.c test/golden_util.c \
            test/test_mood.c test/test_proto.c test/test_spore.c \
-           test/test_gfx.c test/test_render.c test/main.c
+           test/test_gfx.c test/test_render.c test/test_companion.c \
+           test/test_eyes.c test/main.c
 
 HEADERS  = $(wildcard core/*.h gfx/*.h art/*.h ui/*.h net/*.h spore/*.h)
 
@@ -36,7 +37,7 @@ ifneq ($(strip $(SDL_LIBS)),)
   SDL_DEF = -DRK_WITH_SDL
 endif
 
-.PHONY: all test sim sheet bench golden art clean
+.PHONY: all test sim sheet caras ceremonia bench golden art clean
 
 all: test
 
@@ -71,6 +72,13 @@ $(BUILD)/rootkit_sim: $(LIB) sim/main.c $(HEADERS)
 
 sheet: $(BUILD)/rootkit_sim
 	@./$(BUILD)/rootkit_sim --sheet $(BUILD)/sheet.bmp
+
+# Hojas de contacto de las dos piezas nuevas: la cara del Spore y la ceremonia.
+caras: $(BUILD)/rootkit_sim
+	@./$(BUILD)/rootkit_sim --caras $(BUILD)/caras.bmp
+
+ceremonia: $(BUILD)/rootkit_sim
+	@./$(BUILD)/rootkit_sim --gacha $(BUILD)/gacha.bmp
 
 bench: $(BUILD)/rootkit_sim
 	@./$(BUILD)/rootkit_sim --bench

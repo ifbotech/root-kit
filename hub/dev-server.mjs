@@ -17,28 +17,63 @@ const RAIZ = fileURLToPath(new URL('.', import.meta.url));
 const PUERTO = Number(process.argv[2]) || 8080;
 
 /* ------------------------------------------------------------ catalogo --- */
-/* Mismos valores que firmware/core/species.c. */
+/* Generado desde firmware/core/species.c por tools/sync_catalog.py.
+ * No editar a mano: el catalogo tiene una sola fuente de verdad. */
 export const ESPECIES = [
-  { id: 'monstera', nombre: 'Monstera deliciosa', soil_min: 25, soil_max: 60,
-    temp_min_dc: 180, temp_max_dc: 300, rh_min: 50, lux_min: 1000, lux_max: 15000 },
-  { id: 'pothos', nombre: 'Potus', soil_min: 20, soil_max: 55,
-    temp_min_dc: 170, temp_max_dc: 300, rh_min: 40, lux_min: 500, lux_max: 12000 },
   { id: 'sansevieria', nombre: 'Lengua de suegra', soil_min: 8, soil_max: 35,
-    temp_min_dc: 150, temp_max_dc: 320, rh_min: 30, lux_min: 800, lux_max: 30000 },
-  { id: 'ficus-lyrata', nombre: 'Ficus lyrata', soil_min: 25, soil_max: 55,
-    temp_min_dc: 180, temp_max_dc: 270, rh_min: 50, lux_min: 2000, lux_max: 20000 },
+    temp_min_dc: 150, temp_max_dc: 320, rh_min: 30, lux_min: 800, lux_max: 30000, dificultad: 10 },
+  { id: 'pothos', nombre: 'Potus', soil_min: 20, soil_max: 55,
+    temp_min_dc: 170, temp_max_dc: 300, rh_min: 40, lux_min: 500, lux_max: 12000, dificultad: 15 },
+  { id: 'zamioculcas', nombre: 'Zamioculca', soil_min: 10, soil_max: 40,
+    temp_min_dc: 160, temp_max_dc: 300, rh_min: 30, lux_min: 400, lux_max: 15000, dificultad: 18 },
   { id: 'cactus', nombre: 'Cactus / suculenta', soil_min: 5, soil_max: 25,
-    temp_min_dc: 100, temp_max_dc: 380, rh_min: 20, lux_min: 5000, lux_max: 80000 },
+    temp_min_dc: 100, temp_max_dc: 380, rh_min: 20, lux_min: 5000, lux_max: 80000, dificultad: 25 },
+  { id: 'aloe', nombre: 'Aloe vera', soil_min: 8, soil_max: 30,
+    temp_min_dc: 130, temp_max_dc: 350, rh_min: 25, lux_min: 3000, lux_max: 50000, dificultad: 28 },
+  { id: 'monstera', nombre: 'Monstera deliciosa', soil_min: 25, soil_max: 60,
+    temp_min_dc: 180, temp_max_dc: 300, rh_min: 50, lux_min: 1000, lux_max: 15000, dificultad: 45 },
+  { id: 'filodendro', nombre: 'Filodendro', soil_min: 25, soil_max: 58,
+    temp_min_dc: 180, temp_max_dc: 300, rh_min: 50, lux_min: 900, lux_max: 14000, dificultad: 40 },
+  { id: 'helecho', nombre: 'Helecho de Boston', soil_min: 45, soil_max: 80,
+    temp_min_dc: 160, temp_max_dc: 260, rh_min: 70, lux_min: 600, lux_max: 8000, dificultad: 70 },
+  { id: 'orquidea', nombre: 'Orquídea phalaenopsis', soil_min: 30, soil_max: 60,
+    temp_min_dc: 180, temp_max_dc: 290, rh_min: 60, lux_min: 1200, lux_max: 10000, dificultad: 75 },
+  { id: 'calathea', nombre: 'Calathea', soil_min: 40, soil_max: 70,
+    temp_min_dc: 180, temp_max_dc: 280, rh_min: 70, lux_min: 800, lux_max: 9000, dificultad: 78 },
+  { id: 'ficus-lyrata', nombre: 'Ficus lyrata', soil_min: 25, soil_max: 55,
+    temp_min_dc: 180, temp_max_dc: 270, rh_min: 50, lux_min: 2000, lux_max: 20000, dificultad: 85 },
+  { id: 'bonsai', nombre: 'Bonsái de olmo', soil_min: 30, soil_max: 60,
+    temp_min_dc: 150, temp_max_dc: 270, rh_min: 55, lux_min: 3000, lux_max: 25000, dificultad: 92 },
 ];
 
-/* Un simbionte por especie. El desbloqueo es determinista: registrás una
- * especie nueva y aparece el suyo. Nada aleatorio, nada con dinero. */
+/* Generado desde firmware/core/companion.c. Un simbionte por especie, y el
+ * desbloqueo es determinista: registrás una especie nueva y aparece el
+ * suyo. La rareza sale de la dificultad hortícola, no de un dado. */
 export const SIMBIONTES = [
-  { id: 'tuga', nombre: 'Tuga.exe', especie: 'monstera' },
-  { id: 'myco', nombre: 'Myco.zip', especie: 'pothos' },
-  { id: 'sable', nombre: 'Sable.bin', especie: 'sansevieria' },
-  { id: 'ficus', nombre: 'Lyra.dll', especie: 'ficus-lyrata' },
-  { id: 'spine', nombre: 'Spine.sys', especie: 'cactus' },
+  { id: 'tuga', nombre: 'Tuga.exe', especie: 'monstera', rareza: 'RARO',
+    lema: 'Lenta, testaruda, sobrevive a todo.' },
+  { id: 'myco', nombre: 'Myco.zip', especie: 'pothos', rareza: 'COMUN',
+    lema: 'Se propaga en silencio. Ya esta en tres macetas.' },
+  { id: 'sable', nombre: 'Sable.bin', especie: 'sansevieria', rareza: 'COMUN',
+    lema: 'No pide nada. No perdona nada.' },
+  { id: 'zam', nombre: 'Zam.sys', especie: 'zamioculcas', rareza: 'COMUN',
+    lema: 'Funciona en modo seguro desde hace meses.' },
+  { id: 'spine', nombre: 'Spine.dll', especie: 'cactus', rareza: 'COMUN',
+    lema: 'Guarda agua y rencores.' },
+  { id: 'vera', nombre: 'Vera.sh', especie: 'aloe', rareza: 'COMUN',
+    lema: 'Se repara sola. A veces demasiado.' },
+  { id: 'filo', nombre: 'Filo.tar', especie: 'filodendro', rareza: 'RARO',
+    lema: 'Extiende ramas como quien abre pestanas.' },
+  { id: 'fern', nombre: 'Fern.log', especie: 'helecho', rareza: 'EPICO',
+    lema: 'Registra cada dia seco y te lo recuerda.' },
+  { id: 'orqui', nombre: 'Orqui.key', especie: 'orquidea', rareza: 'EPICO',
+    lema: 'Florece cuando quiere. No cuando vos queres.' },
+  { id: 'cala', nombre: 'Cala.gif', especie: 'calathea', rareza: 'EPICO',
+    lema: 'Se mueve de noche. Nadie sabe adonde va.' },
+  { id: 'lyra', nombre: 'Lyra.iso', especie: 'ficus-lyrata', rareza: 'LEGENDARIO',
+    lema: 'Imagen completa de un arbol que te va a odiar.' },
+  { id: 'bonz', nombre: 'Bonz.root', especie: 'bonsai', rareza: 'LEGENDARIO',
+    lema: 'Un siglo comprimido en veinte centimetros.' },
 ];
 
 /* --------------------------------------------------------------- estado -- */

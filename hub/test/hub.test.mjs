@@ -213,12 +213,41 @@ describe('API', () => {
   });
 
   test('el catálogo de especies coincide con el del firmware', async () => {
+    /* El archivo se genera con tools/sync_catalog.py desde species.c, y
+     * `make verify` falla si quedó desfasado. Acá sólo verificamos que el
+     * resultado tenga forma de catálogo. */
     const [, body] = await manejarApi('GET', '/api/species', null);
-    assert.equal(body.length, 5);
+    assert.ok(body.length >= 12, `esperaba 12 o mas especies, hay ${body.length}`);
     const m = body.find((e) => e.id === 'monstera');
     assert.equal(m.soil_min, 25);
     assert.equal(m.soil_max, 60);
     assert.equal(m.temp_min_dc, 180);
+    for (const e of body) {
+      assert.ok(e.soil_min < e.soil_max, `${e.id}: rango de suelo invertido`);
+      assert.ok(e.temp_min_dc < e.temp_max_dc, `${e.id}: rango de temp invertido`);
+      assert.ok(e.lux_min < e.lux_max, `${e.id}: rango de luz invertido`);
+      assert.ok(e.dificultad >= 0 && e.dificultad <= 100, `${e.id}: dificultad fuera de rango`);
+    }
+  });
+
+  test('la rareza sale de la dificultad, con los mismos cortes que el firmware', () => {
+    const corte = (d) => (d >= 80 ? 'LEGENDARIO' : d >= 60 ? 'EPICO'
+                        : d >= 30 ? 'RARO' : 'COMUN');
+    for (const s of SIMBIONTES) {
+      const e = ESPECIES.find((x) => x.id === s.especie);
+      assert.equal(s.rareza, corte(e.dificultad),
+        `${s.id} (${e.id}, dificultad ${e.dificultad}) deberia ser ${corte(e.dificultad)}`);
+    }
+  });
+
+  test('la piramide de rarezas tiene forma de piramide', () => {
+    /* Si hubiera tantos legendarios como comunes, el escalon mas alto
+     * dejaria de sentirse alto. */
+    const n = (r) => SIMBIONTES.filter((s) => s.rareza === r).length;
+    for (const r of ['COMUN', 'RARO', 'EPICO', 'LEGENDARIO']) {
+      assert.ok(n(r) > 0, `no hay ningun simbionte ${r}`);
+    }
+    assert.ok(n('LEGENDARIO') < n('COMUN'), 'los legendarios no son los mas raros');
   });
 
   test('registrar una planta la agrega y devuelve 201', async () => {
@@ -226,7 +255,7 @@ describe('API', () => {
       { nombre: 'FICUS', especie: 'ficus-lyrata' });
     assert.equal(code, 201);
     assert.equal(creada.nombre, 'FICUS');
-    assert.equal(creada.simbionte, 'ficus');
+    assert.equal(creada.simbionte, 'lyra');
 
     const [, st] = await manejarApi('GET', '/api/state', null);
     assert.equal(st.plants.length, 3);
@@ -239,6 +268,22 @@ describe('API', () => {
 
     const [, col] = await manejarApi('GET', '/api/collection', null);
     assert.ok(col.desbloqueados.includes('spine'));
+  });
+
+  test('registrar un bonsai desbloquea un legendario', async () => {
+    /* La recompensa tiene que escalar con el trabajo: el bonsai es la
+     * planta mas dificil del catalogo. */
+    const [, creada] = await manejarApi('POST', '/api/plants',
+      { nombre: 'BONSAI', especie: 'bonsai' });
+    const sim = SIMBIONTES.find((s) => s.id === creada.simbionte);
+    assert.equal(sim.rareza, 'LEGENDARIO');
+  });
+
+  test('registrar un potus desbloquea un comun', async () => {
+    const [, creada] = await manejarApi('POST', '/api/plants',
+      { nombre: 'OTRO POTUS', especie: 'pothos' });
+    const sim = SIMBIONTES.find((s) => s.id === creada.simbionte);
+    assert.equal(sim.rareza, 'COMUN');
   });
 
   test('una especie repetida no vuelve a desbloquear', async () => {

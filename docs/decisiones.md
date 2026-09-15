@@ -68,6 +68,49 @@ de ánimo tiene que existir en un solo lugar.
 de umbral, un cambio de estado de batería o el latido de dos horas. Una semana
 simulada da 68% menos de radio que un intervalo fijo de 15 minutos.
 
+## Pantalla del Spore y coleccion
+
+**OLED 0.91 pulgadas 128x32 SSD1306, no la TFT redonda de 1.28.** Comparte el
+bus I2C que el Spore ya tiene para el AHT21 y el BH1750 -cero pines nuevos,
+cero cableado extra- usa 512 bytes de framebuffer contra 115.200, y cuesta la
+mitad. Pero lo decisivo es el consumo: con la OLED el Spore conserva unos 750
+dias de autonomia, con la TFT cae a 436, y con la TFT encendida de forma
+permanente a **dos dias**. Hay ademas un argumento estetico: monocromo a
+128x32 *es* la estetica Tamagotchi original, y deja una jerarquia clara entre
+la presencia del bicho en la maceta y su mundo a color en la Terminal.
+
+**La cara es procedural, no sprites.** A 128x32 las formas son simples, y en
+cambio se gana lo que un flipbook no da: la pupila mira a cualquier lado, el
+parpado cierra a cualquier altura y el parpadeo cae donde tiene que caer.
+
+**Hay un presupuesto de pixeles encendidos, y sale de la bateria.** En una
+OLED solo consume lo que esta prendido. El tope de 1.200 de 4.096 se deriva de
+la cuenta de autonomia, no de un numero comodo, y los tests recorren todos los
+animos en todas las etapas verificandolo.
+
+**La rareza es merito, no suerte.** Sale de la dificultad horticola de la
+especie: un potus da un comun porque perdona todo, un bonsai da un legendario
+porque mantenerlo vivo es trabajo real. Asi la rareza significa algo, y de paso
+el producto queda afuera del terreno de las cajas de botin, que Belgica y
+Paises Bajos ya restringen.
+
+**La ceremonia de apertura se conserva entera.** Capsula que cae, tiembla, se
+raja y estalla con destellos graduados por rareza. Lo unico que no hay es azar
+en el resultado: que simbionte sale ya esta decidido por la especie antes de
+que la capsula aparezca. Es mejor diseno de juego ademas de mas prolijo
+legalmente: el que quiere un legendario sabe exactamente que hacer.
+
+**El simbionte crece con dias sanos, no con dias transcurridos.** Una planta
+abandonada tiene un simbionte que no evoluciona, y ahi esta toda la mecanica de
+vinculo. Pero un mal dia corta la racha sin borrar lo acumulado: castigar un
+descuido con meses de progreso convierte un olvido en motivo para abandonar el
+producto.
+
+**El catalogo del Hub se genera desde el del firmware.** `tools/sync_catalog.py`
+lo deriva de `species.c` y `companion.c`, y CI falla si quedo desfasado. Dos
+copias a mano se desincronizan, y aca una desincronizacion significa ofrecerle
+al usuario una especie que la Terminal no sabe evaluar.
+
 ## Software
 
 **El núcleo es C99 puro.** `firmware/core/` no depende de LVGL ni de ESP-IDF y

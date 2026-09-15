@@ -1,7 +1,7 @@
 # Pruebas
 
 ```bash
-make test        # todo: 215 comprobaciones de firmware + 40 del Hub
+make test        # todo: 306 comprobaciones de firmware + 44 del Hub
 make firmware    # sólo el firmware (no necesita SDL ni hardware)
 make hub         # sólo el Hub (necesita Node)
 make verify      # lo que corre CI, incluida la frescura del arte
@@ -20,7 +20,9 @@ romper.
 | `spore` | 63 | Calibración de suelo, fallas eléctricas, curva de batería, muestreo |
 | `graficos` | 39 | Recorte de primitivas, sprites, tipografía, seno y hash |
 | `render` | 25 | Determinismo, zona táctil, regresión visual por hash |
-| `hub` | 40 | Formato, orden, validación, contrato de la API |
+| `coleccion` | 57 | Rarezas, asignación determinista, crecimiento, ceremonia |
+| `cara del spore` | 34 | Formato de páginas del SSD1306, recorte, expresiones |
+| `hub` | 44 | Formato, orden, validación, contrato de la API |
 
 ## Las pruebas que valen más que su tamaño
 
@@ -42,6 +44,21 @@ pantalla.
 planta que se seca y se riega, y verifica que el muestreo adaptativo ahorre al
 menos la mitad de las transmisiones — pero también que no ahorre de más, que
 sería estar perdiendo eventos.
+
+**Que los once ánimos se vean distintos en la OLED.** Se renderizan las once
+caras y se comparan byte a byte. Si dos coinciden, el Spore no comunica nada:
+el usuario mira la maceta y no sabe si la planta tiene sed o frío. Este test
+encontró que THIRSTY, COLD y HOT compartían dibujo, y después que DROWNING y
+DARK se parecían demasiado.
+
+**El presupuesto de pixeles de la OLED.** En una OLED sólo consume lo que está
+encendido, así que hay un tope derivado de la cuenta de batería y un barrido
+que recorre los once ánimos en las cinco etapas a lo largo de doce segundos
+verificándolo. Encontró que la etapa ancestral se pasaba.
+
+**El desbloqueo determinista, cincuenta veces seguidas.** Es el test que
+sostiene la posición legal del producto: el simbionte que sale depende de la
+especie y de nada más.
 
 **Los hashes de referencia visual.** Ver abajo.
 
@@ -76,6 +93,8 @@ Los hashes detectan que algo cambió, no si quedó lindo. Para eso:
 
 ```bash
 make sheet                                        # los 11 ánimos en una hoja
+make caras                                        # las caras de la OLED
+make ceremonia                                    # la apertura, por rareza
 python tools/bmp2png.py firmware/build/sheet.bmp preview.png
 ./firmware/build/rootkit_sim --shot f.bmp HAPPY 4248   # un cuadro puntual
 make sim                                          # interactivo
@@ -104,5 +123,5 @@ Vale la pena tenerlo escrito para no confundir verde con terminado:
   primero que hay que hacer cuando lleguen las placas.
 - **La interfaz del Hub en un navegador.** Se testea la lógica y el contrato
   de la API, no el DOM ni el service worker.
-- **Los rangos por especie.** Los cinco de `species.c` son aproximaciones de
+- **Los rangos por especie.** Las doce de `species.c` son aproximaciones de
   guías de cuidado corrientes, no datos calibrados.

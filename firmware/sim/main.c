@@ -17,9 +17,13 @@
 
 #include "../gfx/fb.h"
 #include "../gfx/font.h"
+#include "../gfx/mono.h"
 #include "../ui/screen.h"
+#include "../ui/gacha.h"
 #include "../art/tuga.h"
+#include "../art/eyes.h"
 #include "../core/mood.h"
+#include "../core/companion.h"
 
 /* ------------------------------------------------------------- BMP ------- */
 /* Escritor propio de 24 bits: así los modos de captura no dependen de SDL. */
@@ -236,6 +240,126 @@ static int do_shot(const char *path, const char *mood_name, uint32_t t_ms)
     return 0;
 }
 
+/* ------------------------------------------- caras del Spore y ceremonia - */
+/* La OLED del Spore es monocroma: para poder revisarla en una captura la
+ * volcamos al framebuffer a color, con pixel encendido en ambar sobre negro,
+ * que es lo que se ve en una OLED amarilla real. */
+static void volcar_oled(rk_fb_t *fb, const rk_mono_t *m, int ox, int oy, int esc)
+{
+    int x, y;
+
+    rk_fill_rect(fb, ox - 2, oy - 2, m->w * esc + 4, m->h * esc + 4,
+                 RK_RGB(18, 18, 20));
+    for (y = 0; y < m->h; y++) {
+        for (x = 0; x < m->w; x++) {
+            rk_color_t c = rk_mono_get(m, x, y) ? RK_RGB(255, 186, 60)
+                                                : RK_RGB(26, 24, 22);
+            rk_fill_rect(fb, ox + x * esc, oy + y * esc, esc, esc, c);
+        }
+    }
+}
+
+static int do_caras(const char *path)
+{
+    enum { COLS = 2, PAD = 10, LAB = 12, ESC = 2 };
+    int cw = RK_OLED_W * ESC + PAD * 2;
+    int ch = RK_OLED_H * ESC + PAD + LAB;
+    int filas = (RK_MOOD_COUNT + COLS - 1) / COLS;
+    int wEtapas = PAD + RK_ETAPA_COUNT * (RK_OLED_W + 8);
+    int W = (COLS * cw > wEtapas) ? COLS * cw : wEtapas;
+    int H = filas * ch + PAD + ch;   /* una fila extra para las etapas */
+    rk_color_t *px = calloc((size_t)W * H, sizeof(rk_color_t));
+    uint8_t     buf[RK_OLED_BYTES];
+    rk_mono_t   m;
+    rk_fb_t     fb;
+    int i;
+
+    if (px == NULL) {
+        return 1;
+    }
+    rk_fb_init(&fb, px, W, H);
+    rk_fb_clear(&fb, RK_RGB(12, 14, 13));
+    rk_mono_init(&m, buf, RK_OLED_W, RK_OLED_H);
+
+    for (i = 0; i < RK_MOOD_COUNT; i++) {
+        int ox = (i % COLS) * cw + PAD;
+        int oy = (i / COLS) * ch + PAD + LAB;
+        rk_eyes_draw_stage(&m, (rk_mood_t)i, RK_ETAPA_JOVEN,
+                           1200u + (uint32_t)i * 311u);
+        volcar_oled(&fb, &m, ox, oy, ESC);
+        rk_text(&fb, ox, oy - LAB + 1, rk_mood_name((rk_mood_t)i),
+                RK_RGB(227, 165, 74), 1);
+    }
+
+    /* Última fila: la misma cara feliz en las cinco etapas de crecimiento,
+     * que es la forma de ver de un vistazo que el bicho madura. */
+    for (i = 0; i < RK_ETAPA_COUNT; i++) {
+        int ox = PAD + i * (RK_OLED_W + 8);
+        int oy = filas * ch + PAD + LAB;
+        rk_eyes_draw_stage(&m, RK_MOOD_HAPPY, (rk_stage_t)i, 1200u);
+        volcar_oled(&fb, &m, ox, oy, 1);
+        rk_text(&fb, ox, oy - LAB + 1, rk_stage_name((rk_stage_t)i),
+                RK_RGB(72, 214, 190), 1);
+    }
+
+    if (save_bmp(path, px, W, H) != 0) {
+        return 1;
+    }
+    printf("caras del Spore %dx%d -> %s\n", W, H, path);
+    free(px);
+    return 0;
+}
+
+static int do_gacha(const char *path)
+{
+    /* Una fila por rareza, una columna por momento de la ceremonia. */
+    static const uint32_t MOM[] = { 350u, 1200u, 2450u, 3200u, 4600u };
+    enum { COLS = 5, PAD = 6, LAB = 10 };
+    int NM = (int)(sizeof MOM / sizeof MOM[0]);
+    int cw = RK_CANVAS_W + PAD, chh = RK_CANVAS_H + PAD + LAB;
+    int W = COLS * cw + PAD, H = RK_RAR_COUNT * chh + PAD;
+    rk_color_t *sheet = calloc((size_t)W * H, sizeof(rk_color_t));
+    rk_color_t *cell  = calloc(RK_CANVAS_W * RK_CANVAS_H, sizeof(rk_color_t));
+    rk_fb_t sfb, cfb;
+    int r, k, x, y;
+    /* Un representante de cada rareza. */
+    static const char *EJEMPLO[RK_RAR_COUNT] = { "myco", "tuga", "orqui", "bonz" };
+
+    if (sheet == NULL || cell == NULL) {
+        return 1;
+    }
+    rk_fb_init(&sfb, sheet, W, H);
+    rk_fb_init(&cfb, cell, RK_CANVAS_W, RK_CANVAS_H);
+    rk_fb_clear(&sfb, RK_RGB(12, 14, 13));
+
+    for (r = 0; r < RK_RAR_COUNT; r++) {
+        const rk_companion_t *c = rk_companion_find(EJEMPLO[r]);
+        for (k = 0; k < NM && k < COLS; k++) {
+            int ox = PAD + k * cw, oy = PAD + r * chh + LAB;
+            rk_gacha_draw(&cfb, c, MOM[k]);
+            for (y = 0; y < RK_CANVAS_H; y++) {
+                for (x = 0; x < RK_CANVAS_W; x++) {
+                    rk_px(&sfb, ox + x, oy + y, cell[y * RK_CANVAS_W + x]);
+                }
+            }
+            rk_rect(&sfb, ox - 1, oy - 1, RK_CANVAS_W + 2, RK_CANVAS_H + 2,
+                    rk_rarity_color(rk_rarity_of(c)));
+            if (k == 0) {
+                rk_text(&sfb, ox, oy - LAB + 1, rk_rarity_name(rk_rarity_of(c)),
+                        rk_rarity_color(rk_rarity_of(c)), 1);
+            }
+        }
+    }
+
+    if (save_bmp(path, sheet, W, H) != 0) {
+        return 1;
+    }
+    printf("ceremonia %dx%d -> %s\n", W, H, path);
+    free(sheet);
+    free(cell);
+    return 0;
+}
+
 /* ------------------------------------------------------------- bench ----- */
 /* Mide el costo de renderizar. El número que importa no es el absoluto de
  * esta PC sino la proporción entre etapas: dice dónde conviene optimizar
@@ -449,6 +573,12 @@ int main(int argc, char **argv)
 {
     if (argc >= 3 && strcmp(argv[1], "--sheet") == 0) {
         return do_sheet(argv[2]);
+    }
+    if (argc >= 3 && strcmp(argv[1], "--caras") == 0) {
+        return do_caras(argv[2]);
+    }
+    if (argc >= 3 && strcmp(argv[1], "--gacha") == 0) {
+        return do_gacha(argv[2]);
     }
     if (argc >= 2 && strcmp(argv[1], "--bench") == 0) {
         return do_bench();

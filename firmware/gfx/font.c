@@ -79,6 +79,17 @@ static const char *find_glyph(char c)
     return NULL;
 }
 
+bool rk_glyph_pixel(char ch, int col, int row)
+{
+    const char *g;
+
+    if (col < 0 || col >= RK_GLYPH_W || row < 0 || row >= RK_GLYPH_H) {
+        return false;
+    }
+    g = find_glyph(ch);
+    return (g != NULL) && (g[row * RK_GLYPH_W + col] == '#');
+}
+
 int rk_text_w(const char *s, int scale)
 {
     int n = 0;

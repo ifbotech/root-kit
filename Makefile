@@ -5,11 +5,14 @@
 #   make hub      pruebas del Hub
 #   make sim      simulador de la Terminal
 #   make bench    medición del rasterizado
+#   make caras    hoja de contacto de la OLED del Spore
+#   make ceremonia  la apertura de capsula, por rareza
+#   make catalogo sincroniza el catalogo del Hub con el del firmware
 #   make serve    servidor de desarrollo del Hub
 #   make verify   lo que corre CI: pruebas + arte y referencias al día
 #   make clean
 
-.PHONY: all test firmware hub sim bench sheet golden art serve verify clean
+.PHONY: all test firmware hub sim bench sheet caras ceremonia golden art catalogo serve verify clean
 
 all: test
 
@@ -41,6 +44,15 @@ bench:
 sheet:
 	@$(MAKE) -C firmware --no-print-directory sheet
 
+caras:
+	@$(MAKE) -C firmware --no-print-directory caras
+
+ceremonia:
+	@$(MAKE) -C firmware --no-print-directory ceremonia
+
+catalogo:
+	@python3 tools/sync_catalog.py
+
 golden:
 	@$(MAKE) -C firmware --no-print-directory golden
 
@@ -56,6 +68,8 @@ serve:
 # semanas después con una captura vieja.
 verify: test
 	@echo
+	@echo "  verificando que el catalogo del Hub siga al firmware"
+	@python3 tools/sync_catalog.py --check
 	@echo "  verificando que el arte y las referencias esten al dia"
 	@python3 tools/gen_art.py > /dev/null
 	@$(MAKE) -C firmware --no-print-directory golden > /dev/null

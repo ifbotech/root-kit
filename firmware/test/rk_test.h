@@ -91,5 +91,7 @@ void suite_proto(void);
 void suite_spore(void);
 void suite_gfx(void);
 void suite_render(void);
+void suite_companion(void);
+void suite_eyes(void);
 
 #endif /* RK_TEST_H */

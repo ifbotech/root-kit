@@ -24,6 +24,13 @@ typedef struct {
 
     uint32_t lux_min;         /* iluminancia diurna deseable          */
     uint32_t lux_max;
+
+    /* Dificultad hortícola, de 0 a 100. Es un valor curado, no derivado:
+     * lo difícil que es una planta no sale de cuatro umbrales. Un cactus
+     * tiene el rango de humedad más angosto de la tabla y es de las más
+     * fáciles de mantener, porque perdona el olvido. De acá sale la rareza
+     * del simbionte, y por eso conviene que refleje el trabajo real. */
+    uint8_t  dificultad;
 } rk_species_t;
 
 extern const rk_species_t rk_species_table[];
