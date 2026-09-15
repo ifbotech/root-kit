@@ -3,16 +3,18 @@
 #   make test     todas las pruebas: firmware y Hub
 #   make firmware pruebas del firmware
 #   make hub      pruebas del Hub
-#   make sim      simulador de la Terminal
-#   make bench    medición del rasterizado
-#   make caras    hoja de contacto de la OLED del Spore
+#   make sim      el kit entero en una ventana: Prime + Minis
+#   make bench    medición del rasterizado en los dos paneles
+#   make sheet    hoja de contacto del Prime, todos los animos
+#   make minis    hoja de contacto del Mini, todos los animos
+#   make brotes   los 12 simbiontes en sus 5 etapas de crecimiento
 #   make ceremonia  la apertura de capsula, por rareza
 #   make catalogo sincroniza el catalogo del Hub con el del firmware
 #   make serve    servidor de desarrollo del Hub
 #   make verify   lo que corre CI: pruebas + arte y referencias al día
 #   make clean
 
-.PHONY: all test firmware hub sim bench sheet caras ceremonia golden art catalogo serve verify clean
+.PHONY: all test firmware hub sim bench sheet minis brotes ceremonia golden art catalogo serve verify clean
 
 all: test
 
@@ -44,8 +46,11 @@ bench:
 sheet:
 	@$(MAKE) -C firmware --no-print-directory sheet
 
-caras:
-	@$(MAKE) -C firmware --no-print-directory caras
+minis:
+	@$(MAKE) -C firmware --no-print-directory minis
+
+brotes:
+	@$(MAKE) -C firmware --no-print-directory brotes
 
 ceremonia:
 	@$(MAKE) -C firmware --no-print-directory ceremonia

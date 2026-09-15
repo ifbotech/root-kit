@@ -1,8 +1,8 @@
-/* proto.h — protocolo binario Spore <-> Terminal.
+/* proto.h — protocolo binario Mini <-> Prime.
  *
  * Cada byte que viaja es tiempo de radio encendida, y la radio es lo único
- * que consume de verdad en el Spore: una trama de 24 bytes contra un JSON de
- * 180 es, a grandes rasgos, un 15% menos de tiempo de transmisión por ciclo.
+ * que consume de verdad en un Mini: una trama de 26 bytes contra un JSON de
+ * 190 es, a grandes rasgos, un 15% menos de tiempo de transmisión por ciclo.
  * Por eso el formato es binario, fijo y sin campos opcionales.
  *
  * Decisiones que vale la pena no olvidar:
@@ -18,6 +18,23 @@
  *    mueve al simbionte a un estado equivocado.
  *  - El número de secuencia permite descartar duplicados y detectar pérdidas
  *    sin reloj compartido.
+ *
+ * QUÉ CAMBIÓ EN LA VERSIÓN 2, Y POR QUÉ
+ *
+ * La v1 asumía un nodo sin pantalla: mandaba números crudos y el ánimo lo
+ * decidía la Terminal. Desde que cada Mini tiene su propia pantalla eso no
+ * alcanza, porque el Mini tiene que saber qué cara poner aunque el Prime
+ * esté apagado. Así que:
+ *
+ *  - CONFIG creció de 18 a 32 bytes y ahora lleva los UMBRALES DE LA
+ *    ESPECIE, además del simbionte que le tocó y su etapa. Con eso el Mini
+ *    corre el mismo core/mood.c que el Prime y se dibuja solo. CONFIG viaja
+ *    en sentido Prime -> Mini, una sola vez al emparejar y cada vez que
+ *    cambia la especie, así que su tamaño no pesa en la batería.
+ *  - TELEMETRY creció de 24 a 26 bytes y ahora lleva el ÁNIMO YA RESUELTO.
+ *    El Prime no lo recalcula: lo muestra. Así no hay forma de que la cara
+ *    de la maceta y la del escritorio digan cosas distintas.
+ *  - HELLO lleva el ROL del nodo en un byte que antes era relleno.
  */
 #ifndef ROOTKIT_PROTO_H
 #define ROOTKIT_PROTO_H
@@ -27,26 +44,34 @@
 #include <stddef.h>
 
 #define RK_PROTO_MAGIC    0x52u   /* 'R' */
-#define RK_PROTO_VERSION  1u
+#define RK_PROTO_VERSION  2u
 
 #define RK_PKT_TELEMETRY  1u
 #define RK_PKT_HELLO      2u
-#define RK_PKT_CONFIG     3u      /* Terminal -> Spore */
+#define RK_PKT_CONFIG     3u      /* Prime -> Mini */
 
-#define RK_TELEMETRY_LEN  24
+#define RK_TELEMETRY_LEN  26
 #define RK_HELLO_LEN      18
-#define RK_CONFIG_LEN     18
-#define RK_PKT_MAX        24
+#define RK_CONFIG_LEN     32
+#define RK_PKT_MAX        32
 
 /* Mapa de bytes, por si hace falta leerlo desde otro lenguaje:
  *
- *   TELEMETRY (24)  0 magic | 1 ver | 2 tipo | 3 flags | 4..9 id
+ *   TELEMETRY (26)  0 magic | 1 ver | 2 tipo | 3 flags | 4..9 id
  *                  10 seq   | 12 soil% | 13 temp_dc | 15 rh%
- *                  16 lux   | 18 batt_mv | 20 soil_raw | 22 crc
+ *                  16 lux   | 18 batt_mv | 20 soil_raw | 22 estado
+ *                  23 etapa | 24 crc
  *   HELLO     (18)  0..9 cabecera | 10 hw | 11 fw_maj | 12 fw_min
- *                  13 boot_count | 15 relleno | 16 crc
- *   CONFIG    (18)  0..9 cabecera | 10 interval_s | 12 dry_raw
- *                  14 wet_raw | 16 crc
+ *                  13 boot_count | 15 rol | 16 crc
+ *   CONFIG    (32)  0..9 cabecera | 10 interval_s | 12 dry_raw | 14 wet_raw
+ *                  16 soil_min | 17 soil_max | 18 temp_min_dc
+ *                  20 temp_max_dc | 22 rh_min | 23 comp_idx | 24 etapa
+ *                  25 lux_min | 27 lux_max | 29 cfg_flags | 30 crc
+ *
+ * El byte `estado` empaqueta ánimo y severidad: los cuatro bits bajos son el
+ * rk_mood_t (once valores, entran de sobra) y los bits 4-5 la severidad.
+ * Empaquetar en vez de gastar dos bytes no es microoptimización caprichosa:
+ * la trama tiene que seguir entrando en un paquete ESP-NOW corto.
  */
 
 /* Banderas de la trama de telemetría. */
@@ -55,8 +80,13 @@
 #define RK_FLAG_CALIBRATED 0x04u
 #define RK_FLAG_SOIL_FAULT 0x08u  /* lectura fuera de rango físico  */
 
+/* Empaquetado del byte de estado. */
+#define RK_ESTADO_MOOD(b)  ((uint8_t)((b) & 0x0Fu))
+#define RK_ESTADO_SEV(b)   ((uint8_t)(((b) >> 4) & 0x03u))
+#define RK_ESTADO(m, s)    ((uint8_t)(((m) & 0x0Fu) | (((s) & 0x03u) << 4)))
+
 typedef struct {
-    uint8_t  id[6];      /* derivado de la MAC, identifica al Spore     */
+    uint8_t  id[6];      /* derivado de la MAC, identifica al nodo      */
     uint16_t seq;
     uint8_t  flags;
     uint8_t  soil_pct;
@@ -64,7 +94,10 @@ typedef struct {
     uint8_t  rh_pct;
     uint32_t lux;
     uint16_t batt_mv;
-    uint16_t soil_raw;   /* ADC crudo: permite recalibrar sin ir al maceta */
+    uint16_t soil_raw;   /* ADC crudo: permite recalibrar sin ir a la maceta */
+    uint8_t  mood;       /* rk_mood_t, evaluado en el propio nodo        */
+    uint8_t  severity;   /* rk_severity_t                                */
+    uint8_t  etapa;      /* rk_stage_t: el nodo lleva su propio vínculo  */
 } rk_telemetry_pkt_t;
 
 typedef struct {
@@ -73,6 +106,7 @@ typedef struct {
     uint8_t  fw_major;
     uint8_t  fw_minor;
     uint16_t boot_count;
+    uint8_t  role;       /* rk_role_t: 0 Prime, 1 Mini                   */
 } rk_hello_pkt_t;
 
 typedef struct {
@@ -81,6 +115,19 @@ typedef struct {
     uint16_t soil_dry_raw;  /* calibración: lectura en aire              */
     uint16_t soil_wet_raw;  /* calibración: lectura sumergido            */
     uint8_t  flags;
+
+    /* Umbrales de la especie: con esto el Mini evalúa su propio ánimo. */
+    uint8_t  soil_min;
+    uint8_t  soil_max;
+    int16_t  temp_min_dc;
+    int16_t  temp_max_dc;
+    uint8_t  rh_min;
+    uint32_t lux_min;
+    uint32_t lux_max;
+
+    /* Quién habita esta maceta y en qué etapa está. */
+    uint8_t  comp_idx;      /* índice en rk_companion_table, 0xFF = ninguno */
+    uint8_t  etapa;
 } rk_config_pkt_t;
 
 typedef enum {

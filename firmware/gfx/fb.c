@@ -262,6 +262,108 @@ void rk_blit_solid(rk_fb_t *fb, const rk_sprite_t *s, int x, int y, rk_color_t c
     }
 }
 
+/* ---------------------------------------------------- blit escalado ----- */
+/* El escalado por enteros es la única forma en que el arte llega a pantalla,
+ * así que vale la pena que no sea rk_px en un doble bucle. Se calcula el
+ * recorte en coordenadas del SPRITE, y después cada pixel de arte se escribe
+ * como una fila de `scale` colores que se replica `scale` veces con memcpy.
+ * Sobre el adulto a 2x eso son 6.912 iteraciones en vez de 27.648 llamadas. */
+static bool blit_clip_scaled(const rk_fb_t *fb, const rk_sprite_t *s,
+                             int x, int y, int scale, clip_t *c)
+{
+    if (fb == NULL || s == NULL || s->idx == NULL || s->pal == NULL ||
+        scale <= 0) {
+        return false;
+    }
+    /* División hacia arriba en los bordes negativos: el primer pixel de arte
+     * visible es el que tiene al menos una columna dentro del framebuffer. */
+    c->sx0 = (x < 0) ? (-x) / scale : 0;
+    c->sy0 = (y < 0) ? (-y) / scale : 0;
+    c->sx1 = (x + (int)s->w * scale > fb->w)
+             ? (fb->w - x + scale - 1) / scale : (int)s->w;
+    c->sy1 = (y + (int)s->h * scale > fb->h)
+             ? (fb->h - y + scale - 1) / scale : (int)s->h;
+    if (c->sx1 > (int)s->w) { c->sx1 = (int)s->w; }
+    if (c->sy1 > (int)s->h) { c->sy1 = (int)s->h; }
+    return (c->sx0 < c->sx1) && (c->sy0 < c->sy1);
+}
+
+/* Pinta un bloque de scale x scale recortado contra el framebuffer. */
+static void bloque(rk_fb_t *fb, int px, int py, int scale, rk_color_t c)
+{
+    int x0 = px < 0 ? 0 : px;
+    int y0 = py < 0 ? 0 : py;
+    int x1 = px + scale > fb->w ? fb->w : px + scale;
+    int y1 = py + scale > fb->h ? fb->h : py + scale;
+    int i, j;
+
+    for (j = y0; j < y1; j++) {
+        rk_color_t *dst = &fb->px[(size_t)j * fb->w + x0];
+        for (i = x0; i < x1; i++) {
+            *dst++ = c;
+        }
+    }
+}
+
+void rk_blit_scaled(rk_fb_t *fb, const rk_sprite_t *s, int x, int y, int scale)
+{
+    clip_t c;
+    int i, j;
+
+    if (scale <= 1) {
+        rk_blit(fb, s, x, y);
+        return;
+    }
+    if (!blit_clip_scaled(fb, s, x, y, scale, &c)) {
+        return;
+    }
+    for (j = c.sy0; j < c.sy1; j++) {
+        const uint8_t *src = &s->idx[(size_t)j * s->w + c.sx0];
+        for (i = c.sx0; i < c.sx1; i++) {
+            uint8_t v = *src++;
+            if (v != 0u) {
+                bloque(fb, x + i * scale, y + j * scale, scale, s->pal[v]);
+            }
+        }
+    }
+}
+
+void rk_blit_scaled_tint(rk_fb_t *fb, const rk_sprite_t *s, int x, int y,
+                         int scale, rk_color_t tint, uint8_t amount)
+{
+    clip_t     c;
+    rk_color_t cache[256];
+    bool       hecho[256];
+    int        i, j;
+
+    if (amount == 0u) {
+        rk_blit_scaled(fb, s, x, y, scale);
+        return;
+    }
+    if (scale <= 1) {
+        rk_blit_tint(fb, s, x, y, tint, amount);
+        return;
+    }
+    if (!blit_clip_scaled(fb, s, x, y, scale, &c)) {
+        return;
+    }
+    memset(hecho, 0, sizeof hecho);
+
+    for (j = c.sy0; j < c.sy1; j++) {
+        const uint8_t *src = &s->idx[(size_t)j * s->w + c.sx0];
+        for (i = c.sx0; i < c.sx1; i++) {
+            uint8_t v = *src++;
+            if (v != 0u) {
+                if (!hecho[v]) {
+                    cache[v] = rk_mix(s->pal[v], tint, amount);
+                    hecho[v] = true;
+                }
+                bloque(fb, x + i * scale, y + j * scale, scale, cache[v]);
+            }
+        }
+    }
+}
+
 static const int8_t SIN64[64] = {
        0,   12,   25,   37,   49,   60,   71,   81,
       90,   98,  106,  112,  117,  122,  125,  126,

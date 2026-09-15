@@ -1,7 +1,7 @@
 #include "rk_test.h"
-#include "../spore/soil.h"
-#include "../spore/power.h"
-#include "../spore/sampler.h"
+#include "../nodo/soil.h"
+#include "../nodo/power.h"
+#include "../nodo/sampler.h"
 #include "../gfx/fb.h"   /* rk_sin8, para el dia simulado */
 
 /* ------------------------------------------------------------- suelo ----- */
@@ -283,9 +283,9 @@ static void test_sampler_una_semana(void)
                tx_adaptativo >= 7u * 12u);
 }
 
-void suite_spore(void)
+void suite_nodo(void)
 {
-    RK_SUITE("spore");
+    RK_SUITE("nodo");
     test_soil_calibracion();
     test_soil_conversion();
     test_soil_fallas();

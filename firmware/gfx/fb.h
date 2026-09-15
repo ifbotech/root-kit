@@ -2,29 +2,24 @@
  *
  * Por qué un renderer propio y no LVGL:
  *
- *   1. El AXS15231B de la Guition no soporta refresco parcial, así que hay
- *      que reenviar el cuadro entero siempre. La principal optimización de
- *      LVGL — redibujar sólo los rectángulos sucios — no sirve de nada acá.
+ *   1. El pixel art necesita escalado por enteros con vecino más cercano.
+ *      LVGL escala pensando en suavizado, que es justo lo que no queremos.
  *   2. Un buffer RGB565 plano es exactamente lo que espera
  *      esp_lcd_panel_draw_bitmap(). El mismo código que corre en el
- *      simulador corre en la Terminal sin capa intermedia.
- *   3. El pixel art necesita escalado por enteros con vecino más cercano.
- *      LVGL escala pensando en suavizado, que es justo lo que no queremos.
+ *      simulador corre en el Prime y en cada Mini sin capa intermedia.
+ *   3. El sistema tiene DOS paneles de tamaños distintos —240x320 y
+ *      128x128— y LVGL pesa lo mismo en los dos. Acá el Mini paga
+ *      exactamente las primitivas que usa.
  *
- * Trabajamos en un lienzo lógico de 160x240 y lo presentamos a 320x480:
- * exactamente 2x, así que cada pixel del arte son cuatro de pantalla, sin
- * interpolación. En el simulador el escalado lo hace SDL; en la Terminal
- * se hace al vuelo mientras se empuja el cuadro por QSPI.
+ * Ninguna función de este archivo sabe de qué panel se trata: todas
+ * trabajan sobre fb->w y fb->h. Los tamaños concretos viven en panel.h,
+ * y por eso el mismo código de dibujo compone las dos pantallas.
  */
 #ifndef ROOTKIT_FB_H
 #define ROOTKIT_FB_H
 
 #include <stdint.h>
 #include <stdbool.h>
-
-#define RK_CANVAS_W  160
-#define RK_CANVAS_H  240
-#define RK_SCALE       2   /* 160x240 -> 320x480 */
 
 typedef uint16_t rk_color_t;   /* RGB565, el formato nativo del panel */
 
@@ -82,5 +77,15 @@ void rk_blit_tint(rk_fb_t *fb, const rk_sprite_t *s, int x, int y,
                   rk_color_t tint, uint8_t amount);
 /* Silueta sólida: útil para sombras y para el parpadeo de alerta. */
 void rk_blit_solid(rk_fb_t *fb, const rk_sprite_t *s, int x, int y, rk_color_t c);
+
+/* Blit escalado por enteros, vecino más cercano. Es la única forma en que
+ * el arte llega a pantalla: el adulto va a 2x en el Prime y el brote a 2x en
+ * el Mini, y en los dos casos un pixel de arte son cuatro de panel, exactos,
+ * sin interpolación. Con scale <= 1 delega en rk_blit. */
+void rk_blit_scaled(rk_fb_t *fb, const rk_sprite_t *s, int x, int y, int scale);
+/* Igual, pero tiñendo hacia `tint`. Es el que usa el rig del simbionte para
+ * ponerse azulado de frío o rojizo de calor sin duplicar arte. */
+void rk_blit_scaled_tint(rk_fb_t *fb, const rk_sprite_t *s, int x, int y,
+                         int scale, rk_color_t tint, uint8_t amount);
 
 #endif /* ROOTKIT_FB_H */

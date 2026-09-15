@@ -1,19 +1,48 @@
 /* model.mjs — lógica pura del Hub.
  *
  * Deliberadamente NO incluye evaluación de estados de ánimo: eso lo calcula
- * la Terminal en firmware/core/mood.c y llega ya resuelto. Dos
- * implementaciones de la misma regla terminan divergiendo, y el día que
- * divergen el usuario ve una cara en la pantalla y otra distinta en el
- * teléfono.
+ * cada nodo en firmware/core/mood.c y llega ya resuelto, primero al Prime y
+ * de ahí al Hub. Dos implementaciones de la misma regla terminan
+ * divergiendo, y el día que divergen el usuario ve una cara en la maceta,
+ * otra en el Prime y otra en el teléfono.
  *
  * Acá va lo que sí es responsabilidad de la vista: formatear, validar
- * entradas antes de mandarlas, y decidir el orden en que se muestran las
- * plantas.
+ * entradas antes de mandarlas, y decidir el orden en que se muestran los
+ * nodos del kit.
  */
 
 /* Severidades, de más a menos urgente. El orden importa: es el que define
  * qué planta va primero en la lista. */
 export const SEVERIDADES = ['URGENT', 'WATCH', 'OK'];
+
+/* Un kit es un Prime enchufado y hasta cinco Minis a batería. */
+export const ROLES = ['PRIME', 'MINI'];
+
+export const ROL_ES = { PRIME: 'Prime', MINI: 'Mini' };
+
+/* Salud del enlace, tal como la calcula firmware/core/node.c. El Hub la
+ * muestra, no la deduce: el umbral vive en un solo lugar. */
+export const LINK_ES = {
+  NUNCA: 'sin enlazar',
+  VIVO: 'en línea',
+  TIBIO: 'demorado',
+  CAIDO: 'sin señal',
+};
+
+/* Las cinco etapas del vínculo, en el mismo orden que rk_stage_t. */
+export const ETAPAS = ['ESPORA', 'BROTE', 'JOVEN', 'MADURO', 'ANCESTRAL'];
+
+export const ETAPA_ES = {
+  ESPORA: 'espora',
+  BROTE: 'brote',
+  JOVEN: 'joven',
+  MADURO: 'maduro',
+  ANCESTRAL: 'ancestral',
+};
+
+/* Días sanos que pide cada etapa. Espejo de STAGE_DIAS en
+ * firmware/core/companion.c, y hay un test que verifica que no se separen. */
+export const ETAPA_DIAS = [0, 7, 30, 90, 180];
 
 export const MOOD_ES = {
   UNKNOWN: 'sin datos',
@@ -78,20 +107,59 @@ export function battPct(mv) {
 /**
  * Orden de la lista: primero lo que reclama atención, y dentro de cada
  * severidad por nombre, para que la lista no baile entre recargas.
+ *
+ * El rol NO entra en el orden. Es tentador poner al Prime siempre arriba
+ * porque es "el principal", pero el Hub se abre para saber qué planta
+ * necesita algo, y una maceta con sed importa lo mismo esté donde esté el
+ * enchufe. El rol se muestra como etiqueta, no como jerarquía.
  */
-export function ordenarPlantas(plants) {
+export function ordenarNodos(nodes) {
   const rank = (p) => {
     const i = SEVERIDADES.indexOf(p.severity);
     return i < 0 ? SEVERIDADES.length : i;
   };
-  return [...(plants || [])].sort(
+  return [...(nodes || [])].sort(
     (a, b) => rank(a) - rank(b) || String(a.nombre).localeCompare(String(b.nombre)),
   );
 }
 
-/** Cuántas plantas necesitan algo. Es el número del encabezado. */
-export function contarAlertas(plants) {
-  return (plants || []).filter((p) => p.severity === 'URGENT' || p.severity === 'WATCH').length;
+/** Cuántos nodos necesitan algo. Es el número del encabezado. */
+export function contarAlertas(nodes) {
+  return (nodes || []).filter((p) => p.severity === 'URGENT' || p.severity === 'WATCH').length;
+}
+
+/**
+ * Etapa del vínculo a partir de los días sanos. Misma escalera que
+ * rk_stage_from_bond: el Hub la recalcula en vez de pedirla porque es una
+ * tabla de cinco números que no puede divergir, y así la barra de progreso
+ * se dibuja sin un viaje más.
+ */
+export function etapaDe(diasSanos) {
+  const d = Number.isFinite(diasSanos) ? diasSanos : 0;
+  let i = 0;
+  while (i + 1 < ETAPA_DIAS.length && d >= ETAPA_DIAS[i + 1]) i += 1;
+  return ETAPAS[i];
+}
+
+/** Progreso hacia la próxima etapa, de 0 a 100. 100 en la última. */
+export function progresoEtapa(diasSanos) {
+  const d = Number.isFinite(diasSanos) ? Math.max(0, diasSanos) : 0;
+  const i = ETAPAS.indexOf(etapaDe(d));
+  if (i >= ETAPAS.length - 1) return 100;
+  const desde = ETAPA_DIAS[i];
+  const hasta = ETAPA_DIAS[i + 1];
+  return Math.min(100, Math.round(((d - desde) * 100) / (hasta - desde)));
+}
+
+/**
+ * Sólo los Minis van a batería: el Prime está enchufado. Devolver null y no
+ * 100% es deliberado — la interfaz tiene que poder dibujar un enchufe en vez
+ * de una pila llena, que dice algo distinto.
+ */
+export function bateriaDe(nodo) {
+  if (!nodo || nodo.role === 'PRIME') return null;
+  if (Number.isFinite(nodo?.batt_pct)) return nodo.batt_pct;
+  return battPct(nodo?.tel?.batt_mv);
 }
 
 /**

@@ -3,7 +3,7 @@
 
 /* ------------------------------------------------------------- CRC16 ----- */
 /* CRC16-CCITT (polinomio 0x1021, inicial 0xFFFF). Implementación por bits:
- * son 24 bytes por trama y unos pocos ciclos por byte, así que no justifica
+ * son 32 bytes por trama como máximo y unos pocos ciclos por byte, así que no justifica
  * los 512 bytes de flash de una tabla. */
 uint16_t rk_crc16(const uint8_t *data, size_t len)
 {
@@ -122,9 +122,11 @@ int rk_proto_encode_telemetry(uint8_t *buf, size_t cap,
     put_u16(&buf[n], rk_lux_encode(p->lux));        n += 2;   /* 16 */
     put_u16(&buf[n], p->batt_mv);                   n += 2;   /* 18 */
     put_u16(&buf[n], p->soil_raw);                  n += 2;   /* 20 */
-    put_u16(&buf[n], rk_crc16(buf, (size_t)n));     n += 2;   /* 22 */
+    buf[n++] = RK_ESTADO(p->mood, p->severity);               /* 22 */
+    buf[n++] = p->etapa;                                      /* 23 */
+    put_u16(&buf[n], rk_crc16(buf, (size_t)n));     n += 2;   /* 24 */
 
-    return n;   /* 24 */
+    return n;   /* 26 */
 }
 
 int rk_proto_decode_telemetry(const uint8_t *buf, size_t len,
@@ -152,6 +154,9 @@ int rk_proto_decode_telemetry(const uint8_t *buf, size_t len,
     out->lux      = rk_lux_decode(get_u16(&buf[16]));
     out->batt_mv  = get_u16(&buf[18]);
     out->soil_raw = get_u16(&buf[20]);
+    out->mood     = RK_ESTADO_MOOD(buf[22]);
+    out->severity = RK_ESTADO_SEV(buf[22]);
+    out->etapa    = buf[23];
     return RK_PROTO_OK;
 }
 
@@ -171,7 +176,7 @@ int rk_proto_encode_hello(uint8_t *buf, size_t cap, const rk_hello_pkt_t *p)
     buf[n++] = p->fw_major;                                   /* 11 */
     buf[n++] = p->fw_minor;                                   /* 12 */
     put_u16(&buf[n], p->boot_count);                n += 2;   /* 13 */
-    buf[n++] = 0;                                             /* 15 relleno */
+    buf[n++] = p->role;                                       /* 15 */
     put_u16(&buf[n], rk_crc16(buf, (size_t)n));     n += 2;   /* 16 */
     return n;   /* 18 */
 }
@@ -195,16 +200,32 @@ int rk_proto_decode_hello(const uint8_t *buf, size_t len, rk_hello_pkt_t *out)
     out->fw_major   = buf[11];
     out->fw_minor   = buf[12];
     out->boot_count = get_u16(&buf[13]);
+    out->role       = buf[15];
     return RK_PROTO_OK;
 }
 
 /* ---------------------------------------------------------------- config - */
-/* Layout (18 bytes):
+/* Layout (32 bytes):
  *   0..9  cabecera con id y flags
  *  10..11 interval_s
  *  12..13 soil_dry_raw
  *  14..15 soil_wet_raw
- *  16..17 crc
+ *  16     soil_min
+ *  17     soil_max
+ *  18..19 temp_min_dc
+ *  20..21 temp_max_dc
+ *  22     rh_min
+ *  23     comp_idx        (0xFF: todavía sin simbionte asignado)
+ *  24     etapa
+ *  25..26 lux_min         (codificado con la misma mantisa+exponente)
+ *  27..28 lux_max
+ *  29     reservado
+ *  30..31 crc
+ *
+ * Los dos límites de luz se codifican con rk_lux_encode en vez de ir en 32
+ * bits crudos: el códec ya existe, ya está testeado, y con 12 bits de
+ * mantisa el error relativo arriba de 4.095 lux es menor al 0,03%, muy por
+ * debajo de la tolerancia del propio BH1750.
  */
 int rk_proto_encode_config(uint8_t *buf, size_t cap, const rk_config_pkt_t *p)
 {
@@ -221,8 +242,18 @@ int rk_proto_encode_config(uint8_t *buf, size_t cap, const rk_config_pkt_t *p)
     put_u16(&buf[n], p->interval_s);                n += 2;   /* 10 */
     put_u16(&buf[n], p->soil_dry_raw);              n += 2;   /* 12 */
     put_u16(&buf[n], p->soil_wet_raw);              n += 2;   /* 14 */
-    put_u16(&buf[n], rk_crc16(buf, (size_t)n));     n += 2;   /* 16 */
-    return n;   /* 18 */
+    buf[n++] = p->soil_min;                                   /* 16 */
+    buf[n++] = p->soil_max;                                   /* 17 */
+    put_u16(&buf[n], (uint16_t)p->temp_min_dc);     n += 2;   /* 18 */
+    put_u16(&buf[n], (uint16_t)p->temp_max_dc);     n += 2;   /* 20 */
+    buf[n++] = p->rh_min;                                     /* 22 */
+    buf[n++] = p->comp_idx;                                   /* 23 */
+    buf[n++] = p->etapa;                                      /* 24 */
+    put_u16(&buf[n], rk_lux_encode(p->lux_min));    n += 2;   /* 25 */
+    put_u16(&buf[n], rk_lux_encode(p->lux_max));    n += 2;   /* 27 */
+    buf[n++] = 0;                                             /* 29 reservado */
+    put_u16(&buf[n], rk_crc16(buf, (size_t)n));     n += 2;   /* 30 */
+    return n;   /* 32 */
 }
 
 int rk_proto_decode_config(const uint8_t *buf, size_t len,
@@ -245,6 +276,15 @@ int rk_proto_decode_config(const uint8_t *buf, size_t len,
     out->interval_s   = get_u16(&buf[10]);
     out->soil_dry_raw = get_u16(&buf[12]);
     out->soil_wet_raw = get_u16(&buf[14]);
+    out->soil_min     = buf[16];
+    out->soil_max     = buf[17];
+    out->temp_min_dc  = (int16_t)get_u16(&buf[18]);
+    out->temp_max_dc  = (int16_t)get_u16(&buf[20]);
+    out->rh_min       = buf[22];
+    out->comp_idx     = buf[23];
+    out->etapa        = buf[24];
+    out->lux_min      = rk_lux_decode(get_u16(&buf[25]));
+    out->lux_max      = rk_lux_decode(get_u16(&buf[27]));
     return RK_PROTO_OK;
 }
 
@@ -257,7 +297,7 @@ int rk_proto_peek_type(const uint8_t *buf, size_t len)
 bool rk_seq_is_new(uint16_t last, uint16_t seq)
 {
     /* Diferencia con signo en 16 bits: positiva significa futuro. Esto
-     * sobrevive al envolvimiento, que con un Spore que manda cada 15 minutos
+     * sobrevive al envolvimiento, que con un Mini que manda cada 15 minutos
      * ocurre cada dos años largos, pero también tras un reinicio del contador. */
     int16_t delta = (int16_t)((uint16_t)(seq - last));
     return delta > 0;

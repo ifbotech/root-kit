@@ -11,7 +11,7 @@
 
 #define RK_GLYPH_W  5
 #define RK_GLYPH_H  7
-#define RK_TRACK    1   /* separación entre glifos, en pixeles lógicos */
+#define RK_TRACK    1   /* separación entre glifos, antes de escalar */
 
 /* Dibuja el texto y devuelve el ancho consumido. Las minúsculas se
  * convierten a mayúsculas; los caracteres desconocidos se saltean. */
@@ -29,10 +29,9 @@ int rk_text_center(rk_fb_t *fb, int cx, int y, const char *s,
 int rk_text_shadow(rk_fb_t *fb, int x, int y, const char *s,
                    rk_color_t c, rk_color_t shadow, int scale);
 
-/* ¿Está encendido el pixel (col, row) del glifo? Lo usa el framebuffer
- * monocromo del Spore, que no puede reutilizar rk_text porque escribe en un
- * formato de páginas distinto. Compartir los glifos evita mantener dos
- * tipografías que se desincronizan. */
+/* ¿Está encendido el pixel (col, row) del glifo? Se usa en los tests para
+ * verificar la tipografía sin pasar por un framebuffer, y deja la puerta
+ * abierta a cualquier destino que no sea RGB565. */
 bool rk_glyph_pixel(char ch, int col, int row);
 
 #endif /* ROOTKIT_FONT_H */

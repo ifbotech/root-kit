@@ -4,6 +4,7 @@
 #include "rk_test.h"
 #include "../core/companion.h"
 #include "../ui/gacha.h"
+#include "../gfx/panel.h"
 
 /* ------------------------------------------------------------- catalogo -- */
 static void test_catalogo(void)
@@ -229,14 +230,19 @@ static void test_ceremonia(void)
      * no debe romper: la ceremonia corre justo después de una identificación
      * por IA, que es donde más cosas pueden fallar. */
     {
-        static rk_color_t px[RK_CANVAS_W * RK_CANVAS_H];
-        rk_fb_t fb;
+        static rk_color_t pp[RK_PRIME_PX];
+        static rk_color_t pm[RK_MINI_PX];
+        rk_fb_t fp, fm;
         uint32_t t;
-        rk_fb_init(&fb, px, RK_CANVAS_W, RK_CANVAS_H);
+        rk_fb_init(&fp, pp, RK_PRIME_W, RK_PRIME_H);
+        rk_fb_init(&fm, pm, RK_MINI_W, RK_MINI_H);
         rk_gacha_draw(NULL, NULL, 0u);
         for (t = 0u; t < 7000u; t += 97u) {
-            rk_gacha_draw(&fb, NULL, t);
-            rk_gacha_draw(&fb, rk_companion_find("bonz"), t);
+            rk_gacha_draw(&fp, NULL, t);
+            rk_gacha_draw(&fp, rk_companion_find("bonz"), t);
+            /* La ceremonia tambien tiene que entrar en el Mini: el brote de
+             * una maceta nueva se revela ahi si el Prime esta ocupado. */
+            rk_gacha_draw(&fm, rk_companion_find("bonz"), t);
         }
         CHECK_TRUE("la ceremonia completa se dibuja sin romper", true);
     }

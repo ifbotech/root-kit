@@ -1,12 +1,14 @@
 /* app.js — el Hub.
  *
- * Vanilla, sin build: la Terminal sirve estos archivos tal cual desde la SD,
+ * Vanilla, sin build: el Prime sirve estos archivos tal cual desde la SD,
  * así que cualquier paso de compilación sería un paso más que puede fallar a
  * 8.000 km del único que sabe arreglarlo.
  */
 import {
-  MOOD_ES, formatTemp, formatLux, formatEdad, battPct,
-  ordenarPlantas, contarAlertas, posicionEnRango,
+  MOOD_ES, ROL_ES, LINK_ES, ETAPA_ES,
+  formatTemp, formatLux, formatEdad,
+  ordenarNodos, contarAlertas, posicionEnRango,
+  etapaDe, progresoEtapa, bateriaDe,
   validarAlta, interpretarIdentificacion,
 } from './lib/model.mjs';
 
@@ -37,17 +39,22 @@ function avisar(texto, esError = false) {
   avisar._t = setTimeout(() => { el.hidden = true; }, 4000);
 }
 
-/* ---------------------------------------------------------- plantas ------ */
+/* ------------------------------------------------------------ nodos ------ */
 function tarjeta(p) {
   const li = document.createElement('li');
   li.className = `tarjeta sev-${(p.severity || 'OK').toLowerCase()}`;
 
   const esp = especies.find((e) => e.id === p.especie);
   const suelo = esp ? posicionEnRango(p.tel.soil_pct, esp.soil_min, esp.soil_max) : null;
+  const sanos = p.bond?.dias_sanos ?? 0;
+  const etapa = etapaDe(sanos);
+  const avance = progresoEtapa(sanos);
+  const bat = bateriaDe(p);
 
   li.innerHTML = `
     <div class="cab">
       <strong>${escapar(p.nombre)}</strong>
+      <span class="rol rol-${(p.role || 'MINI').toLowerCase()}">${escapar(ROL_ES[p.role] || p.role)}</span>
       <span class="chip">${escapar(MOOD_ES[p.mood] || p.mood)}</span>
     </div>
     <p class="dice">«${escapar(p.reason || '')}»</p>
@@ -61,10 +68,14 @@ function tarjeta(p) {
       <div class="barra-rango" title="posición dentro del rango cómodo">
         <span style="left:${(suelo * 100).toFixed(1)}%"></span>
       </div>`}
+    <div class="vinculo" title="${sanos} días sanos acumulados">
+      <span class="etapa">${escapar(ETAPA_ES[etapa] || etapa)}</span>
+      <span class="avance"><i style="width:${avance}%"></i></span>
+    </div>
     <p class="pie">
-      ${p.spore
-        ? `Spore ${escapar(p.spore.id.slice(-4))} · batería ${p.spore.batt_pct ?? battPct(p.tel.batt_mv)}%`
-        : 'sin Spore asignado'}
+      ${p.nodo ? `${escapar(p.nodo.id.slice(-4))} · ` : 'sin enlazar · '}
+      ${escapar(LINK_ES[p.link] || '—')}
+      ${bat === null ? ' · enchufado' : ` · batería ${bat}%`}
     </p>`;
   return li;
 }
@@ -75,27 +86,27 @@ function escapar(s) {
   ));
 }
 
-function pintarPlantas(estado) {
+function pintarNodos(estado) {
   const lista = $('#lista');
-  const plantas = ordenarPlantas(estado.plants);
-  lista.replaceChildren(...plantas.map(tarjeta));
-  $('#vacio').hidden = plantas.length > 0;
+  const nodos = ordenarNodos(estado.nodes);
+  lista.replaceChildren(...nodos.map(tarjeta));
+  $('#vacio').hidden = nodos.length > 0;
 
-  const alertas = contarAlertas(plantas);
-  $('#resumen').textContent = plantas.length === 0
-    ? 'sin plantas registradas'
+  const alertas = contarAlertas(nodos);
+  $('#resumen').textContent = nodos.length === 0
+    ? 'sin macetas registradas'
     : alertas === 0
-      ? `${plantas.length} plantas, todas bien`
-      : `${alertas} de ${plantas.length} reclaman algo`;
+      ? `${nodos.length} macetas, todas bien`
+      : `${alertas} de ${nodos.length} reclaman algo`;
   $('#resumen').classList.toggle('alerta', alertas > 0);
 }
 
 async function refrescar() {
   try {
     ultimoEstado = await api('/api/state');
-    pintarPlantas(ultimoEstado);
+    pintarNodos(ultimoEstado);
   } catch (e) {
-    $('#resumen').textContent = 'sin conexión con la Terminal';
+    $('#resumen').textContent = 'sin conexión con el Prime';
     $('#resumen').classList.add('alerta');
   }
 }
@@ -109,15 +120,15 @@ function llenarEspecies() {
   );
 }
 
-async function llenarSpores() {
+async function llenarNodos() {
   try {
-    const libres = await api('/api/spores');
-    const sel = $('#spore');
+    const libres = await api('/api/nodos');
+    const sel = $('#nodo');
     sel.replaceChildren(
       new Option('— ninguno por ahora —', ''),
       ...libres.map((s) => new Option(`${s.id.slice(-4)} (visto ${formatEdad(s.visto_hace_s)})`, s.id)),
     );
-  } catch { /* sin Spores libres no pasa nada */ }
+  } catch { /* sin nodos libres no pasa nada */ }
 }
 
 async function identificar(archivo) {
@@ -161,7 +172,7 @@ async function enviarAlta(ev) {
   const datos = {
     nombre: $('#nombre').value,
     especie: $('#especie').value,
-    spore_id: $('#spore').value || undefined,
+    nodo_id: $('#nodo').value || undefined,
   };
 
   const v = validarAlta(datos, especies.map((e) => e.id));
@@ -171,14 +182,14 @@ async function enviarAlta(ev) {
   if (!v.ok) return;
 
   try {
-    const creada = await api('/api/plants', { method: 'POST', body: JSON.stringify(datos) });
+    const creada = await api('/api/nodes', { method: 'POST', body: JSON.stringify(datos) });
     avisar(creada.simbionte_nuevo
       ? `Listo. Se desbloqueó un simbionte nuevo para ${creada.nombre}.`
       : `Listo, ${creada.nombre} quedó registrada.`);
     $('#form-alta').reset();
     $('#previsualizacion').hidden = true;
     $('#ident').hidden = true;
-    await Promise.all([refrescar(), llenarSpores(), pintarColeccion()]);
+    await Promise.all([refrescar(), llenarNodos(), pintarColeccion()]);
     mostrarVista('plantas');
   } catch (e) {
     avisar(`No pude registrarla: ${e.message}`, true);
@@ -230,7 +241,7 @@ async function init() {
     especies = [];
   }
   llenarEspecies();
-  await Promise.all([refrescar(), llenarSpores(), pintarColeccion()]);
+  await Promise.all([refrescar(), llenarNodos(), pintarColeccion()]);
 
   setInterval(refrescar, REFRESCO_MS);
 

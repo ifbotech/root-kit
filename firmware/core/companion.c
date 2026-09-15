@@ -50,6 +50,27 @@ const rk_companion_t *rk_companion_find(const char *id)
     return NULL;
 }
 
+int rk_companion_index(const rk_companion_t *c)
+{
+    int i;
+
+    if (c == NULL) {
+        return -1;
+    }
+    for (i = 0; i < rk_companion_count; i++) {
+        if (&rk_companion_table[i] == c) {
+            return i;
+        }
+    }
+    /* Puede venir una copia y no un puntero a la tabla: se compara por id. */
+    for (i = 0; i < rk_companion_count; i++) {
+        if (strcmp(rk_companion_table[i].id, c->id) == 0) {
+            return i;
+        }
+    }
+    return -1;
+}
+
 const rk_companion_t *rk_companion_for_species(const char *especie)
 {
     int i;

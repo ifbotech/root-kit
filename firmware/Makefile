@@ -1,35 +1,38 @@
 # ROOTKIT — build del firmware, los tests y el simulador de escritorio.
 #
 #   make test     corre todas las suites (no necesita SDL ni hardware)
-#   make sim      simulador interactivo, ventana 320x480
-#   make sheet    hoja de contacto con todos los animos -> build/sheet.bmp
-#   make bench    mide el costo de renderizar un cuadro
+#   make sim      el kit entero en una ventana: Prime + Minis, en vivo
+#   make sheet    hoja de contacto del Prime  -> build/sheet.bmp
+#   make minis    hoja de contacto del Mini   -> build/minis.bmp
+#   make brotes   los 12 brotes x 5 etapas    -> build/brotes.bmp
+#   make ceremonia  la apertura por rareza    -> build/gacha.bmp
+#   make bench    mide el costo de renderizar un cuadro en los dos paneles
 #   make golden   regenera los hashes de referencia visual
 #   make art      regenera el arte desde tools/gen_art.py
 #   make clean
 #
-# En Windows: correr dentro de WSL. Ver docs/simulador-lvgl.md.
+# En Windows: correr dentro de WSL. Ver docs/entorno.md.
 
 CC      ?= cc
 CFLAGS  ?= -std=c99 -Wall -Wextra -Wpedantic -O2
 BUILD    = build
 
-CORE     = core/species.c core/mood.c core/companion.c
-GFX      = gfx/fb.c gfx/font.c gfx/mono.c
-ART      = art/tuga_data.c art/tuga.c art/eyes.c
-UI       = ui/screen.c ui/gacha.c
-NET      = net/proto.c
-SPORE    = spore/soil.c spore/power.c spore/sampler.c
+CORE     = core/species.c core/mood.c core/companion.c core/node.c
+GFX      = gfx/fb.c gfx/font.c gfx/panel.c
+ART      = art/sprites.c art/look.c art/adulto.c art/brote.c
+UI       = ui/prime.c ui/mini.c ui/gacha.c
+NET      = net/proto.c net/link.c
+NODO     = nodo/soil.c nodo/power.c nodo/sampler.c
 
 # Todo lo que no depende de SDL ni de una pantalla.
-LIB      = $(CORE) $(GFX) $(ART) $(UI) $(NET) $(SPORE)
+LIB      = $(CORE) $(GFX) $(ART) $(UI) $(NET) $(NODO)
 
 TESTSRC  = test/rk_test.c test/golden_util.c \
-           test/test_mood.c test/test_proto.c test/test_spore.c \
+           test/test_mood.c test/test_proto.c test/test_nodo.c \
            test/test_gfx.c test/test_render.c test/test_companion.c \
-           test/test_eyes.c test/main.c
+           test/test_mini.c test/test_link.c test/main.c
 
-HEADERS  = $(wildcard core/*.h gfx/*.h art/*.h ui/*.h net/*.h spore/*.h)
+HEADERS  = $(wildcard core/*.h gfx/*.h art/*.h ui/*.h net/*.h nodo/*.h)
 
 SDL_CFLAGS := $(shell pkg-config --cflags sdl2 2>/dev/null)
 SDL_LIBS   := $(shell pkg-config --libs   sdl2 2>/dev/null)
@@ -37,7 +40,7 @@ ifneq ($(strip $(SDL_LIBS)),)
   SDL_DEF = -DRK_WITH_SDL
 endif
 
-.PHONY: all test sim sheet caras ceremonia bench golden art clean
+.PHONY: all test sim sheet minis brotes ceremonia bench golden art clean
 
 all: test
 
@@ -73,9 +76,11 @@ $(BUILD)/rootkit_sim: $(LIB) sim/main.c $(HEADERS)
 sheet: $(BUILD)/rootkit_sim
 	@./$(BUILD)/rootkit_sim --sheet $(BUILD)/sheet.bmp
 
-# Hojas de contacto de las dos piezas nuevas: la cara del Spore y la ceremonia.
-caras: $(BUILD)/rootkit_sim
-	@./$(BUILD)/rootkit_sim --caras $(BUILD)/caras.bmp
+minis: $(BUILD)/rootkit_sim
+	@./$(BUILD)/rootkit_sim --minis $(BUILD)/minis.bmp
+
+brotes: $(BUILD)/rootkit_sim
+	@./$(BUILD)/rootkit_sim --brotes $(BUILD)/brotes.bmp
 
 ceremonia: $(BUILD)/rootkit_sim
 	@./$(BUILD)/rootkit_sim --gacha $(BUILD)/gacha.bmp

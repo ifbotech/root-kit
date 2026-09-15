@@ -88,10 +88,11 @@ int  rk_t_report(void);
 
 void suite_mood(void);
 void suite_proto(void);
-void suite_spore(void);
+void suite_nodo(void);
 void suite_gfx(void);
 void suite_render(void);
 void suite_companion(void);
-void suite_eyes(void);
+void suite_mini(void);
+void suite_link(void);
 
 #endif /* RK_TEST_H */

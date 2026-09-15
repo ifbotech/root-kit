@@ -17,7 +17,7 @@
 
 typedef enum {
     RK_MOOD_UNKNOWN = 0,   /* no hay planta asignada o faltan datos       */
-    RK_MOOD_OFFLINE,       /* el Spore dejó de reportar                   */
+    RK_MOOD_OFFLINE,       /* el nodo dejó de reportar                      */
     RK_MOOD_SLEEPING,      /* es de noche: no se juzga luz ni aire        */
     RK_MOOD_HAPPY,
     RK_MOOD_THIRSTY,       /* tierra seca                                 */

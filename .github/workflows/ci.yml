@@ -46,7 +46,8 @@ jobs:
       - name: El simulador compila y captura
         run: |
           make -C firmware build/rootkit_sim
-          ./firmware/build/rootkit_sim --sheet /tmp/sheet.bmp
-          ./firmware/build/rootkit_sim --caras /tmp/caras.bmp
-          ./firmware/build/rootkit_sim --gacha /tmp/gacha.bmp
+          ./firmware/build/rootkit_sim --sheet  /tmp/sheet.bmp
+          ./firmware/build/rootkit_sim --minis  /tmp/minis.bmp
+          ./firmware/build/rootkit_sim --brotes /tmp/brotes.bmp
+          ./firmware/build/rootkit_sim --gacha  /tmp/gacha.bmp
           ./firmware/build/rootkit_sim --bench

@@ -144,8 +144,11 @@ static void test_rechazos(void)
 static void test_hello_config(void)
 {
     uint8_t buf[RK_PKT_MAX];
-    rk_hello_pkt_t  h = { { 0 }, 2, 1, 4, 37 }, ho;
-    rk_config_pkt_t c = { { 0 }, 600, 2650, 1180, RK_FLAG_CALIBRATED }, co;
+    /* Inicializacion completa: los dos paquetes crecieron en la v2 y una
+     * lista corta dejaria los campos nuevos con basura de pila. */
+    rk_hello_pkt_t  h = { { 0 }, 2, 1, 4, 37, 1 }, ho;
+    rk_config_pkt_t c = { { 0 }, 600, 2650, 1180, RK_FLAG_CALIBRATED,
+                          30, 60, 150, 270, 55, 3000, 25000, 11, 2 }, co;
     int n;
 
     memcpy(h.id, ID, 6);

@@ -9,7 +9,7 @@
 #define HYST_RH_PCT       5
 #define HYST_LUX_DIV      5    /* 20 % */
 
-/* Telemetría más vieja que esto: damos el Spore por caído (tres ciclos). */
+/* Telemetría más vieja que esto: damos el nodo por caído (tres ciclos). */
 #define OFFLINE_S      5400u
 
 /* Cuánto hay que pasarse del umbral para que la alerta sea urgente. */
@@ -64,7 +64,7 @@ rk_verdict_t rk_mood_eval(rk_mood_state_t      *st,
     }
 
     if (!t->valid || t->age_s > OFFLINE_S) {
-        return mk(&v, st, RK_MOOD_OFFLINE, RK_SEV_WATCH, "el spore no responde");
+        return mk(&v, st, RK_MOOD_OFFLINE, RK_SEV_WATCH, "no llegan datos");
     }
 
     /* ---- Ciclo día / noche ------------------------------------------- */
@@ -178,7 +178,7 @@ const char *rk_mood_name(rk_mood_t m)
 const char *rk_mood_reason(rk_mood_t m)
 {
     switch (m) {
-    case RK_MOOD_OFFLINE:     return "el spore no responde";
+    case RK_MOOD_OFFLINE:     return "no llegan datos";
     case RK_MOOD_SLEEPING:    return "durmiendo";
     case RK_MOOD_HAPPY:       return "estoy perfecta";
     case RK_MOOD_THIRSTY:     return "tengo sed";

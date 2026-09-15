@@ -15,11 +15,12 @@ int main(void)
 
     suite_mood();
     suite_proto();
-    suite_spore();
+    suite_nodo();
     suite_gfx();
     suite_render();
     suite_companion();
-    suite_eyes();
+    suite_mini();
+    suite_link();
 
     return rk_t_report();
 }

@@ -39,8 +39,8 @@ typedef enum {
     RK_RAR_COUNT
 } rk_rarity_t;
 
-/* Etapas de crecimiento. El simbionte cambia de silueta y de tamaño en la
- * Terminal, y de expresión en la OLED del Spore. */
+/* Etapas de crecimiento. En el Prime el adulto cambia de porte y de aura;
+ * en el Mini el brote va sacando hojas alrededor. */
 typedef enum {
     RK_ETAPA_ESPORA = 0,   /*   0 días sanos */
     RK_ETAPA_BROTE,        /*   7 */
@@ -69,6 +69,11 @@ extern const rk_companion_t rk_companion_table[];
 extern const int            rk_companion_count;
 
 const rk_companion_t *rk_companion_find(const char *id);
+
+/* Posición en la tabla, o -1. El índice es la clave con la que el arte
+ * elige paleta y cuerpo del brote: tools/gen_art.py genera las doce paletas
+ * en ESTE orden, y hay un test que verifica que sigan alineadas. */
+int rk_companion_index(const rk_companion_t *c);
 
 /* El simbionte que revela una especie. Determinista y total: para cualquier
  * especie del catálogo devuelve siempre el mismo, y nunca NULL. */

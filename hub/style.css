@@ -135,3 +135,47 @@ input:focus-visible, select:focus-visible, button:focus-visible {
 .aviso.error { border-color: var(--crit); color: var(--crit); }
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+/* ------------------------------------------------- rol y vinculo --------- */
+/* El rol es una etiqueta, no una jerarquia: el Prime no va primero en la
+   lista, solo se identifica. Con varias macetas iguales en la casa, saber
+   cual es la enchufada es informacion util y nada mas que eso. */
+.rol {
+  font-size: .68rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: .12rem .4rem;
+  border-radius: 3px;
+  border: 1px solid currentColor;
+  opacity: .75;
+}
+.rol-prime { color: var(--acento, #48d6be); }
+.rol-mini  { color: var(--tenue, #8a9888); }
+
+/* La barra del vinculo: cuanto falta para la proxima etapa. Es el unico
+   elemento de la tarjeta que habla de tiempo y no de la planta. */
+.vinculo {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  margin: .35rem 0 .15rem;
+}
+.vinculo .etapa {
+  font-size: .7rem;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--tenue, #8a9888);
+  min-width: 5.5em;
+}
+.vinculo .avance {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, .09);
+  overflow: hidden;
+}
+.vinculo .avance i {
+  display: block;
+  height: 100%;
+  background: var(--acento, #48d6be);
+}

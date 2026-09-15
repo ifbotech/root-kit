@@ -3,9 +3,6 @@ firmware/build/
 *.o
 *.d
 
-# Simulador LVGL (se clona aparte, no se versiona)
-lv_port_pc_vscode/
-
 # ESP-IDF
 .pio/
 managed_components/
