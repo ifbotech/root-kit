@@ -21,12 +21,12 @@ Y el primer encendido, cuando el aparato se descubre la cara:
 |---|---|---|
 | **ROOTKIT** | Un aparato por maceta. Mide, evalúa su propia planta y muestra una cara. | ESP32-C3 + TFT 1,44" 128×128 IPS ST7735 SPI + capacitivo v2.0 + AHT21 + BH1750 + 18650. |
 | **Carcasa** | El personaje. Impresa en 3D, seis modelos. Es lo que se colecciona. | Filamento. El secreto va en translúcido. |
-| **App** | El tablero: lecturas, historial, alta con foto y la colección. | Ninguno. PWA. |
+| **App** | El tablero: tareas del día, lecturas, escáner y colección. Se instala desde el QR de la caja y abre a pantalla completa. | Ninguno. PWA sin build. |
 
 ## Empezar
 
 ```bash
-make test        # 920 comprobaciones: 862 de firmware, 58 de la app
+make test        # 956 comprobaciones: 862 de firmware, 94 de la app
 make sim         # los seis modelos en una ventana, animándose en vivo
 make serve       # app de desarrollo en http://localhost:8080
 make sheet       # los 6 modelos x 11 ánimos
@@ -56,13 +56,14 @@ firmware/
   test/    Siete suites y los hashes de regresión visual de las 66 caras.
 hub/
   lib/     Lógica pura, compartida entre la app y los tests.
-  test/    Formato, validación, vínculo, colección y contrato de la API.
+  vistas/  Una pantalla por archivo: hoy, plantas, escáner, colección.
+  test/    Tareas, diagnóstico, gamificación y contrato de la API.
   API.md   El contrato que el firmware tiene que implementar.
 tools/     Conversión de capturas y sincronía del catálogo.
 docs/      Arquitectura, decisiones, carcasas, pruebas y entorno.
 ```
 
-## Cinco ideas que explican casi todo el código
+## Seis ideas que explican casi todo el código
 
 **La variedad es física; la cara es digital.** Lo único que se diseña en
 pixeles es la cara. Lo que cambia entre modelos es la carcasa impresa. Imprimir
@@ -94,12 +95,19 @@ directamente no aplica. Lo que sí se gana con trabajo es **cómo se ve**: los
 días sanos desbloquean capas cosméticas, y un aparato desenchufado no acumula
 progreso gratis.
 
+**Una tarea es un verbo, no un estado.** "Regar la Monstera" es una tarea;
+"Monstera con sed" es un estado. Y cada tarea muestra el número que la
+justifica —"la tierra está al 22% y quiere entre 25 y 60"— porque sin el
+número la app pide fe. Las tareas además **se cierran solas**: si regás, el
+sensor lo ve y desaparecen sin tildar nada.
+
 ## Documentación
 
 - [Arquitectura](docs/arquitectura.md) — cómo encajan las piezas y por qué
 - [Decisiones](docs/decisiones.md) — qué se decidió, qué se descartó y **qué se
   revisó**
 - [Carcasas](docs/carcasas.md) — envolvente, tolerancias y brief de cada modelo
+- [La app](docs/app.md) — las cuatro pantallas, la instalación y el diagnóstico
 - [Pruebas](docs/testing.md) — qué cubre cada suite y qué **no**
 - [Contrato de la API](docs/../hub/API.md) — app ↔ aparato
 - [Entorno](docs/entorno.md) — WSL, SDL y el simulador
@@ -116,13 +124,15 @@ progreso gratis.
 - [x] Protocolo v2: umbrales de especie y carcasa hacia el aparato
 - [x] Simulador SDL que muestra los seis modelos animándose a la vez
 - [x] Núcleo del nodo: calibración, batería y muestreo adaptativo
-- [x] App: tablero, alta con foto, vínculo y colección de carcasas
-- [x] 920 pruebas automatizadas y regresión visual por hash
+- [x] App instalable: tareas del día, tablero, escáner, colección y niveles
+- [x] Diagnóstico por foto que cruza lo que se ve con lo que miden los sensores
+- [x] 956 pruebas automatizadas y regresión visual por hash
 - [x] CI en GitHub Actions
 - [ ] **Las seis carcasas modeladas** — ver [docs/carcasas.md](docs/carcasas.md)
 - [ ] Capa HAL del ESP32 (ADC, I2C, SPI, Wi-Fi)
 - [ ] Servidor HTTP que implemente `hub/API.md`
 - [ ] Persistencia en NVS
+- [ ] Decidir dónde vive la API: nube o concentrador local (ver docs/app.md)
 
 ## Lo primero cuando llegue el hardware
 

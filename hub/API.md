@@ -27,13 +27,28 @@ carcasas distintas, y la misma carcasa puede cuidar cualquier planta.
 impresas que salieron en la caja ciega, no personajes desbloqueados por
 software. La app registra lo que ya está en la casa.
 
-**Todo vive en la red local.** La PWA se sirve por HTTP en `rootkit.local`. No
-hay contenido mixto porque no hay HTTPS de por medio: si la app se sirviera
-desde internet, el navegador bloquearía sus pedidos a una IP privada.
+**Dónde se sirve esto todavía no está decidido, y el contrato no depende de
+eso.** Son las dos opciones, con la restricción que las separa:
 
-**La nube se toca una sola vez.** `POST /api/identify` es el único endpoint que
-sale a internet, y sólo cuando el usuario registra una planta. La clave de la
-API de visión nunca vive en la página.
+| | Local | Nube |
+|---|---|---|
+| Quién sirve | un concentrador en la casa | un backend |
+| La app se abre desde | `rootkit.local` por HTTP | una URL pública por HTTPS |
+| El QR de la caja | lleva a la IP local | lleva a la URL, y con eso alcanza |
+| Notificaciones push | no | sí |
+| Los datos salen de la casa | no | sí |
+
+**La restricción que decide:** una página servida por HTTPS desde internet
+**no puede** pedirle datos a una IP privada — el navegador lo bloquea y no hay
+forma limpia de esquivarlo. Así que si la app se hospeda afuera, los aparatos
+tienen que publicar hacia el backend, y no la app ir a buscarlos.
+
+Mientras tanto la app habla contra este contrato y `dev-server.mjs` lo
+implementa localmente, así que la decisión no bloquea nada.
+
+**La clave de la API de visión nunca vive en la página.** `POST /api/identify`
+y `POST /api/diagnose` son los dos únicos endpoints que salen a internet, y la
+clave queda del lado del servidor sea cual sea.
 
 ## Convenciones
 
@@ -132,6 +147,27 @@ Pedido: `{ "image_b64": "...", "mime": "image/jpeg" }`
 La confianza viaja siempre y la interfaz la muestra: una identificación de 0,41
 tiene que poder corregirse antes de guardar, porque de ahí salen los umbrales
 con los que se juzga la planta el resto de su vida.
+
+### `POST /api/diagnose`
+
+Diagnóstico por foto de una planta **ya registrada**.
+
+Pedido: `{ "image_b64": "...", "planta": "p1", "mime": "image/jpeg" }`
+
+```json
+{ "planta": "p1", "hallazgos": ["hojas_amarillas"], "confianza": 0.86 }
+```
+
+Devuelve **hallazgos visuales y nada más**: el modelo dice qué ve, no por qué.
+La causa sale de cruzar cada hallazgo con la telemetría, y eso lo hace la app
+en `lib/diagnostico.mjs`. Separarlo así es lo que permite testear el cruce sin
+una API de visión de por medio, y es donde está el valor: el mismo síntoma con
+distinta telemetría es un problema distinto.
+
+Los hallazgos son una lista cerrada: `sana`, `hojas_amarillas`,
+`puntas_marrones`, `manchas`, `caida`, `hojas_caidas`, `tallo_estirado`,
+`plagas`, `moho`. Lo que venga fuera de esa lista se ignora en vez de
+interpretarse.
 
 ### `POST /api/nodes`
 

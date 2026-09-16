@@ -28,7 +28,7 @@ jobs:
         run: make -C firmware CFLAGS="-std=c99 -Wall -Wextra -Wpedantic -Werror -O2" test
 
       - name: Pruebas del Hub
-        run: node --test hub/test/hub.test.mjs
+        run: node --test hub/test/hub.test.mjs hub/test/app.test.mjs
 
       - name: El catalogo de la app sigue al del firmware
         run: python3 tools/sync_catalog.py --check

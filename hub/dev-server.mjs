@@ -113,7 +113,7 @@ const MIME = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8',
   '.mjs': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8',
   '.json': 'application/json; charset=utf-8', '.webmanifest': 'application/manifest+json',
-  '.png': 'image/png', '.svg': 'image/svg+xml',
+  '.png': 'image/png', '.svg': 'image/svg+xml', '.ico': 'image/x-icon',
 };
 
 const json = (res, code, body) => {
@@ -176,6 +176,36 @@ export async function manejarApi(metodo, ruta, cuerpo) {
     const nuevo = !estado.tengo.includes(m.id);
     if (nuevo) estado.tengo.push(m.id);
     return [200, { ...m, tengo: true, nuevo }];
+  }
+
+  /* Diagnostico por foto de una planta YA registrada. Devuelve HALLAZGOS
+   * visuales y nada mas: la causa sale de cruzarlos con la telemetria, y eso
+   * lo hace lib/diagnostico.mjs. Separarlo asi es lo que permite testear el
+   * cruce sin una API de vision de por medio.
+   *
+   * En produccion esto llama al modelo de vision. Aca se devuelve algo
+   * estable y derivado del estado real de la planta, para poder desarrollar
+   * y testear la interfaz sin gastar llamadas. */
+  if (metodo === 'POST' && ruta === '/api/diagnose') {
+    if (!cuerpo || !cuerpo.image_b64) return [400, { error: 'falta image_b64' }];
+    const p = estado.nodes.find((x) => x.id === cuerpo.planta);
+    if (!p) return [404, { error: 'no existe esa maceta' }];
+
+    const esp = ESPECIES.find((e) => e.id === p.especie);
+    const hallazgos = [];
+    if (esp) {
+      if (p.tel.soil_pct > esp.soil_max) hallazgos.push('hojas_amarillas');
+      else if (p.tel.soil_pct < esp.soil_min) hallazgos.push('caida');
+      if (p.tel.rh_pct < esp.rh_min) hallazgos.push('puntas_marrones');
+      if (p.tel.lux < esp.lux_min) hallazgos.push('tallo_estirado');
+    }
+    /* Una de cada tres fotos encuentra algo que los sensores no ven. Es el
+     * caso interesante y tiene que aparecer en desarrollo, no solo en la
+     * vida real. */
+    if (String(cuerpo.image_b64).length % 3 === 0) hallazgos.push('manchas');
+    if (hallazgos.length === 0) hallazgos.push('sana');
+
+    return [200, { planta: p.id, hallazgos, confianza: 0.86 }];
   }
 
   if (metodo === 'POST' && ruta === '/api/identify') {

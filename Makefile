@@ -30,7 +30,7 @@ hub:
 	@echo "  ROOTKIT — Hub"
 	@echo "  ============="
 	@if command -v node > /dev/null 2>&1; then \
-	    node --test hub/test/hub.test.mjs; \
+	    node --test hub/test/hub.test.mjs hub/test/app.test.mjs; \
 	 else \
 	    echo "  node no esta en este entorno: corre 'make hub' desde Windows"; \
 	    echo "  (o instalalo en WSL con: sudo apt install nodejs)"; \

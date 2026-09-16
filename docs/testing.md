@@ -1,7 +1,7 @@
 # Pruebas
 
 ```bash
-make test        # todo: 862 comprobaciones de firmware + 58 de la app
+make test        # todo: 862 comprobaciones de firmware + 94 de la app
 make firmware    # sólo el firmware (no necesita SDL ni hardware)
 make hub         # sólo la app (necesita Node)
 make verify      # lo que corre CI, incluida la frescura del arte
@@ -22,7 +22,8 @@ de romper.
 | `cara` | 79 | Determinismo, aviso de batería, regresión visual de las 66 caras |
 | `modelos y caras` | 502 | Tabla de carcasas, la caja ciega, que los 6 y los 11 se distingan |
 | `kit y enlace` | 97 | Roster, salud del enlace, configuración, vuelta completa |
-| `app` | 58 | Formato, orden, validación, vínculo, colección, contrato de la API |
+| `app` (API) | 58 | Formato, orden, validación, vínculo, colección, contrato |
+| `app` (lógica) | 36 | Tareas del día, diagnóstico cruzado, gamificación |
 
 ## Las pruebas que valen más que su tamaño
 
@@ -84,6 +85,21 @@ desenchufarlo haga crecer el vínculo gratis.
 
 **Que el secreto no se liste hasta que sale.** Mostrarlo en gris ya le contaría
 al usuario que existe.
+
+**Que el mismo síntoma con distinta tierra dé causas distintas.** Hojas
+amarillas con la tierra encharcada, seca o en rango son tres problemas
+diferentes. Si las tres dieran lo mismo, la telemetría no estaría aportando
+nada al diagnóstico y la foto sería decoración.
+
+**Que marchita con la tierra mojada no se lea como sed.** Es el error más caro
+que puede cometer alguien que cuida plantas: ve la planta caída, la riega, y le
+termina de pudrir las raíces. El test exige que la acción diga "no riegues".
+
+**Que la XP no se pueda acelerar.** Un mes con tres plantas no puede dar el
+nivel máximo. Si se pudiera, el número mediría entusiasmo en vez de jardinería.
+
+**Que una tarea marcada como hecha vuelva si no se resolvió.** El tilde esconde
+la tarea dos horas; si la planta sigue seca después, reaparece.
 
 ## Regresión visual
 

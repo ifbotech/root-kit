@@ -1,26 +1,57 @@
-/* app.js — el Hub.
+/* app.js — el armazón: estado, ruteo, instalación y refresco.
  *
- * Vanilla, sin build: el Prime sirve estos archivos tal cual desde la SD,
- * así que cualquier paso de compilación sería un paso más que puede fallar a
- * 8.000 km del único que sabe arreglarlo.
+ * Sin build: ES modules directos. Desplegar es copiar la carpeta, `make serve`
+ * anda sin instalar nada y no hay un node_modules que se pudra. Ver
+ * lib/ui.mjs para el razonamiento completo.
+ *
+ * CÓMO SE INSTALA
+ *
+ * La caja trae un QR que abre esta página. Desde ahí, "agregar a la pantalla
+ * de inicio" la convierte en algo que abre a pantalla completa, sin barra de
+ * navegador y con su propio ícono. No hay tienda de por medio: ni cuota
+ * anual, ni revisión de actualizaciones, ni nadie mirando las mecánicas de
+ * colección contra las políticas de cajas de botín.
+ *
+ * Android dispara `beforeinstallprompt` y se puede ofrecer un botón. iOS no
+ * lo implementa y hay que explicarle al usuario dónde tocar, así que se
+ * detecta y se muestra la instrucción en vez del botón.
  */
-import {
-  MOOD_ES, LINK_ES, ETAPA_ES, RAREZA_ES,
-  formatTemp, formatLux, formatEdad,
-  ordenarNodos, contarAlertas, posicionEnRango,
-  etapaDe, progresoEtapa, bateriaDe,
-  progresoColeccion, ordenarColeccion,
-  validarAlta, interpretarIdentificacion,
-} from './lib/model.mjs';
+import { $, h, render } from './lib/ui.mjs';
+import { tareasDelDia, contarEstados } from './lib/tareas.mjs';
+import { actualizarRacha } from './lib/gamificacion.mjs';
+import { vistaHoy } from './vistas/hoy.mjs';
+import { vistaPlantas, vistaDetalle } from './vistas/plantas.mjs';
+import { vistaEscaner, vistaDiagnostico } from './vistas/escaner.mjs';
+import { vistaColeccion } from './vistas/coleccion.mjs';
 
-const $ = (sel) => document.querySelector(sel);
-const REFRESCO_MS = 15000;
+const REFRESCO_MS = 30000;
 
-let especies = [];
-let modelos = [];
-let ultimoEstado = null;
+/* Lo que vive en el teléfono y no en el servidor. Son estados de interfaz
+   —"ya me ocupé de esto", "mi racha"— y no hechos sobre la planta. Los hechos
+   sobre la planta los reporta el sensor. */
+const LS = { hechas: 'rootkit:hechas', racha: 'rootkit:racha' };
 
-/* ------------------------------------------------------------- red ------- */
+const guardado = (k, porDefecto) => {
+  try { return JSON.parse(localStorage.getItem(k)) ?? porDefecto; }
+  catch { return porDefecto; }
+};
+const guardar = (k, v) => {
+  try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* modo privado */ }
+};
+
+const app = {
+  estado: null,
+  especies: [],
+  modelos: [],
+  coleccion: null,
+  hechas: guardado(LS.hechas, {}),
+  racha: guardado(LS.racha, { dias: 0, mejor: 0, ultimo: null }),
+  vista: 'hoy',
+  plantaId: null,
+  instalable: null,
+};
+
+/* --------------------------------------------------------------- red --- */
 async function api(ruta, opciones) {
   const r = await fetch(ruta, {
     headers: { 'content-type': 'application/json' },
@@ -41,250 +72,189 @@ function avisar(texto, esError = false) {
   avisar._t = setTimeout(() => { el.hidden = true; }, 4000);
 }
 
-/* ------------------------------------------------------------ nodos ------ */
-function tarjeta(p) {
-  const li = document.createElement('li');
-  li.className = `tarjeta sev-${(p.severity || 'OK').toLowerCase()}`;
-
-  const esp = especies.find((e) => e.id === p.especie);
-  const suelo = esp ? posicionEnRango(p.tel.soil_pct, esp.soil_min, esp.soil_max) : null;
-  const sanos = p.bond?.dias_sanos ?? 0;
-  const etapa = etapaDe(sanos);
-  const avance = progresoEtapa(sanos);
-  const bat = bateriaDe(p);
-
-  li.innerHTML = `
-    <div class="cab">
-      <strong>${escapar(p.nombre)}</strong>
-      <span class="rol rol-${escapar(p.modelo || 'sin')}">${escapar(nombreModelo(p.modelo))}</span>
-      <span class="chip">${escapar(MOOD_ES[p.mood] || p.mood)}</span>
-    </div>
-    <p class="dice">«${escapar(p.reason || '')}»</p>
-    <dl class="datos">
-      <div><dt>Tierra</dt><dd>${p.tel.soil_pct}%</dd></div>
-      <div><dt>Clima</dt><dd>${formatTemp(p.tel.temp_dc)}</dd></div>
-      <div><dt>Luz</dt><dd>${formatLux(p.tel.lux)}</dd></div>
-      <div><dt>Lectura</dt><dd>${formatEdad(p.tel.age_s)}</dd></div>
-    </dl>
-    ${suelo === null ? '' : `
-      <div class="barra-rango" title="posición dentro del rango cómodo">
-        <span style="left:${(suelo * 100).toFixed(1)}%"></span>
-      </div>`}
-    <div class="vinculo" title="${sanos} días sanos acumulados">
-      <span class="etapa">${escapar(ETAPA_ES[etapa] || etapa)}</span>
-      <span class="avance"><i style="width:${avance}%"></i></span>
-    </div>
-    <p class="pie">
-      ${p.nodo ? `${escapar(p.nodo.id.slice(-4))} · ` : 'sin enlazar · '}
-      ${escapar(LINK_ES[p.link] || '—')}
-      ${bat === null ? '' : ` · batería ${bat}%`}
-    </p>`;
-  return li;
-}
-
-/* El nombre del modelo de carcasa que lleva puesto. Sin modelo declarado la
-   maceta sigue funcionando —mide y avisa igual— pero el aparato no sabe qué
-   cara poner, así que conviene que la tarjeta lo diga. */
-function nombreModelo(id) {
-  if (!id) return 'sin carcasa';
-  return modelos.find((m) => m.id === id)?.nombre || id;
-}
-
-function escapar(s) {
-  return String(s ?? '').replace(/[&<>"']/g, (c) => (
-    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
-  ));
-}
-
-function pintarNodos(estado) {
-  const lista = $('#lista');
-  const nodos = ordenarNodos(estado.nodes);
-  lista.replaceChildren(...nodos.map(tarjeta));
-  $('#vacio').hidden = nodos.length > 0;
-
-  const alertas = contarAlertas(nodos);
-  $('#resumen').textContent = nodos.length === 0
-    ? 'sin macetas registradas'
-    : alertas === 0
-      ? `${nodos.length} macetas, todas bien`
-      : `${alertas} de ${nodos.length} reclaman algo`;
-  $('#resumen').classList.toggle('alerta', alertas > 0);
+/* ------------------------------------------------------------ estado --- */
+async function cargarCatalogos() {
+  const [esp, col] = await Promise.all([
+    api('/api/species').catch(() => []),
+    api('/api/collection').catch(() => null),
+  ]);
+  app.especies = esp || [];
+  app.coleccion = col;
+  app.modelos = col?.catalogo || [];
 }
 
 async function refrescar() {
   try {
-    ultimoEstado = await api('/api/state');
-    pintarNodos(ultimoEstado);
-  } catch (e) {
-    $('#resumen').textContent = 'sin conexión con el Prime';
-    $('#resumen').classList.add('alerta');
-  }
-}
-
-/* ------------------------------------------------------------- alta ------ */
-function llenarEspecies() {
-  const sel = $('#especie');
-  sel.replaceChildren(
-    new Option('— elegí una —', ''),
-    ...especies.map((e) => new Option(e.nombre, e.id)),
-  );
-}
-
-/* El desplegable de carcasas del alta. Se llena con el catálogo entero y no
-   sólo con lo que ya tenés: el usuario acaba de abrir la caja y está
-   declarando lo que le salió, así que tiene que poder elegir cualquiera. */
-function llenarModelos() {
-  const sel = $('#modelo');
-  if (!sel) return;
-  sel.replaceChildren(
-    new Option('— la cargo después —', ''),
-    ...modelos.map((m) => new Option(m.nombre, m.id)),
-  );
-}
-
-async function llenarNodos() {
-  try {
-    const libres = await api('/api/nodos');
-    const sel = $('#nodo');
-    sel.replaceChildren(
-      new Option('— ninguno por ahora —', ''),
-      ...libres.map((s) => new Option(`${s.id.slice(-4)} (visto ${formatEdad(s.visto_hace_s)})`, s.id)),
-    );
-  } catch { /* sin nodos libres no pasa nada */ }
-}
-
-async function identificar(archivo) {
-  const b64 = await new Promise((res, rej) => {
-    const fr = new FileReader();
-    fr.onload = () => res(String(fr.result).split(',')[1] || '');
-    fr.onerror = rej;
-    fr.readAsDataURL(archivo);
-  });
-
-  $('#preview-img').src = URL.createObjectURL(archivo);
-  $('#previsualizacion').hidden = false;
-
-  const el = $('#ident');
-  el.hidden = false;
-  el.className = 'ident';
-  el.textContent = 'Identificando…';
-
-  try {
-    const r = await api('/api/identify', {
-      method: 'POST',
-      body: JSON.stringify({ image_b64: b64, mime: archivo.type }),
-    });
-    const i = interpretarIdentificacion(r);
-    el.textContent = i.mensaje;
-    el.classList.add(i.estado);
-    if (i.especie) {
-      $('#especie').value = i.especie;
-      if (!$('#nombre').value) {
-        $('#nombre').value = (r.nombre || '').split(' ')[0].toUpperCase().slice(0, 17);
-      }
-    }
-  } catch (e) {
-    el.textContent = `No pude identificarla: ${e.message}. Elegí la especie a mano.`;
-    el.classList.add('fallo');
-  }
-}
-
-async function enviarAlta(ev) {
-  ev.preventDefault();
-  const datos = {
-    nombre: $('#nombre').value,
-    especie: $('#especie').value,
-    nodo_id: $('#nodo').value || undefined,
-    modelo: $('#modelo').value || undefined,
-  };
-
-  const v = validarAlta(datos, especies.map((e) => e.id));
-  const cajaErrores = $('#errores');
-  cajaErrores.hidden = v.ok;
-  cajaErrores.textContent = v.errores.join(' ');
-  if (!v.ok) return;
-
-  try {
-    const creada = await api('/api/nodes', { method: 'POST', body: JSON.stringify(datos) });
-    avisar(creada.modelo_nuevo
-      ? `Listo. ${nombreModelo(creada.modelo)} se suma a tu colección.`
-      : `Listo, ${creada.nombre} quedó registrada.`);
-    $('#form-alta').reset();
-    $('#previsualizacion').hidden = true;
-    $('#ident').hidden = true;
-    await Promise.all([refrescar(), llenarNodos(), pintarColeccion()]);
-  llenarModelos();
-    llenarModelos();
-    mostrarVista('plantas');
-  } catch (e) {
-    avisar(`No pude registrarla: ${e.message}`, true);
-  }
-}
-
-/* -------------------------------------------------------- coleccion ------ */
-async function pintarColeccion() {
-  try {
-    const c = await api('/api/collection');
-    modelos = c.catalogo;
-    const p = progresoColeccion(c.catalogo, c.tengo);
-    const cab = $('#col-resumen');
-    if (cab) {
-      cab.textContent = p.completa
-        ? `Los tenés todos${p.secretos ? ', secreto incluido' : ''}`
-        : `${p.tengo} de ${p.total}`;
-    }
-    $('#grilla').replaceChildren(...ordenarColeccion(c.catalogo).map((m) => {
-      const li = document.createElement('li');
-      li.className = `sim ${m.tengo ? 'abierto' : 'cerrado'} rar-${m.rareza.toLowerCase()}`;
-      li.innerHTML = m.tengo
-        ? `<span class="sim-id">${escapar(m.nombre)}</span>
-           <span class="sim-esp">${escapar(RAREZA_ES[m.rareza] || m.rareza)}</span>
-           <span class="sim-lema">${escapar(m.lema)}</span>`
-        : `<span class="sim-id">???</span>
-           <span class="sim-esp">${escapar(RAREZA_ES[m.rareza] || m.rareza)}</span>
-           <span class="sim-lema">todavía no te salió</span>`;
-      return li;
-    }));
-  } catch { /* la colección es secundaria */ }
-}
-
-/* ------------------------------------------------------------ vistas ----- */
-function mostrarVista(nombre) {
-  document.querySelectorAll('.vista').forEach((v) => {
-    v.hidden = v.id !== `vista-${nombre}`;
-  });
-  document.querySelectorAll('.tab').forEach((t) => {
-    const activa = t.dataset.vista === nombre;
-    t.classList.toggle('activa', activa);
-    t.setAttribute('aria-selected', String(activa));
-  });
-}
-
-/* -------------------------------------------------------------- init ----- */
-async function init() {
-  document.querySelectorAll('.tab').forEach((t) => {
-    t.addEventListener('click', () => mostrarVista(t.dataset.vista));
-  });
-  $('#foto').addEventListener('change', (e) => {
-    const f = e.target.files && e.target.files[0];
-    if (f) identificar(f);
-  });
-  $('#form-alta').addEventListener('submit', enviarAlta);
-
-  try {
-    especies = await api('/api/species');
+    app.estado = await api('/api/state');
+    $('#sinred').hidden = true;
+    /* La racha se cierra una vez por día: si al mirar no hay urgencias, el
+       día suma. Es la única cuenta que depende de haber observado, así que
+       vive en el teléfono. */
+    const hoy = new Date().toISOString().slice(0, 10);
+    const c = contarEstados(app.estado.nodes);
+    app.racha = actualizarRacha(app.racha, c.urgente > 0, hoy);
+    guardar(LS.racha, app.racha);
   } catch {
-    especies = [];
+    $('#sinred').hidden = false;
   }
-  llenarEspecies();
-  await Promise.all([refrescar(), llenarNodos(), pintarColeccion()]);
-  llenarModelos();
+  pintar();
+}
 
+/* Marcar una tarea como hecha la esconde mientras el sensor confirma. No se
+   manda al servidor: no es un hecho sobre la planta, es una nota personal. */
+function hacerTarea(t) {
+  app.hechas = { ...app.hechas, [t.id]: Date.now() };
+  guardar(LS.hechas, app.hechas);
+  avisar(t.auto
+    ? 'Anotado. Cuando el sensor lo confirme desaparece sola.'
+    : 'Anotado.');
+  pintar();
+}
+
+async function registrar(datos) {
+  const creada = await api('/api/nodes', {
+    method: 'POST', body: JSON.stringify(datos),
+  });
+  await Promise.all([cargarCatalogos(), refrescar()]);
+  return creada;
+}
+
+async function declararCarcasa(modelo) {
+  try {
+    const r = await api('/api/collection', {
+      method: 'POST', body: JSON.stringify({ modelo }),
+    });
+    avisar(r.nuevo ? `${r.nombre} se suma a tu colección.` : `Ya tenías ${r.nombre}.`);
+    await cargarCatalogos();
+    pintar();
+  } catch (e) {
+    avisar(`No pude sumarla: ${e.message}`, true);
+  }
+}
+
+/* ------------------------------------------------------------- rutas --- */
+function irA(vista, plantaId = null) {
+  app.vista = vista;
+  if (plantaId !== null) app.plantaId = plantaId;
+  window.scrollTo(0, 0);
+  pintar();
+}
+
+const ctxBase = () => ({
+  estado: app.estado,
+  especies: app.especies,
+  modelos: app.modelos,
+  coleccion: app.coleccion,
+  hechas: app.hechas,
+  racha: app.racha,
+  plantaId: app.plantaId,
+  api,
+  avisar,
+  irA,
+  alHacer: hacerTarea,
+  alAbrir: (id) => irA('detalle', id),
+  alDiagnosticar: (id) => irA('diagnostico', id),
+  alRegistrar: registrar,
+  alDeclarar: declararCarcasa,
+  volver: () => irA(app.vista === 'diagnostico' ? 'detalle' : 'plantas'),
+});
+
+const VISTAS = {
+  hoy: vistaHoy,
+  plantas: vistaPlantas,
+  detalle: vistaDetalle,
+  escaner: vistaEscaner,
+  diagnostico: vistaDiagnostico,
+  coleccion: vistaColeccion,
+};
+
+/* Qué pestaña se marca activa para cada vista. El detalle y el diagnóstico
+   son hijos de "plantas", así que la pestaña se queda ahí. */
+const PESTANA = {
+  hoy: 'hoy', plantas: 'plantas', detalle: 'plantas', diagnostico: 'plantas',
+  escaner: 'escaner', coleccion: 'coleccion',
+};
+
+function pintar() {
+  const fn = VISTAS[app.vista] || vistaHoy;
+  render($('#vista'), fn(ctxBase()));
+
+  const activa = PESTANA[app.vista];
+  for (const b of document.querySelectorAll('.tab')) {
+    const suya = b.dataset.vista === activa;
+    b.classList.toggle('activa', suya);
+    b.setAttribute('aria-selected', suya ? 'true' : 'false');
+  }
+
+  /* El globo de la pestaña Hoy: cuántas cosas hay pendientes. */
+  const n = app.estado
+    ? tareasDelDia(app.estado.nodes, app.especies, app.hechas).length : 0;
+  const globo = $('#globo-hoy');
+  globo.textContent = n > 9 ? '9+' : String(n);
+  globo.hidden = n === 0;
+}
+
+/* -------------------------------------------------------- instalación --- */
+function prepararInstalacion() {
+  const barra = $('#instalar');
+  const enPantallaCompleta = window.matchMedia('(display-mode: standalone)').matches
+    || window.navigator.standalone === true;
+  if (enPantallaCompleta) {
+    barra.hidden = true;
+    return;
+  }
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    app.instalable = e;
+    render(barra,
+      h('span', {}, 'Agregala a tu pantalla de inicio y se abre como una app.'),
+      h('button', {
+        class: 'boton chico', type: 'button',
+        onClick: () => {
+          barra.hidden = true;
+          app.instalable?.prompt();
+          app.instalable = null;
+        },
+      }, 'Instalar'));
+    barra.hidden = false;
+  });
+
+  /* iOS no implementa beforeinstallprompt, así que ahí hay que explicarlo. */
+  if (/iphone|ipad|ipod/i.test(navigator.userAgent)) {
+    render(barra,
+      h('span', {}, 'Tocá Compartir y después “Agregar a inicio” para abrirla a pantalla completa.'),
+      h('button', {
+        class: 'boton chico', type: 'button',
+        onClick: () => { barra.hidden = true; },
+      }, 'Listo'));
+    barra.hidden = false;
+  }
+}
+
+/* -------------------------------------------------------------- inicio -- */
+async function inicio() {
+  for (const b of document.querySelectorAll('.tab')) {
+    b.addEventListener('click', () => irA(b.dataset.vista));
+  }
+
+  prepararInstalacion();
+  pintar();                       /* el armazón aparece antes que los datos */
+
+  await cargarCatalogos();
+  await refrescar();
   setInterval(refrescar, REFRESCO_MS);
 
+  /* Al volver a la app después de un rato, los datos en pantalla son viejos.
+     Refrescar al recuperar el foco evita que alguien riegue mirando una
+     lectura de ayer. */
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) refrescar();
+  });
+
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').catch(() => { /* sin offline, sigue andando */ });
+    navigator.serviceWorker.register('sw.js').catch(() => { /* sin offline */ });
   }
 }
 
-init();
+inicio();
