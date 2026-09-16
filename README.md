@@ -53,8 +53,10 @@ cd firmware
 pio run -e c3-22 -t upload && pio device monitor
 ```
 
-Para ver el flujo completo sin placa, levantá **root-lab** y abrí su
-emulador: corre este mismo firmware en el navegador.
+Para ver el flujo completo sin placa, abrí el emulador en
+**https://ifbotech.com/rootkit/emulador/** (o levantá **root-lab** en la
+compu): corre este mismo firmware en el navegador y su QR abre la app en el
+teléfono. Por defecto la placa también sincroniza con ese servidor.
 
 En Windows el firmware se compila y prueba dentro de WSL. Ver
 [docs/entorno.md](docs/entorno.md).

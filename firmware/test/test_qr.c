@@ -77,6 +77,15 @@ static void test_qr(void)
     rk_qr_draw(&fb, &q, RK_QR_PORTAL, 0u);
     CHECK_INT("dibujado en 240x320 tambien", 0, errores_de_lectura(&fb, &q));
 
+    /* La del VPS de prueba (RK_NUBE_URL por defecto), con la subruta. */
+    CHECK_TRUE("la URL del VPS se codifica",
+               rk_qr_preparar(&q, "HTTPS://IFBOTECH.COM/ROOTKIT/V/K7Q2M9XA", "K7Q2M9XA"));
+    CHECK_TRUE("y en 128 sigue con modulos de 3",
+               rk_qr_escala(&q, RK_MINI_W, RK_MINI_H) >= 3);
+    rk_fb_init(&fb, &g_chico[32], RK_MINI_W, RK_MINI_H);
+    rk_qr_draw(&fb, &q, RK_QR_PORTAL, 0u);
+    CHECK_INT("y se lee en 128", 0, errores_de_lectura(&fb, &q));
+
     /* Una URL de desarrollo, con IP y puerto, sube de versión pero sigue
      * entrando legible en el panel chico. */
     CHECK_TRUE("una URL de red local se codifica",

@@ -65,9 +65,14 @@ colección— vive en la app del teléfono.
       vínculo, especie, pantalla siempre encendida, brillo, desvincular
 - [x] Colección con siluetas y logros
 - [x] Notificaciones push: por estado, con espera, calladas de noche
-- [x] Cuenta anónima y código para pasarla a otro teléfono
+- [x] Cuentas con email y contraseña: cada persona ve sólo sus plantas y
+      entra desde cualquier teléfono
+- [x] Base SQLite con las plantas y lecturas de todas las cuentas, sin
+      borrar historial; respaldo diario
 - [x] Emulador de ROOTKIT en el navegador con el firmware real
-- [x] 117 pruebas, incluido el flujo completo de punta a punta
+- [x] 142 pruebas, incluido el flujo completo de punta a punta y el
+      aislamiento entre cuentas
+- [x] En línea para probar desde el teléfono: https://ifbotech.com/rootkit/
 
 ---
 
@@ -77,7 +82,7 @@ Objetivo: el flujo completo con placa real, enchufada a USB.
 
 - [ ] Comprar lo de la [lista de compras](hardware.md#lista-de-compras-del-prototipo)
 - [ ] Armar en protoboard siguiendo [las conexiones](hardware.md#conexiones)
-- [ ] Flashear `c3-22` con `RK_NUBE_URL` apuntando a la PC
+- [ ] Flashear `c3-22` (por defecto sincroniza con `https://ifbotech.com/rootkit`)
 - [ ] **La pantalla:** colores, orientación y que el QR se lea desde un
       iPhone y un Android a 30 cm
 - [ ] **Framerate real** de la cara en 240×320. Si baja de 10 fps: subir el
@@ -85,8 +90,7 @@ Objetivo: el flujo completo con placa real, enchufada a USB.
       escalar ×2
 - [ ] **Portal cautivo** en iPhone y Android: que la página abra sola y que
       la maceta se conecte con la clave
-- [ ] Vínculo, cofre y despertar con la app en el teléfono (con túnel HTTPS,
-      ver `root-lab/docs/despliegue.md`)
+- [ ] Vínculo, cofre y despertar con la app en el teléfono, contra el VPS
 - [ ] **Calibrar el capacitivo**: seco, regado y sumergido, tres unidades
 - [ ] Comparar AHT20 y BH1750 contra un termohigrómetro y un luxómetro
 - [ ] Sellar el borde del capacitivo y dejarlo una semana en tierra
@@ -111,11 +115,15 @@ Objetivo: el flujo completo con placa real, enchufada a USB.
 
 ## Fase 3 — La nube en serio
 
-- [ ] Dominio propio y HTTPS (la app instalable y las notificaciones lo
-      exigen)
-- [ ] Despliegue de `root-lab` (un VPS chico alcanza para el piloto)
-- [ ] Base de datos: pasar de un archivo JSON a SQLite o Postgres
-- [ ] Respaldos diarios, incluidas las claves VAPID
+- [x] HTTPS (la app instalable y las notificaciones lo exigen): hoy en
+      `ifbotech.com/rootkit`
+- [ ] Dominio propio para la app (pasos en `root-lab/docs/despliegue.md`)
+- [x] Despliegue de `root-lab` en el VPS, con su propio Node y servicio
+- [x] Base de datos SQLite con cuentas, plantas y lecturas
+- [x] Respaldos diarios en el VPS, incluidas las claves VAPID
+- [ ] Respaldos fuera del VPS (snapshots del proveedor o un bucket)
+- [ ] Recuperar la contraseña y verificar el email (necesita un servicio de
+      envío de correo)
 - [ ] `ANTHROPIC_API_KEY` con límite de gasto y alertas
 - [ ] **Seguridad del aparato:** fijar el certificado raíz del servidor en
       el firmware (`RK_NUBE_CA`) y dejar de usar `setInsecure()`

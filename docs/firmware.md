@@ -54,15 +54,24 @@ pio device monitor                   # log por USB
 **Antes de flashear, apuntar a la nube.** En `platformio.ini`:
 
 ```ini
--DRK_NUBE_URL=\"http://192.168.0.20:8080\"   ; la PC con root-lab
--DRK_APP_URL=\"\"                             ; base del QR, si es otra
+-DRK_NUBE_URL=\"https://ifbotech.com/rootkit\"   ; la versión de prueba en el VPS (por defecto)
+-DRK_NUBE_URL=\"http://192.168.0.20:8080\"       ; o la PC con root-lab
+-DRK_APP_URL=\"\"                                 ; base del QR, si es otra
 ```
 
 `RK_NUBE_URL` es con quién sincroniza el aparato. `RK_APP_URL` es a dónde
-lleva el QR: normalmente la misma, pero para probar instalación y
-notificaciones en un teléfono hace falta HTTPS, y ahí va la URL de un túnel
-mientras la placa sigue hablando con la PC por la red local. El servidor
-también se puede cambiar sin recompilar, desde el portal ("Avanzado").
+lleva el QR: normalmente la misma. Por defecto apunta al VPS
+(`https://ifbotech.com/rootkit`): el QR sale como
+`HTTPS://IFBOTECH.COM/ROOTKIT/V/<código>` (en mayúsculas, para el modo
+alfanumérico del QR) y abre una app con HTTPS, que se puede instalar y
+recibe notificaciones. Con root-lab en la PC la app abre por HTTP y no se
+instala; para eso, `RK_APP_URL` con la URL de un túnel HTTPS mientras la
+placa sigue hablando con la PC por la red local. El servidor también se
+puede cambiar sin recompilar, desde el portal ("Avanzado").
+
+En el prototipo la placa no verifica el certificado del servidor
+(`setInsecure()`); fijar la CA con `RK_NUBE_CA` está en la fase 3 del
+[roadmap](roadmap.md).
 
 Si la imagen del panel sale corrida o con colores cambiados:
 `-DRK_TFT_OFS_X=2 -DRK_TFT_OFS_Y=1 -DRK_TFT_BGR=1 -DRK_TFT_INVERT=1`.

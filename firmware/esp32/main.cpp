@@ -42,7 +42,7 @@ extern "C" {
 #define RK_FW_VERSION "0.5.0"
 #endif
 #ifndef RK_NUBE_URL
-#define RK_NUBE_URL "http://192.168.0.10:8080"
+#define RK_NUBE_URL "https://ifbotech.com/rootkit"
 #endif
 /* A dónde lleva el QR. Normalmente es la misma nube; en desarrollo puede ser
  * un túnel HTTPS para que el teléfono pueda instalar la app y recibir
