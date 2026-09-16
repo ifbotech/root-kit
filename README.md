@@ -1,149 +1,140 @@
 # ROOTKIT
 
-Ecosistema cyber-botánico: sensores en las macetas y un simbionte pixel-art que
-reacciona en tiempo real a lo que miden. **El mismo bicho se ve adulto en el
-Prime y brote en cada Mini** — la misma criatura, mirada a dos distancias.
+Sensores en la maceta y una cara en la pantalla que reacciona a lo que miden.
+**El personaje es la carcasa impresa en 3D**; la pantalla sólo pone la cara que
+le hace juego. Se compra en caja ciega: cinco modelos a la vista y un secreto.
 
-![El Prime en todos los estados de ánimo](tools/preview/sheet.png)
+![Los seis modelos en los once estados de ánimo](tools/preview/sheet.png)
 
-El mismo momento, en la maceta:
+Lo que se gana cuidando la planta es cómo se ve: los días sanos desbloquean
+brillos, aura y corona.
 
-![El Mini en todos los estados de ánimo](tools/preview/minis.png)
+![Las cinco etapas de crecimiento](tools/preview/etapas.png)
 
-Los doce simbiontes, en sus cinco etapas de crecimiento:
+Y el primer encendido, cuando el aparato se descubre la cara:
 
-![Los brotes creciendo](tools/preview/brotes.png)
-
-Y la ceremonia de apertura, con los destellos graduados por rareza:
-
-![La ceremonia](tools/preview/gacha.png)
+![El primer encendido](tools/preview/revelado.png)
 
 ## Las piezas
 
 | Pieza | Qué es | Hardware |
 |---|---|---|
-| **Prime** | Una maceta más, pero enchufada: muestra al simbionte **adulto** a 22 mm, abre las cápsulas y es el servidor local del kit. | ESP32-C3 + TFT 2,2" 240×320 ILI9341 SPI + capacitivo v2.0 + AHT21 + BH1750. ARS 49.100. |
-| **Mini** | Un nodo por maceta. Mide, **evalúa su propia planta** y muestra al simbionte **brote** a 13 mm. | ESP32-C3 + TFT 1,44" 128×128 IPS ST7735 SPI + los mismos sensores + 18650. ARS 44.360. |
-| **Hub** | PWA servida por el Prime. Registrar plantas con la cámara, ver la colección. | Ninguno. |
-
-Un kit es un Prime y hasta cinco Minis.
+| **ROOTKIT** | Un aparato por maceta. Mide, evalúa su propia planta y muestra una cara. | ESP32-C3 + TFT 1,44" 128×128 IPS ST7735 SPI + capacitivo v2.0 + AHT21 + BH1750 + 18650. |
+| **Carcasa** | El personaje. Impresa en 3D, seis modelos. Es lo que se colecciona. | Filamento. El secreto va en translúcido. |
+| **App** | El tablero: lecturas, historial, alta con foto y la colección. | Ninguno. PWA. |
 
 ## Empezar
 
 ```bash
-make test        # 805 comprobaciones: 752 de firmware, 53 del Hub
-make sim         # el kit entero en una ventana: Prime + Minis, en vivo
-make serve       # Hub de desarrollo en http://localhost:8080
-make bench       # medición del rasterizado en los dos paneles
-make sheet       # hoja de contacto del Prime
-make minis       # hoja de contacto del Mini
-make brotes      # los 12 simbiontes en sus 5 etapas
-make ceremonia   # la apertura de cápsula, por rareza
+make test        # 920 comprobaciones: 862 de firmware, 58 de la app
+make sim         # los seis modelos en una ventana, animándose en vivo
+make serve       # app de desarrollo en http://localhost:8080
+make sheet       # los 6 modelos x 11 ánimos
+make etapas      # las 5 etapas de crecimiento, por modelo
+make revelado    # el primer encendido, por modelo
+make bench       # costo de renderizar una cara
 ```
 
 El firmware necesita un compilador de C y SDL2; en Windows va dentro de WSL.
-El Hub necesita Node. Ver [docs/entorno.md](docs/entorno.md).
+La app necesita Node. Ver [docs/entorno.md](docs/entorno.md).
 
-En el simulador: `1-4` selecciona un nodo, `W` riega, `M` cicla los ánimos, `R`
-vuelve al ánimo real, `G` dispara la ceremonia, `O` marca el nodo como caído,
-`+/-` acelera el tiempo, `S` captura, `ESC` sale. Un día simulado dura 48
-segundos.
+En el simulador: `1-6` selecciona, `W` riega, `M` cicla los ánimos, `R` vuelve
+al ánimo real, `G` dispara el primer encendido, `+/-` acelera el tiempo, `S`
+captura, `ESC` sale. Un día simulado dura 48 segundos.
 
 ## Estructura
 
 ```
 firmware/
-  core/    C99 puro: telemetría, especies, ánimos, colección y el kit.
+  core/    C99 puro: telemetría, especies, ánimos, vínculo, modelos y kit.
   net/     Protocolo binario de 26/32 bytes y el pegamento con el kit.
   nodo/    Calibración de suelo, curva de batería y muestreo adaptativo.
-  gfx/     Framebuffer RGB565, tipografía y los dos paneles como datos.
-  art/     Sprites generados, la tabla de carácter y los dos rigs.
-  ui/      Pantalla del Prime, del Mini y la ceremonia. Funciones puras.
+  gfx/     Framebuffer RGB565: elipses, arcos, trazos y tipografía.
+  art/     La tabla de expresiones y el rig procedural de caras.
+  ui/      La pantalla y el primer encendido. Funciones puras.
   sim/     Host SDL, capturas, hojas de contacto y benchmark.
-  test/    Ocho suites y los hashes de regresión visual, uno por panel.
+  test/    Siete suites y los hashes de regresión visual de las 66 caras.
 hub/
   lib/     Lógica pura, compartida entre la app y los tests.
-  test/    Pruebas de formato, validación, vínculo y contrato de la API.
-  API.md   El contrato que el Prime tiene que implementar.
-tools/     Autoría del arte, conversión de capturas y sincronía del catálogo.
-docs/      Arquitectura, decisiones, pruebas y entorno.
+  test/    Formato, validación, vínculo, colección y contrato de la API.
+  API.md   El contrato que el firmware tiene que implementar.
+tools/     Conversión de capturas y sincronía del catálogo.
+docs/      Arquitectura, decisiones, carcasas, pruebas y entorno.
 ```
 
 ## Cinco ideas que explican casi todo el código
 
-**El mismo organismo, a dos escalas.** El brote no es el adulto reducido:
-invierte sus proporciones. Donde el adulto es caparazón con una cabeza asomando,
-el brote es cabeza con un caparazón asomando. Cabeza grande, ojos grandes y
-bajos, cuerpo chico — el esquema infantil. Por eso 32×32 se leen como la cría
-del mismo bicho y no como otro bicho más chico. Y por eso el Prime tiene una
-razón de ser que no es "una pantalla más grande": **es donde tus criaturas están
-grandes**.
+**La variedad es física; la cara es digital.** Lo único que se diseña en
+pixeles es la cara. Lo que cambia entre modelos es la carcasa impresa. Imprimir
+una carcasa cuesta filamento y unas horas de modelado; dibujar y animar un
+cuerpo cuesta semanas. Y una cara sola en 128×128 tiene más pixeles por rasgo
+que un cuerpo entero: se expresa mejor, no peor.
 
-**Cada nodo evalúa su propia maceta; nadie recalcula.** Los dos corren el mismo
-`core/mood.c` con los umbrales que les llegaron por radio, y el ánimo viaja ya
-resuelto. Un nodo que necesita la red para saber qué cara poner se queda mudo
-justo cuando más importa. Y el Prime copia lo que recibe en vez de recalcularlo,
-porque si lo recalculara su histéresis sería distinta y las dos pantallas
+**El ánimo dice qué siente; la persona dice cómo lo muestra.** Sed en el Cresta
+es un ceño apretado con dientes; en el Kawaii, ojos llorosos con una lágrima;
+en el Visor, la onda que se quiebra en picos. Seis modelos por once ánimos son
+**66 caras**, y salen todas del mismo código porque la cara es procedural y no
+sprites. Agregar un modelo es agregar una fila a una tabla.
+
+**Cada aparato evalúa su propia maceta; nadie recalcula.** Corre `core/mood.c`
+con los umbrales que le llegaron por radio y muestra el ánimo sin preguntarle
+a nadie — uno que necesita la red para saber qué cara poner se queda mudo justo
+cuando más importa. Y quien recibe copia el ánimo en vez de recalcularlo,
+porque si lo recalculara su histéresis sería distinta y las dos puntas
 discreparían sobre la misma planta.
 
 **Medir es barato, transmitir es caro.** Una medición cuesta 250 nAh y una
-transmisión 28.000: 110 veces más. Por eso las dos cadencias están desacopladas
-— se mide cada pocos minutos y se emite sólo cuando hay algo que contar. Una
-semana simulada da 68% menos de radio que un intervalo fijo.
+transmisión 28.000: 110 veces más. Por eso las dos cadencias están
+desacopladas. Una semana simulada da 68% menos de radio que un intervalo fijo.
 
-**El simbionte es un rig, no un flipbook.** Un cuerpo, ocho juegos de ojos, seis
-bocas y una capa de efectos que se combinan según el ánimo, más animación
-procedural. Agregar un estado es agregar una fila a una tabla. Y esa tabla vive
-**una sola vez**, compartida entre el adulto y el brote: si estuviera duplicada,
-el Prime y el Mini dirían cosas distintas de la misma planta.
-
-**La rareza es mérito, no suerte.** Sale de la dificultad hortícola de la
-especie: el potus da un común porque perdona todo, el bonsái da un legendario
-porque mantenerlo vivo es trabajo real. La ceremonia se conserva entera
-—cápsula, temblor, estallido, destellos graduados— pero el resultado ya está
-decidido antes de que empiece. Y el simbionte crece con **días sanos**: una
-planta abandonada tiene un simbionte que no evoluciona, y un nodo desenchufado
-no acumula progreso gratis.
+**El azar está en la caja, no en el software.** La rareza es del modelo de
+carcasa que te tocó, no de la dificultad de tu planta. Dentro de la app no hay
+ninguna tirada de dados, así que el terreno regulado de las cajas de botín
+directamente no aplica. Lo que sí se gana con trabajo es **cómo se ve**: los
+días sanos desbloquean capas cosméticas, y un aparato desenchufado no acumula
+progreso gratis.
 
 ## Documentación
 
 - [Arquitectura](docs/arquitectura.md) — cómo encajan las piezas y por qué
 - [Decisiones](docs/decisiones.md) — qué se decidió, qué se descartó y **qué se
   revisó**
+- [Carcasas](docs/carcasas.md) — envolvente, tolerancias y brief de cada modelo
 - [Pruebas](docs/testing.md) — qué cubre cada suite y qué **no**
-- [Contrato de la API](hub/API.md) — Hub ↔ Prime
+- [Contrato de la API](docs/../hub/API.md) — app ↔ aparato
 - [Entorno](docs/entorno.md) — WSL, SDL y el simulador
 
 ## Estado
 
 - [x] Núcleo: telemetría, especies, ánimos con histéresis y ciclo día/noche
-- [x] El kit: roster de Prime + Minis, salud del enlace y vínculo por nodo
-- [x] Motor gráfico RGB565 propio, con blit escalado por enteros, medido
-- [x] Doce simbiontes: adulto de 96×72 y brote de 32×32, doce paletas
-- [x] Pantalla del Prime a 240×320 y del Mini a 128×128, las dos nativas
-- [x] Crecimiento visible: cinco etapas, cascarón, hojas y aura
-- [x] Protocolo v2: umbrales de especie hacia el nodo, ánimo resuelto de vuelta
-- [x] Simulador SDL que muestra el kit entero animándose a la vez
+- [x] Seis modelos de carcasa con su carácter, en una tabla editable
+- [x] Rig procedural de caras: 6 familias de ojos, 4 de cejas, 5 de bocas
+- [x] Las 66 caras distinguibles entre sí, verificado por hash
+- [x] Crecimiento visible: brillos, aura y corona por días sanos
+- [x] Pantalla del aparato: la cara a sangre, pictograma y aviso de batería
+- [x] El primer encendido, con destellos graduados por rareza
+- [x] Protocolo v2: umbrales de especie y carcasa hacia el aparato
+- [x] Simulador SDL que muestra los seis modelos animándose a la vez
 - [x] Núcleo del nodo: calibración, batería y muestreo adaptativo
-- [x] Hub: PWA, registro con foto, colección y barra de vínculo
-- [x] 805 pruebas automatizadas y regresión visual por hash, una tabla por panel
+- [x] App: tablero, alta con foto, vínculo y colección de carcasas
+- [x] 920 pruebas automatizadas y regresión visual por hash
 - [x] CI en GitHub Actions
+- [ ] **Las seis carcasas modeladas** — ver [docs/carcasas.md](docs/carcasas.md)
 - [ ] Capa HAL del ESP32 (ADC, I2C, SPI, Wi-Fi)
-- [ ] Transporte ESP-NOW detrás de `net/link.h`
-- [ ] Servidor HTTP en el Prime
+- [ ] Servidor HTTP que implemente `hub/API.md`
 - [ ] Persistencia en NVS
-- [ ] Carcasas impresas
 
 ## Lo primero cuando llegue el hardware
 
-Son las tres cosas que siguen siendo supuestos, y las tres pueden mover números
-que hoy están escritos como si fueran ciertos:
+Tres supuestos que hoy están escritos como si fueran ciertos:
 
 1. **Multímetro en serie sobre el C3 dormido.** Si el reposo está en
    miliamperios y no en microamperios, toda la cuenta de autonomía cambia.
-2. **Corriente de cada retroiluminación.** El modelo asume 32 mA para la de
-   1,44". De ahí salen los 595 días del Mini.
-3. **El brote de 32×32 a 2× en la mano.** Los 12,9 mm están calculados con el
-   paso de pixel del fabricante. Hay que confirmar que se lee desde un metro.
+2. **Corriente de la retroiluminación.** El modelo asume 32 mA. De ahí salen
+   los 595 días.
+3. **Una cara encendida adentro de una carcasa, de noche.** El sombrero del
+   Hongo le tira sombra a la pantalla a propósito; hay que confirmar que su
+   cara oscura sigue leyéndose. Si no, se sube el brillo de su paleta en
+   `persona.c` —una línea— y listo.
 
 Y **calibración de dos puntos** del capacitivo, aire y agua, guardada en NVS.

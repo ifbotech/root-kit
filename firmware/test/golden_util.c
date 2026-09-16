@@ -1,8 +1,9 @@
 #include "golden_util.h"
 #include "../core/species.h"
+#include <string.h>
+#include <stdio.h>
 
-static rk_color_t g_prime[RK_PRIME_PX];
-static rk_color_t g_mini[RK_MINI_PX];
+static rk_color_t g_px[RK_MINI_PX];
 
 uint32_t rk_frame_hash(const rk_color_t *px, int n)
 {
@@ -18,63 +19,48 @@ uint32_t rk_frame_hash(const rk_color_t *px, int n)
     return h;
 }
 
-void rk_golden_kit(rk_roster_t *r, int nodo, rk_mood_t mood)
+void rk_golden_nodo(rk_node_t *n, int persona, rk_mood_t mood)
 {
-    static const struct {
-        const char *nom; const char *sp; rk_role_t rol;
-        uint8_t soil; int16_t temp; uint8_t rh; uint32_t lux; int dias;
-    } SEED[4] = {
-        { "MONSTERA", "monstera", RK_ROLE_PRIME, 38, 232, 55,  4800,  95 },
-        { "POTUS",    "pothos",   RK_ROLE_MINI,  51, 241, 48,  7900,  34 },
-        { "CACTUS",   "cactus",   RK_ROLE_MINI,  14, 250, 41, 11000,   9 },
-        { "BONSAI",   "bonsai",   RK_ROLE_MINI,  42, 228, 60,  6100, 200 },
-    };
-    int i, d;
+    int d;
 
-    rk_roster_init(r);
-    r->wifi = true;
+    memset(n, 0, sizeof *n);
+    snprintf(n->nombre, sizeof n->nombre, "MACETA");
+    n->id[0]   = 0x52u;
+    n->id[5]   = (uint8_t)persona;
+    n->sp      = rk_species_find("monstera");
+    n->persona = rk_persona_at(persona);
 
-    for (i = 0; i < 4; i++) {
-        int k = rk_roster_add(r, SEED[i].nom, SEED[i].rol,
-                              rk_species_find(SEED[i].sp));
-        rk_node_t *n = &r->nodes[k];
-        for (d = 0; d < SEED[i].dias; d++) {
-            rk_bond_dia(&n->bond, true);
-        }
-        n->tel.valid    = true;
-        n->tel.age_s    = 60u;
-        n->tel.soil_pct = SEED[i].soil;
-        n->tel.temp_dc  = SEED[i].temp;
-        n->tel.rh_pct   = SEED[i].rh;
-        n->tel.lux      = SEED[i].lux;
-        n->tel.batt_mv  = (uint16_t)(3880 - i * 90);
-
-        n->verdict.mood     = (i == nodo) ? mood : RK_MOOD_HAPPY;
-        n->verdict.severity = (i == nodo && mood == RK_MOOD_THIRSTY)
-                              ? RK_SEV_URGENT : RK_SEV_WATCH;
-        n->verdict.reason   = rk_mood_reason(n->verdict.mood);
+    rk_mood_state_init(&n->mst);
+    rk_bond_init(&n->bond);
+    /* 34 días sanos: etapa JOVEN. Se eligió una etapa intermedia a propósito
+     * para que el escenario ejercite los adornos de crecimiento sin estar en
+     * el extremo donde aparecen todos. */
+    for (d = 0; d < 34; d++) {
+        rk_bond_dia(&n->bond, true);
     }
-    r->selected = (nodo >= 0 && nodo < r->count) ? nodo : 0;
+
+    n->tel.valid    = true;
+    n->tel.age_s    = 60u;
+    n->tel.soil_pct = 38;
+    n->tel.temp_dc  = 232;
+    n->tel.rh_pct   = 55;
+    n->tel.lux      = 4800;
+    n->tel.batt_mv  = 3880;
+
+    n->verdict.mood     = mood;
+    n->verdict.severity = (mood == RK_MOOD_THIRSTY) ? RK_SEV_URGENT
+                        : (mood == RK_MOOD_HAPPY || mood == RK_MOOD_SLEEPING)
+                          ? RK_SEV_OK : RK_SEV_WATCH;
+    n->verdict.reason   = rk_mood_reason(mood);
 }
 
-uint32_t rk_golden_prime(rk_mood_t mood, uint32_t t_ms)
+uint32_t rk_golden_cara(int persona, rk_mood_t mood, uint32_t t_ms)
 {
-    rk_roster_t kit;
-    rk_fb_t     fb;
+    rk_node_t n;
+    rk_fb_t   fb;
 
-    rk_fb_init(&fb, g_prime, RK_PRIME_W, RK_PRIME_H);
-    rk_golden_kit(&kit, 0, mood);
-    rk_prime_draw(&fb, &kit, t_ms);
-    return rk_frame_hash(g_prime, RK_PRIME_PX);
-}
-
-uint32_t rk_golden_mini(rk_mood_t mood, uint32_t t_ms)
-{
-    rk_roster_t kit;
-    rk_fb_t     fb;
-
-    rk_fb_init(&fb, g_mini, RK_MINI_W, RK_MINI_H);
-    rk_golden_kit(&kit, 1, mood);
-    rk_mini_draw(&fb, &kit.nodes[1], t_ms);
-    return rk_frame_hash(g_mini, RK_MINI_PX);
+    rk_fb_init(&fb, g_px, RK_MINI_W, RK_MINI_H);
+    rk_golden_nodo(&n, persona, mood);
+    rk_cara_draw(&fb, &n, t_ms);
+    return rk_frame_hash(g_px, RK_MINI_PX);
 }

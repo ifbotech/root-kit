@@ -1,6 +1,6 @@
 /* Tests del motor gráfico. Lo importante acá no es que los píxeles sean
  * lindos —eso lo cubre test_render— sino que las primitivas no se salgan
- * del buffer: un blit sin recorte sobre un framebuffer en PSRAM no tira
+ * del buffer: una primitiva sin recorte sobre un framebuffer en PSRAM no tira
  * excepción en el ESP32, corrompe lo que haya al lado. */
 #include <stddef.h>
 #include "rk_test.h"
@@ -128,44 +128,6 @@ static void test_primitivas(void)
     }
 }
 
-static void test_sprites(void)
-{
-    static const rk_color_t pal[3] = { 0x0000, 0xF800, 0x001F };
-    static const uint8_t idx[9]    = { 0, 1, 0,
-                                       1, 2, 1,
-                                       0, 1, 0 };
-    rk_sprite_t s = { 3, 3, idx, pal, 3 };
-
-    arena_init();
-    rk_blit(&g_fb, &s, 5, 5);
-    CHECK_INT("el indice 0 es transparente", 4, contar(0xF800));
-    CHECK_INT("el indice 2 se pinta",        1, contar(0x001F));
-
-    /* Blits completamente fuera del buffer, en las cuatro direcciones. */
-    arena_init();
-    rk_blit(&g_fb, &s, -10, -10);
-    rk_blit(&g_fb, &s, W + 5, H + 5);
-    rk_blit(&g_fb, &s, -2, 5);
-    rk_blit(&g_fb, &s, W - 1, 5);
-    rk_blit_tint(&g_fb, &s, -100, -100, 0xFFFF, 128);
-    rk_blit_solid(&g_fb, &s, 1000, 1000, 0xFFFF);
-    CHECK_TRUE("los blits fuera de rango no corrompen nada", guards_intactos());
-
-    arena_init();
-    rk_blit_solid(&g_fb, &s, 5, 5, 0x2222);
-    CHECK_INT("blit_solid ignora la paleta", 5, contar(0x2222));
-
-    arena_init();
-    rk_fb_clear(&g_fb, 0x5555);
-    rk_blit_tint(&g_fb, &s, 5, 5, 0x0000, 255);
-    CHECK_INT("tinte al maximo lleva todo al color destino", 5, contar(0x0000));
-
-    arena_init();
-    rk_fb_clear(&g_fb, 0x5555);
-    rk_blit_tint(&g_fb, &s, 5, 5, 0xFFFF, 0);
-    CHECK_INT("tinte en cero equivale a un blit normal", 4, contar(0xF800));
-}
-
 static void test_seno_y_hash(void)
 {
     int i, min = 999, max = -999;
@@ -230,7 +192,6 @@ void suite_gfx(void)
     test_color();
     test_recorte();
     test_primitivas();
-    test_sprites();
     test_seno_y_hash();
     test_tipografia();
     RK_SUITE_END();

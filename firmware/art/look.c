@@ -37,24 +37,3 @@ bool rk_look_parpadea(const rk_look_t *lk, uint32_t t_ms)
 {
     return lk != NULL && lk->blinks && (t_ms % 3400u) < 120u;
 }
-
-/* -------------------------------------------------------------- arte ----- */
-const rk_shape_t *const RK_AD_OJO[RK_OJO_COUNT] = {
-    &rk_ad_eye_open,   &rk_ad_eye_blink, &rk_ad_eye_happy, &rk_ad_eye_wide,
-    &rk_ad_eye_sleepy, &rk_ad_eye_dead,  &rk_ad_eye_dizzy, &rk_ad_eye_glitch,
-};
-
-const rk_shape_t *const RK_AD_BOCA[RK_BOCA_COUNT] = {
-    &rk_ad_mouth_smile, &rk_ad_mouth_flat, &rk_ad_mouth_frown,
-    &rk_ad_mouth_open,  &rk_ad_mouth_wavy, &rk_ad_mouth_pant,
-};
-
-const rk_shape_t *const RK_BR_OJO[RK_OJO_COUNT] = {
-    &rk_br_eye_open,   &rk_br_eye_blink, &rk_br_eye_happy, &rk_br_eye_wide,
-    &rk_br_eye_sleepy, &rk_br_eye_dead,  &rk_br_eye_dizzy, &rk_br_eye_glitch,
-};
-
-const rk_shape_t *const RK_BR_BOCA[RK_BOCA_COUNT] = {
-    &rk_br_mouth_smile, &rk_br_mouth_flat, &rk_br_mouth_frown,
-    &rk_br_mouth_open,  &rk_br_mouth_wavy, &rk_br_mouth_pant,
-};

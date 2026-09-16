@@ -50,30 +50,27 @@ salida vacía como "no hay cambios" y pasaba en verde sin haber mirado nada. El
 target ahora exige que `git rev-parse --show-toplevel` devuelva algo antes de
 confiar en un `git status` vacío.
 
-## La ventana muestra el kit, no una pantalla
+## La ventana muestra los seis modelos
 
 ```bash
 make sim
 ```
 
-El Prime a la izquierda y los Minis apilados a la derecha, todos animándose con
-el mismo reloj sobre el mismo mundo simulado, a 2× para que se vean en un
-monitor.
+Los seis modelos en una grilla, todos animándose con el mismo reloj sobre el
+mismo mundo simulado, a 2× para que se vean en un monitor.
 
-Eso es deliberado y es la razón de que el simulador se haya reescrito: lo que
-hay que juzgar no es si una pantalla queda linda, sino **si la jerarquía entre
-el adulto de 22 mm y el brote de 13 mm se lee, y si las dos pantallas cuentan
-la misma historia sobre la misma planta**. Con una sola ventana por vez eso es
-imposible de evaluar.
+Eso es deliberado: lo que hay que juzgar es **si los seis se leen como el mismo
+producto y como seis personajes distintos al mismo tiempo**. El parecido y la
+diferencia sólo existen en comparación, así que con una cara por vez las dos
+cosas son imposibles de evaluar.
 
 | Tecla | Qué hace |
 |---|---|
-| `1`–`4` | Seleccionar nodo |
-| `W` | Regar el nodo seleccionado |
+| `1`–`6` | Seleccionar modelo |
+| `W` | Regar la maceta seleccionada |
 | `M` | Ciclar los ánimos a la fuerza |
 | `R` | Volver al ánimo real |
-| `G` | Disparar la ceremonia de apertura |
-| `O` | Marcar el nodo como caído |
+| `G` | Disparar el primer encendido del seleccionado |
 | `+` / `-` | Acelerar o frenar el tiempo |
 | `S` | Capturar la ventana entera a `captura.bmp` |
 | `ESC` | Salir |
@@ -83,17 +80,16 @@ solo: la tierra se seca a su ritmo y el sol sale y se pone. Sin eso el
 simulador muestra estados congelados y no se puede juzgar si las transiciones
 se sienten bien.
 
-Los cuatro nodos del mundo simulado arrancan con vínculos de distinta edad
-—9, 34, 95 y 200 días sanos— para que la ventana muestre de entrada varias
-etapas de crecimiento sin tener que esperar seis meses.
+Los seis aparatos arrancan con vínculos de distinta edad —9, 34, 62, 95, 140 y
+200 días sanos— para que la ventana muestre de entrada varias etapas de
+crecimiento sin tener que esperar seis meses.
 
 ## Capturas sin ventana
 
 ```bash
-make sheet       # el Prime en los 11 ánimos
-make minis       # el Mini en los 11 ánimos
-make brotes      # los 12 simbiontes x 5 etapas
-make ceremonia   # la apertura, una fila por rareza
+make sheet       # los 6 modelos x 11 ánimos
+make etapas      # las 5 etapas de crecimiento, por modelo
+make revelado    # el primer encendido, por modelo
 make bench       # costo de rasterizado y cota del bus
 ```
 
@@ -108,11 +104,9 @@ cambió, no si quedó mejor o peor.**
 
 El plan original era usar LVGL con su port de SDL. Se descartó, y las razones
 están en [decisiones.md](decisiones.md). En resumen: el pixel art necesita
-escalado por enteros con vecino más cercano y LVGL escala pensando en
-suavizado; un buffer RGB565 plano es exactamente lo que espera
-`esp_lcd_panel_draw_bitmap()`, sin capa intermedia; y hay dos paneles de
-tamaños muy distintos donde LVGL pesaría lo mismo, mientras que acá el Mini
-paga sólo las primitivas que usa.
+la cara es procedural —elipses, arcos y trazos calculados— y LVGL trae un motor
+de widgets que acá no se usaría nunca; y un buffer RGB565 plano es exactamente
+lo que espera `esp_lcd_panel_draw_bitmap()`, sin capa intermedia.
 
 El renderer propio son unas 400 líneas en `gfx/`, y el mismo código corre en el
 simulador, en los tests y en las dos placas.
@@ -126,16 +120,15 @@ Anotarlo ahora evita sorpresas cuando lleguen las placas:
   pueden mover la autonomía de 595 días a cualquier otra cosa. Multímetro en
   serie, el día uno.
 - **Framerate real.** El simulador corre en un x86. El benchmark ya dice que
-  el límite no va a ser rasterizar sino el bus: 29 ms por cuadro del Prime a 40
-  MHz de SPI. Hay que confirmar a qué reloj funciona el panel de verdad.
-- **Colores.** El IPS no tiene el mismo gamma que tu monitor. El pixel art con
-  paletas saturadas es especialmente sensible, y las doce paletas del catálogo
-  se eligieron mirando una pantalla de PC.
+  el límite no va a ser rasterizar sino el bus: 6,25 ms por cuadro a 40 MHz de
+  SPI, o sea 160 fps de techo. Hay que confirmar a qué reloj anda el panel.
+- **Colores.** El IPS no tiene el mismo gamma que tu monitor, y las seis
+  paletas se eligieron mirando una pantalla de PC. Peor: el Hongo se diseñó
+  oscuro porque su carcasa le tira sombra, y eso sólo se puede juzgar con la
+  pieza impresa encima.
 - **Bytes invertidos.** Si al flashear los colores salen raros, es el orden de
   bytes del RGB565. Se arregla con un flag del driver.
-- **El tamaño físico en la mano.** Los 12,9 mm del brote y los 21,9 del adulto
-  salen del paso de pixel publicado por el fabricante. Los tests los verifican
-  contra ese número, no contra la realidad.
-- **Táctil.** El mouse no reproduce la latencia ni la precisión del panel.
+- **Cómo se ve una cara dentro de su carcasa.** Es lo más importante que falta
+  probar, y no hay forma de simularlo: hay que imprimir.
 - **La radio.** `net/link.c` se prueba pasando estructuras en memoria. ESP-NOW
   está sin escribir.

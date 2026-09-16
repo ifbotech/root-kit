@@ -15,12 +15,17 @@
  * qué planta va primero en la lista. */
 export const SEVERIDADES = ['URGENT', 'WATCH', 'OK'];
 
-/* Un kit es un Prime enchufado y hasta cinco Minis a batería. */
-export const ROLES = ['PRIME', 'MINI'];
+/* Las rarezas de la caja ciega, de la más común a la más rara. El orden
+ * importa: es el que ordena la vista de colección. */
+export const RAREZAS = ['COMUN', 'RARO', 'SECRETO'];
 
-export const ROL_ES = { PRIME: 'Prime', MINI: 'Mini' };
+export const RAREZA_ES = {
+  COMUN: 'común',
+  RARO: 'raro',
+  SECRETO: 'secreto',
+};
 
-/* Salud del enlace, tal como la calcula firmware/core/node.c. El Hub la
+/* Salud del enlace, tal como la calcula firmware/core/node.c. La app la
  * muestra, no la deduce: el umbral vive en un solo lugar. */
 export const LINK_ES = {
   NUNCA: 'sin enlazar',
@@ -108,10 +113,9 @@ export function battPct(mv) {
  * Orden de la lista: primero lo que reclama atención, y dentro de cada
  * severidad por nombre, para que la lista no baile entre recargas.
  *
- * El rol NO entra en el orden. Es tentador poner al Prime siempre arriba
- * porque es "el principal", pero el Hub se abre para saber qué planta
- * necesita algo, y una maceta con sed importa lo mismo esté donde esté el
- * enchufe. El rol se muestra como etiqueta, no como jerarquía.
+ * El modelo de carcasa NO entra en el orden. La app se abre para saber qué
+ * planta necesita algo, y una maceta con sed importa lo mismo tenga la
+ * carcasa que tenga. El modelo se muestra como identidad, no como jerarquía.
  */
 export function ordenarNodos(nodes) {
   const rank = (p) => {
@@ -152,14 +156,55 @@ export function progresoEtapa(diasSanos) {
 }
 
 /**
- * Sólo los Minis van a batería: el Prime está enchufado. Devolver null y no
- * 100% es deliberado — la interfaz tiene que poder dibujar un enchufe en vez
- * de una pila llena, que dice algo distinto.
+ * Todos los aparatos van a batería. Devuelve null y no 0 cuando no hay dato,
+ * porque "no sé" y "vacía" son cosas distintas y la interfaz las dibuja
+ * distinto.
  */
 export function bateriaDe(nodo) {
-  if (!nodo || nodo.role === 'PRIME') return null;
-  if (Number.isFinite(nodo?.batt_pct)) return nodo.batt_pct;
-  return battPct(nodo?.tel?.batt_mv);
+  if (!nodo) return null;
+  if (Number.isFinite(nodo?.nodo?.batt_pct)) return nodo.nodo.batt_pct;
+  if (Number.isFinite(nodo?.tel?.batt_mv) && nodo.tel.batt_mv > 0) {
+    return battPct(nodo.tel.batt_mv);
+  }
+  return null;
+}
+
+/**
+ * Cómo va la colección de carcasas. El secreto NO entra en el total: si
+ * entrara, el contador diría "3 de 6" y le estaría contando al usuario que
+ * existe algo que todavía no descubrió, que es justo lo que arruina un
+ * secreto. Aparece en la cuenta recién cuando ya lo tiene.
+ */
+export function progresoColeccion(catalogo, tengo) {
+  const lista = catalogo || [];
+  const mios = tengo || [];
+  const visibles = lista.filter((m) => m.rareza !== 'SECRETO');
+  const tengoVisibles = visibles.filter((m) => mios.includes(m.id)).length;
+  const secretos = lista.filter(
+    (m) => m.rareza === 'SECRETO' && mios.includes(m.id),
+  ).length;
+  return {
+    tengo: tengoVisibles + secretos,
+    total: visibles.length + secretos,
+    completa: tengoVisibles === visibles.length && visibles.length > 0,
+    secretos,
+  };
+}
+
+/**
+ * Orden de la colección: por rareza y después por nombre. Los repetidos no
+ * existen como concepto acá —la app registra qué modelos tenés, no cuántos
+ * de cada uno— porque contar duplicados convertiría la colección en un
+ * inventario, y un inventario no da ganas de completar nada.
+ */
+export function ordenarColeccion(catalogo) {
+  const rank = (m) => {
+    const i = RAREZAS.indexOf(m.rareza);
+    return i < 0 ? RAREZAS.length : i;
+  };
+  return [...(catalogo || [])].sort(
+    (a, b) => rank(a) - rank(b) || String(a.nombre).localeCompare(String(b.nombre)),
+  );
 }
 
 /**

@@ -2,7 +2,7 @@
 #include <stddef.h>
 #include <string.h>
 
-/* ------------------------------------------------------------- Prime ---- */
+/* --------------------------------------------------- lado de la app ---- */
 bool rk_link_config_from_node(const rk_node_t *n, uint16_t interval_s,
                               const rk_soil_cal_t *cal, rk_config_pkt_t *out)
 {
@@ -33,8 +33,9 @@ bool rk_link_config_from_node(const rk_node_t *n, uint16_t interval_s,
     out->lux_min     = n->sp->lux_min;
     out->lux_max     = n->sp->lux_max;
 
-    idx = rk_companion_index(n->comp);
-    out->comp_idx = (idx >= 0 && idx < 255) ? (uint8_t)idx : RK_COMP_NINGUNO;
+    idx = rk_persona_index(n->persona);
+    out->persona_idx = (idx >= 0 && idx < 255) ? (uint8_t)idx
+                                               : RK_PERSONA_NINGUNA;
     out->etapa    = (uint8_t)rk_stage_from_bond(&n->bond);
     return true;
 }
@@ -61,7 +62,7 @@ rk_node_t *rk_link_ingest(rk_roster_t *r, const rk_telemetry_pkt_t *p,
     n->tel.lux      = p->lux;
     n->tel.batt_mv  = p->batt_mv;
 
-    /* El ánimo llega resuelto desde el nodo y se copia tal cual. NO se
+    /* El ánimo llega resuelto desde el aparato y se copia tal cual. NO se
      * vuelve a llamar a rk_mood_eval acá: ver la nota de link.h. */
     n->verdict.mood     = (rk_mood_t)p->mood;
     n->verdict.severity = (rk_severity_t)p->severity;
@@ -93,9 +94,9 @@ void rk_link_envejecer(rk_roster_t *r, uint32_t delta_s)
     }
 }
 
-/* -------------------------------------------------------------- Mini ---- */
+/* ----------------------------------------------- lado del aparato ------ */
 void rk_link_apply_config(const rk_config_pkt_t *cfg, rk_species_t *sp_out,
-                          const rk_companion_t **comp_out,
+                          const rk_persona_t **persona_out,
                           rk_stage_t *etapa_out)
 {
     if (cfg == NULL) {
@@ -112,14 +113,13 @@ void rk_link_apply_config(const rk_config_pkt_t *cfg, rk_species_t *sp_out,
         sp_out->rh_min      = cfg->rh_min;
         sp_out->lux_min     = cfg->lux_min;
         sp_out->lux_max     = cfg->lux_max;
-        /* La dificultad no viaja: de ella sale la rareza, y la rareza la
-         * muestra el Prime, no el Mini. Un byte que nadie mira es un byte de
-         * radio encendida. */
+        /* La dificultad de la especie ya no viaja porque ya no significa
+         * nada: la rareza se mudó a la caja física. El campo queda en la
+         * struct para la app, que sí la muestra al elegir una planta. */
         sp_out->dificultad  = 0u;
     }
-    if (comp_out != NULL) {
-        *comp_out = (cfg->comp_idx < (uint8_t)rk_companion_count)
-                    ? &rk_companion_table[cfg->comp_idx] : NULL;
+    if (persona_out != NULL) {
+        *persona_out = rk_persona_at((int)cfg->persona_idx);
     }
     if (etapa_out != NULL) {
         *etapa_out = (cfg->etapa < (uint8_t)RK_ETAPA_COUNT)

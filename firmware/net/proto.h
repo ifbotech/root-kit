@@ -1,7 +1,7 @@
-/* proto.h — protocolo binario Mini <-> Prime.
+/* proto.h — protocolo binario entre el ROOTKIT y la app.
  *
  * Cada byte que viaja es tiempo de radio encendida, y la radio es lo único
- * que consume de verdad en un Mini: una trama de 26 bytes contra un JSON de
+ * que consume de verdad en el aparato: una trama de 26 bytes contra un JSON de
  * 190 es, a grandes rasgos, un 15% menos de tiempo de transmisión por ciclo.
  * Por eso el formato es binario, fijo y sin campos opcionales.
  *
@@ -15,26 +15,26 @@
  *    sacrificar la resolución baja, justo donde vive el umbral de noche.
  *  - CRC16-CCITT sobre todo menos el propio CRC. Con paquetes por radio en
  *    2,4 GHz y vecinos ruidosos, una trama corrupta que pase por buena
- *    mueve al simbionte a un estado equivocado.
+ *    le pone al aparato una cara equivocada.
  *  - El número de secuencia permite descartar duplicados y detectar pérdidas
  *    sin reloj compartido.
  *
  * QUÉ CAMBIÓ EN LA VERSIÓN 2, Y POR QUÉ
  *
  * La v1 asumía un nodo sin pantalla: mandaba números crudos y el ánimo lo
- * decidía la Terminal. Desde que cada Mini tiene su propia pantalla eso no
- * alcanza, porque el Mini tiene que saber qué cara poner aunque el Prime
- * esté apagado. Así que:
+ * decidía otro. Desde que cada aparato tiene su propia pantalla eso no
+ * alcanza, porque tiene que saber qué cara poner aunque no haya red. Así
+ * que:
  *
  *  - CONFIG creció de 18 a 32 bytes y ahora lleva los UMBRALES DE LA
- *    ESPECIE, además del simbionte que le tocó y su etapa. Con eso el Mini
- *    corre el mismo core/mood.c que el Prime y se dibuja solo. CONFIG viaja
- *    en sentido Prime -> Mini, una sola vez al emparejar y cada vez que
- *    cambia la especie, así que su tamaño no pesa en la batería.
+ *    ESPECIE, además de qué carcasa lleva puesta y su etapa. Con eso el
+ *    aparato corre core/mood.c y se dibuja solo. CONFIG viaja en sentido
+ *    app -> aparato, una sola vez al emparejar y cada vez que cambia la
+ *    especie o la carcasa, así que su tamaño no pesa en la batería.
  *  - TELEMETRY creció de 24 a 26 bytes y ahora lleva el ÁNIMO YA RESUELTO.
- *    El Prime no lo recalcula: lo muestra. Así no hay forma de que la cara
- *    de la maceta y la del escritorio digan cosas distintas.
- *  - HELLO lleva el ROL del nodo en un byte que antes era relleno.
+ *    La app no lo recalcula: lo muestra. Así no hay forma de que la cara de
+ *    la maceta y la ficha del teléfono digan cosas distintas.
+ *  - HELLO lleva la VARIANTE DE PLACA en un byte que antes era relleno.
  */
 #ifndef ROOTKIT_PROTO_H
 #define ROOTKIT_PROTO_H
@@ -48,7 +48,7 @@
 
 #define RK_PKT_TELEMETRY  1u
 #define RK_PKT_HELLO      2u
-#define RK_PKT_CONFIG     3u      /* Prime -> Mini */
+#define RK_PKT_CONFIG     3u      /* app -> aparato */
 
 #define RK_TELEMETRY_LEN  26
 #define RK_HELLO_LEN      18
@@ -62,10 +62,10 @@
  *                  16 lux   | 18 batt_mv | 20 soil_raw | 22 estado
  *                  23 etapa | 24 crc
  *   HELLO     (18)  0..9 cabecera | 10 hw | 11 fw_maj | 12 fw_min
- *                  13 boot_count | 15 rol | 16 crc
+ *                  13 boot_count | 15 hw_variant | 16 crc
  *   CONFIG    (32)  0..9 cabecera | 10 interval_s | 12 dry_raw | 14 wet_raw
  *                  16 soil_min | 17 soil_max | 18 temp_min_dc
- *                  20 temp_max_dc | 22 rh_min | 23 comp_idx | 24 etapa
+ *                  20 temp_max_dc | 22 rh_min | 23 persona_idx | 24 etapa
  *                  25 lux_min | 27 lux_max | 29 cfg_flags | 30 crc
  *
  * El byte `estado` empaqueta ánimo y severidad: los cuatro bits bajos son el
@@ -95,9 +95,9 @@ typedef struct {
     uint32_t lux;
     uint16_t batt_mv;
     uint16_t soil_raw;   /* ADC crudo: permite recalibrar sin ir a la maceta */
-    uint8_t  mood;       /* rk_mood_t, evaluado en el propio nodo        */
+    uint8_t  mood;       /* rk_mood_t, evaluado en el propio aparato     */
     uint8_t  severity;   /* rk_severity_t                                */
-    uint8_t  etapa;      /* rk_stage_t: el nodo lleva su propio vínculo  */
+    uint8_t  etapa;      /* rk_stage_t: cada maceta lleva su vínculo     */
 } rk_telemetry_pkt_t;
 
 typedef struct {
@@ -106,7 +106,7 @@ typedef struct {
     uint8_t  fw_major;
     uint8_t  fw_minor;
     uint16_t boot_count;
-    uint8_t  role;       /* rk_role_t: 0 Prime, 1 Mini                   */
+    uint8_t  hw_variant; /* variante de placa, 0 = la de referencia      */
 } rk_hello_pkt_t;
 
 typedef struct {
@@ -116,7 +116,7 @@ typedef struct {
     uint16_t soil_wet_raw;  /* calibración: lectura sumergido            */
     uint8_t  flags;
 
-    /* Umbrales de la especie: con esto el Mini evalúa su propio ánimo. */
+    /* Umbrales de la especie: con esto el aparato evalúa su propio ánimo. */
     uint8_t  soil_min;
     uint8_t  soil_max;
     int16_t  temp_min_dc;
@@ -125,8 +125,10 @@ typedef struct {
     uint32_t lux_min;
     uint32_t lux_max;
 
-    /* Quién habita esta maceta y en qué etapa está. */
-    uint8_t  comp_idx;      /* índice en rk_companion_table, 0xFF = ninguno */
+    /* Qué carcasa lleva puesta. Sale de la caja ciega y la carga el usuario
+     * en la app; el aparato no tiene forma de saberlo solo. Ver la nota de
+     * docs/carcasas.md sobre por qué no se detecta por hardware todavía. */
+    uint8_t  persona_idx;   /* índice en rk_persona_table, 0xFF = ninguna  */
     uint8_t  etapa;
 } rk_config_pkt_t;
 

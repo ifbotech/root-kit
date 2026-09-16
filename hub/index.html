@@ -57,7 +57,10 @@
         <label for="especie">Especie</label>
         <select id="especie" required></select>
 
-        <label for="nodo">Nodo</label>
+        <label for="modelo">Carcasa que te tocó</label>
+        <select id="modelo"></select>
+
+        <label for="nodo">Aparato</label>
         <select id="nodo">
           <option value="">— ninguno por ahora —</option>
         </select>
@@ -70,6 +73,7 @@
 
   <!-- -------------------------------------------------------- coleccion -->
   <section id="vista-coleccion" class="vista" hidden>
+    <p id="col-resumen" class="resumen"></p>
     <p class="ayuda">
       Cada especie que registrás revela su simbionte. Los desbloqueos son por
       logro, nunca por azar.

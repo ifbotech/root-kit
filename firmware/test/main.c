@@ -18,8 +18,7 @@ int main(void)
     suite_nodo();
     suite_gfx();
     suite_render();
-    suite_companion();
-    suite_mini();
+    suite_persona();
     suite_link();
 
     return rk_t_report();

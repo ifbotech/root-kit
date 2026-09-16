@@ -91,8 +91,7 @@ void suite_proto(void);
 void suite_nodo(void);
 void suite_gfx(void);
 void suite_render(void);
-void suite_companion(void);
-void suite_mini(void);
+void suite_persona(void);
 void suite_link(void);
 
 #endif /* RK_TEST_H */

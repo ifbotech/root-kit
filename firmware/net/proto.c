@@ -176,7 +176,7 @@ int rk_proto_encode_hello(uint8_t *buf, size_t cap, const rk_hello_pkt_t *p)
     buf[n++] = p->fw_major;                                   /* 11 */
     buf[n++] = p->fw_minor;                                   /* 12 */
     put_u16(&buf[n], p->boot_count);                n += 2;   /* 13 */
-    buf[n++] = p->role;                                       /* 15 */
+    buf[n++] = p->hw_variant;                                 /* 15 */
     put_u16(&buf[n], rk_crc16(buf, (size_t)n));     n += 2;   /* 16 */
     return n;   /* 18 */
 }
@@ -200,7 +200,7 @@ int rk_proto_decode_hello(const uint8_t *buf, size_t len, rk_hello_pkt_t *out)
     out->fw_major   = buf[11];
     out->fw_minor   = buf[12];
     out->boot_count = get_u16(&buf[13]);
-    out->role       = buf[15];
+    out->hw_variant = buf[15];
     return RK_PROTO_OK;
 }
 
@@ -215,7 +215,7 @@ int rk_proto_decode_hello(const uint8_t *buf, size_t len, rk_hello_pkt_t *out)
  *  18..19 temp_min_dc
  *  20..21 temp_max_dc
  *  22     rh_min
- *  23     comp_idx        (0xFF: todavía sin simbionte asignado)
+ *  23     persona_idx     (0xFF: todavía sin carcasa declarada)
  *  24     etapa
  *  25..26 lux_min         (codificado con la misma mantisa+exponente)
  *  27..28 lux_max
@@ -247,7 +247,7 @@ int rk_proto_encode_config(uint8_t *buf, size_t cap, const rk_config_pkt_t *p)
     put_u16(&buf[n], (uint16_t)p->temp_min_dc);     n += 2;   /* 18 */
     put_u16(&buf[n], (uint16_t)p->temp_max_dc);     n += 2;   /* 20 */
     buf[n++] = p->rh_min;                                     /* 22 */
-    buf[n++] = p->comp_idx;                                   /* 23 */
+    buf[n++] = p->persona_idx;                                /* 23 */
     buf[n++] = p->etapa;                                      /* 24 */
     put_u16(&buf[n], rk_lux_encode(p->lux_min));    n += 2;   /* 25 */
     put_u16(&buf[n], rk_lux_encode(p->lux_max));    n += 2;   /* 27 */
@@ -281,7 +281,7 @@ int rk_proto_decode_config(const uint8_t *buf, size_t len,
     out->temp_min_dc  = (int16_t)get_u16(&buf[18]);
     out->temp_max_dc  = (int16_t)get_u16(&buf[20]);
     out->rh_min       = buf[22];
-    out->comp_idx     = buf[23];
+    out->persona_idx  = buf[23];
     out->etapa        = buf[24];
     out->lux_min      = rk_lux_decode(get_u16(&buf[25]));
     out->lux_max      = rk_lux_decode(get_u16(&buf[27]));

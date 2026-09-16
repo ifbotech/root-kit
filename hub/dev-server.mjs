@@ -46,34 +46,25 @@ export const ESPECIES = [
     temp_min_dc: 150, temp_max_dc: 270, rh_min: 55, lux_min: 3000, lux_max: 25000, dificultad: 92 },
 ];
 
-/* Generado desde firmware/core/companion.c. Un simbionte por especie, y el
- * desbloqueo es determinista: registrás una especie nueva y aparece el
- * suyo. La rareza sale de la dificultad hortícola, no de un dado. */
-export const SIMBIONTES = [
-  { id: 'tuga', nombre: 'Tuga.exe', especie: 'monstera', rareza: 'RARO',
-    lema: 'Lenta, testaruda, sobrevive a todo.' },
-  { id: 'myco', nombre: 'Myco.zip', especie: 'pothos', rareza: 'COMUN',
-    lema: 'Se propaga en silencio. Ya esta en tres macetas.' },
-  { id: 'sable', nombre: 'Sable.bin', especie: 'sansevieria', rareza: 'COMUN',
-    lema: 'No pide nada. No perdona nada.' },
-  { id: 'zam', nombre: 'Zam.sys', especie: 'zamioculcas', rareza: 'COMUN',
-    lema: 'Funciona en modo seguro desde hace meses.' },
-  { id: 'spine', nombre: 'Spine.dll', especie: 'cactus', rareza: 'COMUN',
-    lema: 'Guarda agua y rencores.' },
-  { id: 'vera', nombre: 'Vera.sh', especie: 'aloe', rareza: 'COMUN',
-    lema: 'Se repara sola. A veces demasiado.' },
-  { id: 'filo', nombre: 'Filo.tar', especie: 'filodendro', rareza: 'RARO',
-    lema: 'Extiende ramas como quien abre pestanas.' },
-  { id: 'fern', nombre: 'Fern.log', especie: 'helecho', rareza: 'EPICO',
-    lema: 'Registra cada dia seco y te lo recuerda.' },
-  { id: 'orqui', nombre: 'Orqui.key', especie: 'orquidea', rareza: 'EPICO',
-    lema: 'Florece cuando quiere. No cuando vos queres.' },
-  { id: 'cala', nombre: 'Cala.gif', especie: 'calathea', rareza: 'EPICO',
-    lema: 'Se mueve de noche. Nadie sabe adonde va.' },
-  { id: 'lyra', nombre: 'Lyra.iso', especie: 'ficus-lyrata', rareza: 'LEGENDARIO',
-    lema: 'Imagen completa de un arbol que te va a odiar.' },
-  { id: 'bonz', nombre: 'Bonz.root', especie: 'bonsai', rareza: 'LEGENDARIO',
-    lema: 'Un siglo comprimido en veinte centimetros.' },
+/* Generado desde firmware/core/persona.c por tools/sync_catalog.py.
+ *
+ * Los modelos de carcasa: lo que trae la caja ciega. La rareza es del
+ * MODELO y no de la planta, porque el azar ocurre al abrir la caja y no
+ * dentro del software. El campo `idx` es la clave con la que la carcasa
+ * viaja por radio hasta el aparato, así que su orden importa. */
+export const MODELOS = [
+  { idx: 0, id: 'cresta', nombre: 'Cresta', rareza: 'COMUN',
+    carcasa: 'carcasas/cresta.stl', lema: 'No te va a agradecer. Igual regala.' },
+  { idx: 1, id: 'kawaii', nombre: 'Kawaii', rareza: 'COMUN',
+    carcasa: 'carcasas/kawaii.stl', lema: 'Te quiere aunque la olvides. Eso es peor.' },
+  { idx: 2, id: 'visor', nombre: 'Visor', rareza: 'COMUN',
+    carcasa: 'carcasas/visor.stl', lema: 'Registra. No opina.' },
+  { idx: 3, id: 'ciclope', nombre: 'Ciclope', rareza: 'RARO',
+    carcasa: 'carcasas/ciclope.stl', lema: 'Mira una sola cosa. La mira mucho.' },
+  { idx: 4, id: 'hongo', nombre: 'Hongo', rareza: 'RARO',
+    carcasa: 'carcasas/hongo.stl', lema: 'Duerme. Crece igual.' },
+  { idx: 5, id: 'glitch', nombre: '?????', rareza: 'SECRETO',
+    carcasa: 'carcasas/glitch.stl', lema: 'No estaba en la caja. Igual salio.' },
 ];
 
 /* --------------------------------------------------------------- estado -- */
@@ -82,32 +73,35 @@ export function estadoInicial() {
     seq: 2,
     nodes: [
       {
-        id: 'p1', nombre: 'MONSTERA', role: 'PRIME', especie: 'monstera',
-        simbionte: 'tuga', link: 'VIVO',
+        id: 'p1', nombre: 'MONSTERA', modelo: 'cresta', especie: 'monstera',
+        link: 'VIVO',
         mood: 'THIRSTY', severity: 'URGENT', reason: 'tengo sed',
-        tel: { soil_pct: 22, temp_dc: 236, rh_pct: 54, lux: 5200, batt_mv: 4200, age_s: 240 },
-        nodo: { id: 'a4cf129b4011', batt_pct: null, seq: 4211 },
+        tel: { soil_pct: 22, temp_dc: 236, rh_pct: 54, lux: 5200, batt_mv: 3810, age_s: 240 },
+        nodo: { id: 'a4cf129b4011', batt_pct: 62, seq: 4211 },
         bond: { dias_vividos: 104, dias_sanos: 95, racha: 12, mejor_racha: 40 },
       },
       {
-        id: 'p2', nombre: 'POTUS', role: 'MINI', especie: 'pothos',
-        simbionte: 'myco', link: 'VIVO',
+        id: 'p2', nombre: 'POTUS', modelo: 'kawaii', especie: 'pothos',
+        link: 'VIVO',
         mood: 'HAPPY', severity: 'OK', reason: 'estoy perfecta',
         tel: { soil_pct: 44, temp_dc: 229, rh_pct: 48, lux: 3100, batt_mv: 3950, age_s: 95 },
         nodo: { id: 'a4cf129b4077', batt_pct: 81, seq: 980 },
         bond: { dias_vividos: 40, dias_sanos: 34, racha: 8, mejor_racha: 19 },
       },
       {
-        id: 'p3', nombre: 'BONSAI', role: 'MINI', especie: 'bonsai',
-        simbionte: 'bonz', link: 'TIBIO',
+        id: 'p3', nombre: 'BONSAI', modelo: 'hongo', especie: 'bonsai',
+        link: 'TIBIO',
         mood: 'DARK', severity: 'WATCH', reason: 'necesito mas luz',
         tel: { soil_pct: 38, temp_dc: 221, rh_pct: 58, lux: 380, batt_mv: 3620, age_s: 16200 },
         nodo: { id: 'a4cf129b40b2', batt_pct: 44, seq: 311 },
         bond: { dias_vividos: 214, dias_sanos: 200, racha: 31, mejor_racha: 66 },
       },
     ],
-    nodosLibres: [{ id: 'a4cf129b40aa', rssi: -61, visto_hace_s: 12, role: 'MINI' }],
-    desbloqueados: ['tuga', 'myco', 'bonz'],
+    nodosLibres: [{ id: 'a4cf129b40aa', rssi: -61, visto_hace_s: 12 }],
+    /* Que carcasas ya tiene. Se agregan cuando el usuario declara
+     * una al dar de alta una maceta: la coleccion es de objetos
+     * fisicos, asi que la app registra lo que ya esta en la casa. */
+    tengo: ['cresta', 'kawaii', 'hongo'],
   };
 }
 
@@ -144,8 +138,7 @@ const leerCuerpo = (req) => new Promise((resolve, reject) => {
 /** Toda la lógica de la API, separada del transporte para poder testearla. */
 export async function manejarApi(metodo, ruta, cuerpo) {
   if (metodo === 'GET' && ruta === '/api/state') {
-    return [200, { prime: { fw: '0.5.0', uptime_s: 84213, wifi_rssi: -54,
-                            minis: estado.nodes.filter((n) => n.role === 'MINI').length },
+    return [200, { app: { fw: '0.6.0', aparatos: estado.nodes.length },
                    nodes: estado.nodes }];
   }
 
@@ -157,12 +150,32 @@ export async function manejarApi(metodo, ruta, cuerpo) {
     return [200, estado.nodosLibres];
   }
 
+  /* La coleccion es de OBJETOS FISICOS: que carcasas ya tenes en tu casa.
+   * El modelo secreto no se lista hasta que aparece, que es exactamente lo
+   * que hace que sea un secreto y no una casilla vacia con un signo de
+   * pregunta que ya te contó cuantos te faltan. */
   if (metodo === 'GET' && ruta === '/api/collection') {
+    const visibles = MODELOS.filter(
+      (m) => m.rareza !== 'SECRETO' || estado.tengo.includes(m.id));
     return [200, {
-      desbloqueados: estado.desbloqueados,
-      total: SIMBIONTES.length,
-      catalogo: SIMBIONTES.map((s) => ({ ...s, desbloqueado: estado.desbloqueados.includes(s.id) })),
+      tengo: estado.tengo,
+      total: MODELOS.filter((m) => m.rareza !== 'SECRETO').length,
+      catalogo: visibles.map((m) => ({
+        ...m, tengo: estado.tengo.includes(m.id),
+      })),
     }];
+  }
+
+  /* Declarar una carcasa que te toco, sin tener que dar de alta una maceta.
+   * Existe porque la caja se abre antes que la planta se registre, y el
+   * momento de "me salio el secreto" no puede esperar a tener tierra. */
+  if (metodo === 'POST' && ruta === '/api/collection') {
+    const { modelo } = cuerpo || {};
+    const m = MODELOS.find((x) => x.id === modelo);
+    if (!m) return [400, { error: 'ese modelo no existe' }];
+    const nuevo = !estado.tengo.includes(m.id);
+    if (nuevo) estado.tengo.push(m.id);
+    return [200, { ...m, tengo: true, nuevo }];
   }
 
   if (metodo === 'POST' && ruta === '/api/identify') {
@@ -180,27 +193,30 @@ export async function manejarApi(metodo, ruta, cuerpo) {
   }
 
   if (metodo === 'POST' && ruta === '/api/nodes') {
-    const { nombre, especie, nodo_id: nodoId, role } = cuerpo || {};
+    const { nombre, especie, nodo_id: nodoId, modelo } = cuerpo || {};
     if (!nombre || !especie) return [400, { error: 'faltan nombre o especie' }];
     if (!ESPECIES.some((e) => e.id === especie)) return [400, { error: 'especie desconocida' }];
 
-    const sim = SIMBIONTES.find((s) => s.especie === especie) || SIMBIONTES[0];
+    if (modelo && !MODELOS.some((m) => m.id === modelo)) {
+      return [400, { error: 'ese modelo de carcasa no existe' }];
+    }
     const nueva = {
       id: `p${++estado.seq}`, nombre: String(nombre).trim().slice(0, 17),
-      especie, simbionte: sim.id,
+      especie,
       mood: 'UNKNOWN', severity: 'OK', reason: 'esperando la primera lectura',
       tel: { soil_pct: 0, temp_dc: 0, rh_pct: 0, lux: 0, batt_mv: 0, age_s: 999999 },
-      role: role === 'PRIME' ? 'PRIME' : 'MINI',
+      modelo: modelo || null,
       link: nodoId ? 'VIVO' : 'NUNCA',
       bond: { dias_vividos: 0, dias_sanos: 0, racha: 0, mejor_racha: 0 },
       nodo: nodoId ? { id: nodoId, batt_pct: 100, seq: 0 } : null,
     };
     estado.nodes.push(nueva);
     if (nodoId) estado.nodosLibres = estado.nodosLibres.filter((s) => s.id !== nodoId);
-    /* Desbloqueo determinista al registrar una especie nueva. */
-    const nuevoSimbionte = !estado.desbloqueados.includes(sim.id);
-    if (nuevoSimbionte) estado.desbloqueados.push(sim.id);
-    return [201, { ...nueva, simbionte_nuevo: nuevoSimbionte }];
+    /* Si la carcasa declarada no estaba en la coleccion, se suma. No hay
+     * azar: el azar ya ocurrio cuando el usuario abrio la caja. */
+    const modeloNuevo = Boolean(modelo) && !estado.tengo.includes(modelo);
+    if (modeloNuevo) estado.tengo.push(modelo);
+    return [201, { ...nueva, modelo_nuevo: modeloNuevo }];
   }
 
   const mPlant = ruta.match(/^\/api\/nodes\/([A-Za-z0-9_-]+)$/);

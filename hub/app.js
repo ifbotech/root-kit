@@ -5,10 +5,11 @@
  * 8.000 km del único que sabe arreglarlo.
  */
 import {
-  MOOD_ES, ROL_ES, LINK_ES, ETAPA_ES,
+  MOOD_ES, LINK_ES, ETAPA_ES, RAREZA_ES,
   formatTemp, formatLux, formatEdad,
   ordenarNodos, contarAlertas, posicionEnRango,
   etapaDe, progresoEtapa, bateriaDe,
+  progresoColeccion, ordenarColeccion,
   validarAlta, interpretarIdentificacion,
 } from './lib/model.mjs';
 
@@ -16,6 +17,7 @@ const $ = (sel) => document.querySelector(sel);
 const REFRESCO_MS = 15000;
 
 let especies = [];
+let modelos = [];
 let ultimoEstado = null;
 
 /* ------------------------------------------------------------- red ------- */
@@ -54,7 +56,7 @@ function tarjeta(p) {
   li.innerHTML = `
     <div class="cab">
       <strong>${escapar(p.nombre)}</strong>
-      <span class="rol rol-${(p.role || 'MINI').toLowerCase()}">${escapar(ROL_ES[p.role] || p.role)}</span>
+      <span class="rol rol-${escapar(p.modelo || 'sin')}">${escapar(nombreModelo(p.modelo))}</span>
       <span class="chip">${escapar(MOOD_ES[p.mood] || p.mood)}</span>
     </div>
     <p class="dice">«${escapar(p.reason || '')}»</p>
@@ -75,9 +77,17 @@ function tarjeta(p) {
     <p class="pie">
       ${p.nodo ? `${escapar(p.nodo.id.slice(-4))} · ` : 'sin enlazar · '}
       ${escapar(LINK_ES[p.link] || '—')}
-      ${bat === null ? ' · enchufado' : ` · batería ${bat}%`}
+      ${bat === null ? '' : ` · batería ${bat}%`}
     </p>`;
   return li;
+}
+
+/* El nombre del modelo de carcasa que lleva puesto. Sin modelo declarado la
+   maceta sigue funcionando —mide y avisa igual— pero el aparato no sabe qué
+   cara poner, así que conviene que la tarjeta lo diga. */
+function nombreModelo(id) {
+  if (!id) return 'sin carcasa';
+  return modelos.find((m) => m.id === id)?.nombre || id;
 }
 
 function escapar(s) {
@@ -117,6 +127,18 @@ function llenarEspecies() {
   sel.replaceChildren(
     new Option('— elegí una —', ''),
     ...especies.map((e) => new Option(e.nombre, e.id)),
+  );
+}
+
+/* El desplegable de carcasas del alta. Se llena con el catálogo entero y no
+   sólo con lo que ya tenés: el usuario acaba de abrir la caja y está
+   declarando lo que le salió, así que tiene que poder elegir cualquiera. */
+function llenarModelos() {
+  const sel = $('#modelo');
+  if (!sel) return;
+  sel.replaceChildren(
+    new Option('— la cargo después —', ''),
+    ...modelos.map((m) => new Option(m.nombre, m.id)),
   );
 }
 
@@ -173,6 +195,7 @@ async function enviarAlta(ev) {
     nombre: $('#nombre').value,
     especie: $('#especie').value,
     nodo_id: $('#nodo').value || undefined,
+    modelo: $('#modelo').value || undefined,
   };
 
   const v = validarAlta(datos, especies.map((e) => e.id));
@@ -183,13 +206,15 @@ async function enviarAlta(ev) {
 
   try {
     const creada = await api('/api/nodes', { method: 'POST', body: JSON.stringify(datos) });
-    avisar(creada.simbionte_nuevo
-      ? `Listo. Se desbloqueó un simbionte nuevo para ${creada.nombre}.`
+    avisar(creada.modelo_nuevo
+      ? `Listo. ${nombreModelo(creada.modelo)} se suma a tu colección.`
       : `Listo, ${creada.nombre} quedó registrada.`);
     $('#form-alta').reset();
     $('#previsualizacion').hidden = true;
     $('#ident').hidden = true;
     await Promise.all([refrescar(), llenarNodos(), pintarColeccion()]);
+  llenarModelos();
+    llenarModelos();
     mostrarVista('plantas');
   } catch (e) {
     avisar(`No pude registrarla: ${e.message}`, true);
@@ -200,13 +225,24 @@ async function enviarAlta(ev) {
 async function pintarColeccion() {
   try {
     const c = await api('/api/collection');
-    $('#grilla').replaceChildren(...c.catalogo.map((s) => {
+    modelos = c.catalogo;
+    const p = progresoColeccion(c.catalogo, c.tengo);
+    const cab = $('#col-resumen');
+    if (cab) {
+      cab.textContent = p.completa
+        ? `Los tenés todos${p.secretos ? ', secreto incluido' : ''}`
+        : `${p.tengo} de ${p.total}`;
+    }
+    $('#grilla').replaceChildren(...ordenarColeccion(c.catalogo).map((m) => {
       const li = document.createElement('li');
-      li.className = s.desbloqueado ? 'sim abierto' : 'sim cerrado';
-      li.innerHTML = s.desbloqueado
-        ? `<span class="sim-id">${escapar(s.nombre)}</span>
-           <span class="sim-esp">${escapar(especies.find((e) => e.id === s.especie)?.nombre || s.especie)}</span>`
-        : '<span class="sim-id">???</span><span class="sim-esp">sin descubrir</span>';
+      li.className = `sim ${m.tengo ? 'abierto' : 'cerrado'} rar-${m.rareza.toLowerCase()}`;
+      li.innerHTML = m.tengo
+        ? `<span class="sim-id">${escapar(m.nombre)}</span>
+           <span class="sim-esp">${escapar(RAREZA_ES[m.rareza] || m.rareza)}</span>
+           <span class="sim-lema">${escapar(m.lema)}</span>`
+        : `<span class="sim-id">???</span>
+           <span class="sim-esp">${escapar(RAREZA_ES[m.rareza] || m.rareza)}</span>
+           <span class="sim-lema">todavía no te salió</span>`;
       return li;
     }));
   } catch { /* la colección es secundaria */ }
@@ -242,6 +278,7 @@ async function init() {
   }
   llenarEspecies();
   await Promise.all([refrescar(), llenarNodos(), pintarColeccion()]);
+  llenarModelos();
 
   setInterval(refrescar, REFRESCO_MS);
 

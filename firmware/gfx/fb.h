@@ -2,8 +2,8 @@
  *
  * Por qué un renderer propio y no LVGL:
  *
- *   1. El pixel art necesita escalado por enteros con vecino más cercano.
- *      LVGL escala pensando en suavizado, que es justo lo que no queremos.
+ *   1. La cara es procedural: elipses, arcos y trazos calculados, no sprites.
+ *      LVGL trae un motor de widgets que acá no se usaría nunca.
  *   2. Un buffer RGB565 plano es exactamente lo que espera
  *      esp_lcd_panel_draw_bitmap(). El mismo código que corre en el
  *      simulador corre en el Prime y en cada Mini sin capa intermedia.
@@ -35,16 +35,6 @@ typedef struct {
     int         h;
 } rk_fb_t;
 
-/* Bitmap indexado. El índice 0 es siempre transparente, de modo que el
- * mismo formato sirve para el cuerpo del simbionte y para los overlays. */
-typedef struct {
-    uint8_t           w;
-    uint8_t           h;
-    const uint8_t    *idx;   /* w*h índices de paleta                  */
-    const rk_color_t *pal;   /* paleta; pal[0] no se usa nunca         */
-    uint8_t           ncol;
-} rk_sprite_t;
-
 void rk_fb_init(rk_fb_t *fb, rk_color_t *px, int w, int h);
 void rk_fb_clear(rk_fb_t *fb, rk_color_t c);
 
@@ -58,6 +48,21 @@ void rk_vgradient(rk_fb_t *fb, int x, int y, int w, int h,
                   rk_color_t top, rk_color_t bottom);
 void rk_disc(rk_fb_t *fb, int cx, int cy, int r, rk_color_t c);
 
+/* Primitivas de elipse y arco. El rig de caras es procedural y no de sprites
+ * —ver art/face.h— asi que todo lo que dibuja un ojo, una ceja o una boca
+ * sale de estas cuatro funciones. A tamano de cara un arco calculado se ve
+ * intencional donde un sprite escalado se ve blando. */
+void rk_elipse(rk_fb_t *fb, int cx, int cy, int rx, int ry, rk_color_t c);
+void rk_elipse_ring(rk_fb_t *fb, int cx, int cy, int rx, int ry,
+                    int grosor, rk_color_t c);
+/* Media elipse, de `grosor` pixeles. `arriba` elige que mitad. Es lo que
+ * dibuja un ojo feliz, un parpado y una sonrisa. */
+void rk_arco(rk_fb_t *fb, int cx, int cy, int rx, int ry,
+             bool arriba, int grosor, rk_color_t c);
+/* Segmento de grosor arbitrario. Las cejas son esto y nada mas. */
+void rk_linea(rk_fb_t *fb, int x0, int y0, int x1, int y1,
+              int grosor, rk_color_t c);
+
 /* Mezcla dos colores; t va de 0 (a) a 255 (b). */
 rk_color_t rk_mix(rk_color_t a, rk_color_t b, uint8_t t);
 /* Escurece un color: amount 0 deja igual, 255 lo lleva a negro. */
@@ -70,22 +75,5 @@ int rk_sin8(uint8_t phase);
 /* Ruido determinista para partículas: misma entrada, misma salida siempre. */
 uint16_t rk_hash(uint16_t v);
 
-void rk_blit(rk_fb_t *fb, const rk_sprite_t *s, int x, int y);
-/* Igual que rk_blit pero tiñendo el sprite hacia `tint`. Se usa para que el
- * simbionte se ponga azulado de frío o rojizo de calor sin duplicar arte. */
-void rk_blit_tint(rk_fb_t *fb, const rk_sprite_t *s, int x, int y,
-                  rk_color_t tint, uint8_t amount);
-/* Silueta sólida: útil para sombras y para el parpadeo de alerta. */
-void rk_blit_solid(rk_fb_t *fb, const rk_sprite_t *s, int x, int y, rk_color_t c);
-
-/* Blit escalado por enteros, vecino más cercano. Es la única forma en que
- * el arte llega a pantalla: el adulto va a 2x en el Prime y el brote a 2x en
- * el Mini, y en los dos casos un pixel de arte son cuatro de panel, exactos,
- * sin interpolación. Con scale <= 1 delega en rk_blit. */
-void rk_blit_scaled(rk_fb_t *fb, const rk_sprite_t *s, int x, int y, int scale);
-/* Igual, pero tiñendo hacia `tint`. Es el que usa el rig del simbionte para
- * ponerse azulado de frío o rojizo de calor sin duplicar arte. */
-void rk_blit_scaled_tint(rk_fb_t *fb, const rk_sprite_t *s, int x, int y,
-                         int scale, rk_color_t tint, uint8_t amount);
 
 #endif /* ROOTKIT_FB_H */

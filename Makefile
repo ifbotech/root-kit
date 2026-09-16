@@ -3,18 +3,17 @@
 #   make test     todas las pruebas: firmware y Hub
 #   make firmware pruebas del firmware
 #   make hub      pruebas del Hub
-#   make sim      el kit entero en una ventana: Prime + Minis
-#   make bench    medición del rasterizado en los dos paneles
-#   make sheet    hoja de contacto del Prime, todos los animos
-#   make minis    hoja de contacto del Mini, todos los animos
-#   make brotes   los 12 simbiontes en sus 5 etapas de crecimiento
-#   make ceremonia  la apertura de capsula, por rareza
+#   make sim      los seis modelos en una ventana, en vivo
+#   make bench    medición del costo de renderizar una cara
+#   make sheet    los 6 modelos x 11 animos
+#   make etapas   las 5 etapas de crecimiento, por modelo
+#   make revelado el primer encendido, por modelo
 #   make catalogo sincroniza el catalogo del Hub con el del firmware
 #   make serve    servidor de desarrollo del Hub
 #   make verify   lo que corre CI: pruebas + arte y referencias al día
 #   make clean
 
-.PHONY: all test firmware hub sim bench sheet minis brotes ceremonia golden art catalogo serve verify clean
+.PHONY: all test firmware hub sim bench sheet etapas revelado golden catalogo serve verify clean
 
 all: test
 
@@ -46,14 +45,11 @@ bench:
 sheet:
 	@$(MAKE) -C firmware --no-print-directory sheet
 
-minis:
-	@$(MAKE) -C firmware --no-print-directory minis
+etapas:
+	@$(MAKE) -C firmware --no-print-directory etapas
 
-brotes:
-	@$(MAKE) -C firmware --no-print-directory brotes
-
-ceremonia:
-	@$(MAKE) -C firmware --no-print-directory ceremonia
+revelado:
+	@$(MAKE) -C firmware --no-print-directory revelado
 
 catalogo:
 	@python3 tools/sync_catalog.py
@@ -61,22 +57,18 @@ catalogo:
 golden:
 	@$(MAKE) -C firmware --no-print-directory golden
 
-art:
-	@python3 tools/gen_art.py
-
 serve:
 	@node hub/dev-server.mjs
 
-# Lo mismo que corre CI. Además de las pruebas verifica que el arte generado y
-# los hashes de referencia estén commiteados al día: si alguien toca
-# gen_art.py y se olvida de regenerar, acá salta en vez de descubrirse
-# semanas después con una captura vieja.
+# Lo mismo que corre CI. Además de las pruebas verifica que los hashes de
+# regresión visual estén commiteados al día: si alguien toca el rig de caras
+# y se olvida de regenerarlos, acá salta en vez de descubrirse semanas
+# después con una captura vieja.
 verify: test
 	@echo
-	@echo "  verificando que el catalogo del Hub siga al firmware"
+	@echo "  verificando que el catalogo de la app siga al firmware"
 	@python3 tools/sync_catalog.py --check
-	@echo "  verificando que el arte y las referencias esten al dia"
-	@python3 tools/gen_art.py > /dev/null
+	@echo "  verificando que las referencias visuales esten al dia"
 	@$(MAKE) -C firmware --no-print-directory golden > /dev/null
 	@# git tiene que poder LEER el repositorio, y hay que comprobarlo mirando
 	@# su SALIDA y no su codigo de retorno: desde WSL sobre /mnt/c, git falla

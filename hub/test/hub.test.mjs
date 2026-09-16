@@ -7,11 +7,12 @@ import assert from 'node:assert/strict';
 
 import {
   formatTemp, formatLux, formatEdad, battPct, ordenarNodos, contarAlertas,
-  ROLES, LINK_ES, ETAPAS, ETAPA_DIAS, etapaDe, progresoEtapa, bateriaDe,
+  LINK_ES, ETAPAS, ETAPA_DIAS, etapaDe, progresoEtapa, bateriaDe,
+  RAREZAS, progresoColeccion, ordenarColeccion,
   posicionEnRango, validarAlta, interpretarIdentificacion, MOOD_ES,
 } from '../lib/model.mjs';
 
-import { manejarApi, reset, ESPECIES, SIMBIONTES } from '../dev-server.mjs';
+import { manejarApi, reset, ESPECIES, MODELOS } from '../dev-server.mjs';
 
 /* ============================================================== formato === */
 describe('formato', () => {
@@ -193,28 +194,27 @@ describe('interpretación de la identificación por IA', () => {
 describe('API', () => {
   beforeEach(reset);
 
-  test('el estado trae el Prime y los nodos del kit', async () => {
+  test('el estado trae la app y los aparatos', async () => {
     const [code, body] = await manejarApi('GET', '/api/state', null);
     assert.equal(code, 200);
-    assert.ok(body.prime.fw);
+    assert.ok(body.app.fw);
     assert.equal(body.nodes.length, 3);
   });
 
-  test('el kit tiene exactamente un Prime', async () => {
+  test('cada aparato declara que carcasa lleva', async () => {
     const [, body] = await manejarApi('GET', '/api/state', null);
-    const primes = body.nodes.filter((n) => n.role === 'PRIME');
-    assert.equal(primes.length, 1, 'un kit tiene exactamente un Prime');
-    assert.equal(body.prime.minis, body.nodes.length - 1);
+    for (const n of body.nodes) {
+      assert.ok('modelo' in n, `falta modelo en ${n.nombre}`);
+    }
   });
 
   test('cada nodo del estado tiene los campos que la interfaz usa', async () => {
     const [, body] = await manejarApi('GET', '/api/state', null);
     for (const p of body.nodes) {
-      for (const k of ['id', 'nombre', 'role', 'link', 'especie', 'simbionte',
+      for (const k of ['id', 'nombre', 'modelo', 'link', 'especie',
                        'mood', 'severity', 'reason', 'tel', 'bond']) {
         assert.ok(k in p, `falta ${k}`);
       }
-      assert.ok(ROLES.includes(p.role), `rol desconocido: ${p.role}`);
       assert.ok(p.link in LINK_ES, `enlace desconocido: ${p.link}`);
       assert.ok(p.bond.dias_sanos <= p.bond.dias_vividos,
         'no se pueden acumular mas dias sanos que vividos');
@@ -243,24 +243,28 @@ describe('API', () => {
     }
   });
 
-  test('la rareza sale de la dificultad, con los mismos cortes que el firmware', () => {
-    const corte = (d) => (d >= 80 ? 'LEGENDARIO' : d >= 60 ? 'EPICO'
-                        : d >= 30 ? 'RARO' : 'COMUN');
-    for (const s of SIMBIONTES) {
-      const e = ESPECIES.find((x) => x.id === s.especie);
-      assert.equal(s.rareza, corte(e.dificultad),
-        `${s.id} (${e.id}, dificultad ${e.dificultad}) deberia ser ${corte(e.dificultad)}`);
+  test('cada modelo de carcasa esta completo', () => {
+    for (const m of MODELOS) {
+      for (const k of ['idx', 'id', 'nombre', 'rareza', 'carcasa', 'lema']) {
+        assert.ok(k in m, `a ${m.id} le falta ${k}`);
+      }
+      assert.ok(RAREZAS.includes(m.rareza), `${m.id}: rareza desconocida`);
+      assert.ok(m.carcasa.endsWith('.stl'), `${m.id}: la carcasa no es un STL`);
     }
   });
 
-  test('la piramide de rarezas tiene forma de piramide', () => {
-    /* Si hubiera tantos legendarios como comunes, el escalon mas alto
-     * dejaria de sentirse alto. */
-    const n = (r) => SIMBIONTES.filter((s) => s.rareza === r).length;
-    for (const r of ['COMUN', 'RARO', 'EPICO', 'LEGENDARIO']) {
-      assert.ok(n(r) > 0, `no hay ningun simbionte ${r}`);
-    }
-    assert.ok(n('LEGENDARIO') < n('COMUN'), 'los legendarios no son los mas raros');
+  test('el indice del modelo es su posicion, porque es la clave de radio', () => {
+    // El aparato recibe un numero, no un nombre. Si la tabla se reordena sin
+    // regenerar, cada maceta se pone la cara del vecino.
+    MODELOS.forEach((m, i) => assert.equal(m.idx, i, `${m.id} desalineado`));
+  });
+
+  test('la caja tiene cinco a la vista y un secreto', () => {
+    const n = (r) => MODELOS.filter((m) => m.rareza === r).length;
+    assert.equal(n('SECRETO'), 1, 'un secreto, ni cero ni dos');
+    assert.ok(n('COMUN') > 0 && n('RARO') > 0);
+    assert.ok(n('COMUN') >= n('RARO'), 'los comunes tienen que ser mayoria');
+    assert.equal(MODELOS.length, n('COMUN') + n('RARO') + n('SECRETO'));
   });
 
   test('registrar una planta la agrega y devuelve 201', async () => {
@@ -268,68 +272,91 @@ describe('API', () => {
       { nombre: 'FICUS', especie: 'ficus-lyrata' });
     assert.equal(code, 201);
     assert.equal(creada.nombre, 'FICUS');
-    assert.equal(creada.simbionte, 'lyra');
+
 
     const [, st] = await manejarApi('GET', '/api/state', null);
     assert.equal(st.nodes.length, 4);
   });
 
-  test('un nodo nuevo nace como Mini y sin vinculo', async () => {
+  test('un aparato nuevo nace sin vinculo', async () => {
     const [, creada] = await manejarApi('POST', '/api/nodes',
       { nombre: 'HELECHO', especie: 'helecho' });
-    assert.equal(creada.role, 'MINI', 'el rol por defecto es Mini');
     assert.equal(creada.bond.dias_sanos, 0);
     assert.equal(etapaDe(creada.bond.dias_sanos), 'ESPORA');
+    assert.equal(creada.modelo, null, 'la carcasa se puede declarar despues');
   });
 
-  test('una especie nueva desbloquea su simbionte', async () => {
-    const [, creada] = await manejarApi('POST', '/api/nodes',
-      { nombre: 'ALOE', especie: 'cactus' });
-    assert.equal(creada.simbionte_nuevo, true);
+  test('declarar la carcasa la suma a la coleccion', async () => {
+    const [code, creada] = await manejarApi('POST', '/api/nodes',
+      { nombre: 'VERA', especie: 'aloe', modelo: 'visor' });
+    assert.equal(code, 201);
+    assert.equal(creada.modelo, 'visor');
+    assert.equal(creada.modelo_nuevo, true, 'visor no estaba en la coleccion');
 
     const [, col] = await manejarApi('GET', '/api/collection', null);
-    assert.ok(col.desbloqueados.includes('spine'));
+    assert.ok(col.tengo.includes('visor'));
   });
 
-  test('registrar un bonsai desbloquea un legendario', async () => {
-    /* La recompensa tiene que escalar con el trabajo: el bonsai es la
-     * planta mas dificil del catalogo. */
+  test('una carcasa que no existe se rechaza', async () => {
+    const [code] = await manejarApi('POST', '/api/nodes',
+      { nombre: 'X', especie: 'aloe', modelo: 'no-existe' });
+    assert.equal(code, 400);
+  });
+
+  test('la misma especie admite carcasas distintas', async () => {
+    // Los dos ejes son independientes: es la promesa del producto.
+    const [, a] = await manejarApi('POST', '/api/nodes',
+      { nombre: 'ALOE A', especie: 'aloe', modelo: 'cresta' });
+    const [, b] = await manejarApi('POST', '/api/nodes',
+      { nombre: 'ALOE B', especie: 'aloe', modelo: 'kawaii' });
+    assert.equal(a.especie, b.especie);
+    assert.notEqual(a.modelo, b.modelo);
+  });
+
+  test('la especie ya no decide la carcasa', async () => {
+    /* Registrar una planta nueva no agrega nada a la coleccion por si sola:
+     * la coleccion es de objetos fisicos y crece cuando el usuario declara
+     * lo que le salio en la caja, no cuando compra una maceta. */
     const [, creada] = await manejarApi('POST', '/api/nodes',
-      { nombre: 'BONSAI', especie: 'bonsai' });
-    const sim = SIMBIONTES.find((s) => s.id === creada.simbionte);
-    assert.equal(sim.rareza, 'LEGENDARIO');
+      { nombre: 'ALOE', especie: 'cactus' });
+    assert.equal(creada.modelo_nuevo, false);
+    assert.equal(creada.modelo, null);
   });
 
-  test('registrar un potus desbloquea un comun', async () => {
-    const [, creada] = await manejarApi('POST', '/api/nodes',
-      { nombre: 'OTRO POTUS', especie: 'pothos' });
-    const sim = SIMBIONTES.find((s) => s.id === creada.simbionte);
-    assert.equal(sim.rareza, 'COMUN');
+  test('declarar una carcasa repetida no la suma dos veces', async () => {
+    await manejarApi('POST', '/api/collection', { modelo: 'visor' });
+    const [, r] = await manejarApi('POST', '/api/collection', { modelo: 'visor' });
+    assert.equal(r.nuevo, false);
+    const [, col] = await manejarApi('GET', '/api/collection', null);
+    assert.equal(col.tengo.filter((x) => x === 'visor').length, 1);
   });
 
-  test('una especie repetida no vuelve a desbloquear', async () => {
-    const [, creada] = await manejarApi('POST', '/api/nodes',
-      { nombre: 'OTRA', especie: 'monstera' });
-    assert.equal(creada.simbionte_nuevo, false);
+  test('se puede declarar una carcasa sin registrar una planta', async () => {
+    /* La caja se abre antes de tener tierra, y el momento de "me salio el
+     * secreto" no puede esperar a que haya una maceta. */
+    const [code, r] = await manejarApi('POST', '/api/collection',
+      { modelo: 'ciclope' });
+    assert.equal(code, 200);
+    assert.equal(r.nuevo, true);
   });
 
-  test('el desbloqueo es determinista, nunca al azar', async () => {
-    /* Es la garantía que mantiene la colección afuera del terreno de las
-     * cajas de botín. Mismo alta, mismo simbionte, siempre. */
-    for (let i = 0; i < 20; i++) {
-      reset();
-      const [, c] = await manejarApi('POST', '/api/nodes',
-        { nombre: 'X', especie: 'sansevieria' });
-      assert.equal(c.simbionte, 'sable');
-    }
+  test('un modelo inventado se rechaza', async () => {
+    assert.equal((await manejarApi('POST', '/api/collection',
+      { modelo: 'nada' }))[0], 400);
+    assert.equal((await manejarApi('POST', '/api/collection', {}))[0], 400);
   });
 
-  test('hay un simbionte por especie y ninguno huérfano', async () => {
-    const espIds = ESPECIES.map((e) => e.id);
-    for (const s of SIMBIONTES) {
-      assert.ok(espIds.includes(s.especie), `${s.id} apunta a una especie inexistente`);
-    }
-    assert.equal(new Set(SIMBIONTES.map((s) => s.especie)).size, ESPECIES.length);
+  test('el secreto no se lista hasta que aparece', async () => {
+    /* Listarlo en gris ya le contaria al usuario que existe, y ahi deja de
+     * ser un secreto para ser una casilla vacia. */
+    const [, col] = await manejarApi('GET', '/api/collection', null);
+    assert.ok(!col.catalogo.some((m) => m.rareza === 'SECRETO'),
+      'el secreto no deberia estar en el catalogo todavia');
+
+    await manejarApi('POST', '/api/collection', { modelo: 'glitch' });
+    const [, col2] = await manejarApi('GET', '/api/collection', null);
+    assert.ok(col2.catalogo.some((m) => m.rareza === 'SECRETO'),
+      'una vez que te salio, aparece');
   });
 
   test('rechaza altas incompletas o con especie inventada', async () => {
@@ -362,10 +389,11 @@ describe('API', () => {
     assert.equal((await manejarApi('GET', '/api/nodes/p1', null))[0], 404);
   });
 
-  test('borrar una planta no borra el simbionte de la colección', async () => {
+  test('borrar una maceta no borra la carcasa de la coleccion', async () => {
+    /* La carcasa sigue estando en la casa aunque la planta se haya muerto. */
     await manejarApi('DELETE', '/api/nodes/p1', null);
     const [, col] = await manejarApi('GET', '/api/collection', null);
-    assert.ok(col.desbloqueados.includes('tuga'));
+    assert.ok(col.tengo.includes('cresta'));
   });
 
   test('identificar exige una imagen', async () => {
@@ -444,20 +472,46 @@ describe('vinculo y crecimiento', () => {
     }
   });
 
-  test('solo los Minis tienen bateria', () => {
-    assert.equal(bateriaDe({ role: 'PRIME', batt_pct: 80 }), null,
-      'el Prime va enchufado: la interfaz dibuja un enchufe, no una pila');
-    assert.equal(bateriaDe({ role: 'MINI', batt_pct: 44 }), 44);
-    assert.equal(bateriaDe({ role: 'MINI', tel: { batt_mv: 3700 } }), 55);
+  test('la bateria distingue "no se" de "vacia"', () => {
+    assert.equal(bateriaDe({ nodo: { batt_pct: 44 } }), 44);
+    assert.equal(bateriaDe({ tel: { batt_mv: 3700 } }), 55);
+    assert.equal(bateriaDe({ tel: { batt_mv: 0 } }), null,
+      'sin lectura todavia es null, no 0%');
     assert.equal(bateriaDe(null), null);
   });
 
-  test('el orden de la lista no mira el rol', () => {
-    // Una maceta con sed importa lo mismo este o no enchufada.
+  test('el orden de la lista no mira la carcasa', () => {
+    // Una maceta con sed importa lo mismo la carcasa que tenga puesta.
     const nodos = [
-      { nombre: 'A', role: 'PRIME', severity: 'OK' },
-      { nombre: 'B', role: 'MINI', severity: 'URGENT' },
+      { nombre: 'A', modelo: 'glitch', severity: 'OK' },
+      { nombre: 'B', modelo: 'cresta', severity: 'URGENT' },
     ];
     assert.deepEqual(ordenarNodos(nodos).map((n) => n.nombre), ['B', 'A']);
+  });
+
+  test('la coleccion no le cuenta al usuario cuantos secretos faltan', () => {
+    const cat = [
+      { id: 'a', rareza: 'COMUN' }, { id: 'b', rareza: 'COMUN' },
+      { id: 'c', rareza: 'RARO' },  { id: 's', rareza: 'SECRETO' },
+    ];
+    const sin = progresoColeccion(cat, ['a', 'b', 'c']);
+    assert.equal(sin.total, 3, 'el secreto no entra en el total');
+    assert.equal(sin.tengo, 3);
+    assert.equal(sin.completa, true, 'con los tres visibles ya esta completa');
+
+    const con = progresoColeccion(cat, ['a', 'b', 'c', 's']);
+    assert.equal(con.total, 4, 'una vez que salio, si entra');
+    assert.equal(con.tengo, 4);
+    assert.equal(con.secretos, 1);
+  });
+
+  test('la coleccion se ordena por rareza', () => {
+    const cat = [
+      { id: 's', nombre: 'S', rareza: 'SECRETO' },
+      { id: 'c', nombre: 'C', rareza: 'COMUN' },
+      { id: 'r', nombre: 'R', rareza: 'RARO' },
+    ];
+    assert.deepEqual(ordenarColeccion(cat).map((m) => m.id), ['c', 'r', 's']);
+    assert.deepEqual(ordenarColeccion(null), []);
   });
 });

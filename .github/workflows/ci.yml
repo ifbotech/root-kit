@@ -30,24 +30,22 @@ jobs:
       - name: Pruebas del Hub
         run: node --test hub/test/hub.test.mjs
 
-      - name: El catalogo del Hub sigue al del firmware
+      - name: El catalogo de la app sigue al del firmware
         run: python3 tools/sync_catalog.py --check
 
-      - name: El arte y las referencias visuales estan al dia
+      - name: Las referencias visuales estan al dia
         run: |
-          python3 tools/gen_art.py
           make -C firmware golden
-          if [ -n "$(git status --porcelain firmware/art firmware/test/golden.h)" ]; then
+          if [ -n "$(git status --porcelain firmware/test/golden.h)" ]; then
             echo "Hay que regenerar y commitear:"
-            git --no-pager diff --stat firmware/art firmware/test/golden.h
+            git --no-pager diff --stat firmware/test/golden.h
             exit 1
           fi
 
       - name: El simulador compila y captura
         run: |
           make -C firmware build/rootkit_sim
-          ./firmware/build/rootkit_sim --sheet  /tmp/sheet.bmp
-          ./firmware/build/rootkit_sim --minis  /tmp/minis.bmp
-          ./firmware/build/rootkit_sim --brotes /tmp/brotes.bmp
-          ./firmware/build/rootkit_sim --gacha  /tmp/gacha.bmp
+          ./firmware/build/rootkit_sim --sheet    /tmp/sheet.bmp
+          ./firmware/build/rootkit_sim --etapas   /tmp/etapas.bmp
+          ./firmware/build/rootkit_sim --revelado /tmp/revelado.bmp
           ./firmware/build/rootkit_sim --bench
