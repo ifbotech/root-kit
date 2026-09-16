@@ -2,7 +2,7 @@
 #
 #   make test       las pruebas del firmware (no necesitan placa)
 #   make sim        los seis personajes en una ventana, en vivo
-#   make sheet      los 6 personajes x 11 animos
+#   make sheet      los 8 Rooties x 11 animos
 #   make etapas     las 5 etapas de crecimiento, por personaje
 #   make despertar  los ojos se abren, por personaje
 #   make pantallas  QR, dormida, despertar y cara en los dos paneles

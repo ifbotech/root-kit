@@ -69,7 +69,7 @@ estanco, pero sí:
 - **La junta del sensor va abajo y con el cable haciendo panza**, para que el
   agua que corra por el cable gotee antes de llegar a la placa.
 
-## Los seis modelos
+## Los ocho modelos
 
 Los parámetros de cada cara están en `firmware/core/persona.c`, una fila por
 modelo, y se pueden ajustar sin tocar una línea de lógica. Lo que sigue es la
@@ -82,6 +82,8 @@ intención; los números concretos viven ahí.
 | **Visor** | común | Cúpula lisa con una única ranura horizontal | Sin ojos: una banda cuya onda es la expresión, plana si está bien, dentada si hay alerta |
 | **Ciclope** | raro | Una sola apertura circular grande, tipo ojo de buey | Un ojo enorme con pupila gigante que deriva sola; boca mínima |
 | **Hongo** | raro | Sombrero que vuela por encima y da sombra a la pantalla | Párpados a media asta siempre, esporas subiendo |
+| **Chico Malo** | común | *A definir con Rocío.* Idea: capucha o gorra hacia atrás con una hoja rebelde | Ojos angostos e inclinados, cejas gruesas y bajas, sonrisa de costado con un colmillo, una curita en el cachete. Rojos de brasa (paleta Chico Malo) |
+| **Chica Chill** | común | *A definir con Rocío.* Idea: rodete con un lápiz clavado, o auriculares | Párpados relajados, anteojos redondos, cejas finas, sonrisa chica. Azules de medianoche (paleta Chica Chill) |
 | **?????** | secreto | **Filamento translúcido**: se ve la placa por dentro | Ojos que no terminan de decidirse, estática |
 
 ### Por qué el secreto es translúcido y no dorado
@@ -95,7 +97,7 @@ que ser.
 
 ### Qué hace distinguible a un modelo
 
-Dos reglas, y las dos salieron de mirar la lámina de las seis caras juntas:
+Dos reglas, y las dos salieron de mirar la lámina de las caras juntas:
 
 1. **La silueta manda.** Se reconoce a tres metros, antes que cualquier
    detalle. Si dos modelos tienen el mismo contorno, son el mismo modelo con

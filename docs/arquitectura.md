@@ -44,7 +44,7 @@ core/persona.c  CÓMO lo muestra ojos, cejas, boca, paleta (6 personajes)
 art/face.c      los cruza y dibuja
 ```
 
-Seis personajes por once ánimos son sesenta y seis caras, más parpadeo,
+Ocho Rooties por once ánimos son ochenta y ocho caras, más parpadeo,
 mirada y respiración, y salen del mismo código porque la cara es procedural.
 Un personaje nuevo es una fila de `persona.c`.
 
@@ -106,7 +106,7 @@ segunda implementación que se pueda desincronizar.
 ```
 
 Todo lo que está debajo de la línea es C99 portable y se prueba en el
-escritorio: 1085 comprobaciones, incluida la regresión visual de las 66
+escritorio: 1278 comprobaciones, incluida la regresión visual de las 88
 caras.
 
 ## Decisiones que conviene no revisitar sin leer esto

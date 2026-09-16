@@ -2,7 +2,7 @@
 #
 #   make test     corre todas las suites (no necesita SDL ni hardware)
 #   make sim      los seis modelos en una ventana, en vivo
-#   make sheet    los 6 modelos x 11 animos  -> build/sheet.bmp
+#   make sheet    los 8 Rooties x 11 animos  -> build/sheet.bmp
 #   make etapas   las 5 etapas de crecimiento -> build/etapas.bmp
 #   make despertar los ojos se abren          -> build/despertar.bmp
 #   make pantallas QR, dormida, despertar y cara -> build/pantallas.bmp

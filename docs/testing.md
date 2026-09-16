@@ -1,12 +1,12 @@
 # Pruebas
 
 ```bash
-make test        # 1085 comprobaciones del firmware, sin placa ni SDL
+make test        # 1278 comprobaciones del firmware, sin placa ni SDL
 make verify      # lo que corre CI: pruebas y referencias visuales al día
 make placa       # compila las cuatro variantes con PlatformIO
 ```
 
-La app, la nube y el emulador tienen sus propias 117 pruebas en
+ROOTLAB (la app, la nube y el emulador) tiene sus propias 224 pruebas en
 [root-lab](https://github.com/ifbotech/root-lab) (`npm test`), incluido el
 flujo completo de punta a punta.
 
@@ -18,17 +18,17 @@ flujo completo de punta a punta.
 | `nodo` | 63 | Calibración de suelo, fallas eléctricas, curva de batería, muestreo adaptativo |
 | `sensores e historial` | 71 | AHT20, BH1750 y DS18B20 con los vectores de las hojas de datos, CRC, riel y USB, sensores caídos, historial en flash |
 | `graficos` | 63 | Recorte, tipografía, **antialiasing**: cobertura, bordes mezclados, triángulos en cualquier orden, alfa |
-| `cara` | 216 | Determinismo, batería sin íconos, cara dormida que no delata, despertar, regresión visual de las 66 caras |
-| `modelos y caras` | 466 | Tabla de personajes, la caja ciega, que los 6 y los 11 se distingan, centinelas del framebuffer |
-| `pantalla del QR` | 16 | Que el QR dibujado se lea módulo por módulo en los dos paneles |
+| `cara` | 238 | Determinismo, batería sin íconos, cara dormida que no delata, despertar, regresión visual de las 88 caras |
+| `modelos y caras` | 634 | Tabla de Rooties (con accesorios), la caja ciega, que los 8 y los 11 se distingan, centinelas del framebuffer |
+| `pantalla del QR` | 19 | Que el QR dibujado se lea módulo por módulo en los dos paneles, también con la URL del VPS |
 | `identidad y vinculo` | 91 | SHA-256 y HMAC con vectores oficiales, código y token, el flujo completo del enlace y sus caminos feos |
 | `nube` | 71 | JSON hostil o cortado, el cuerpo del pedido, respuestas incoherentes que no se aplican |
 
 ## Las pruebas que valen más que su tamaño
 
-**Que los seis modelos se vean distintos.** Es la que sostiene el producto: si
+**Que los ocho modelos se vean distintos.** Es la que sostiene el producto: si
 dos carcasas dan la misma cara, la caja ciega vende dos veces lo mismo y no hay
-colección que juntar. Se renderizan los seis y se comparan por hash, todos
+colección que juntar. Se renderizan los ocho y se comparan por hash, todos
 contra todos.
 
 **Que los once ánimos se distingan DENTRO de cada modelo.** Son 55 pares por
@@ -74,7 +74,7 @@ crecimiento no existe para el usuario por más que el contador avance en NVS.
 **Los centinelas del framebuffer.** El rig dibuja elipses y arcos con radios que
 salen de una tabla editable a mano. Un radio de más escribe fuera del buffer, y
 en el ESP32 eso no tira excepción: corrompe lo que haya al lado y aparece tres
-días después como un bug imposible. Se barren los seis modelos en los once
+días después como un bug imposible. Se barren los ocho modelos en los once
 ánimos con todos los adornos, contra un buffer rodeado de guardas.
 
 **El historial sobrevive un corte de luz.** Un byte corrupto o un archivo
@@ -111,10 +111,10 @@ la tarea dos horas; si la planta sigue seca después, reaparece.
 ## Regresión visual
 
 `test/golden.h` guarda un FNV-1a del framebuffer de **cada modelo en cada
-ánimo**: 66 hashes. Si un cambio altera cualquier pixel, la suite `cara` lo
+ánimo**: 88 hashes. Si un cambio altera cualquier pixel, la suite `cara` lo
 marca.
 
-Son 66 y no 11 a propósito. El rig es procedural y cada familia de ojos toma un
+Son 88 y no 11 a propósito. El rig es procedural y cada familia de ojos toma un
 camino distinto, así que un cambio puede romper el visor sin tocar al ciclope.
 La tabla está ordenada por modelo, y eso hace que el diff diga qué pasó: once
 filas seguidas son "se movió un modelo", una columna es "se movió un ánimo en

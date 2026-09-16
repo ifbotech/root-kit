@@ -5,8 +5,8 @@
  * se dibuja eso. El CÓMO lo pone la carcasa, en core/persona.c, y los cruza
  * art/face.c.
  *
- * Esa separación es lo que permite que seis modelos compartan once ánimos
- * sin escribir sesenta y seis caras a mano. Agregar un ánimo es agregar una
+ * Esa separación es lo que permite que ocho modelos compartan once ánimos
+ * sin escribir ochenta y ocho caras a mano. Agregar un ánimo es agregar una
  * fila acá y no tocar ningún modelo; agregar un modelo es agregar una fila
  * allá y no tocar ningún ánimo.
  */

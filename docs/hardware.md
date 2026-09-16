@@ -233,6 +233,65 @@ o dos. Enchufado, sin límite. La app lo explica al activar la opción.
 
 ---
 
+## Sonido
+
+**En estudio** (roadmap, Fase 2b): un parlantito para que el Rooti se exprese
+con sonido además de con la cara.
+
+### El problema de los pines
+
+El C3 SuperMini expone GPIO 0–10, 20 y 21, y **ya están todos usados** (ver
+[Conexiones](#conexiones)). Un amplificador I2S (MAX98357A) necesita tres
+pines; no entran. Hace falta **uno solo**, y se libera así:
+
+- **CS de la pantalla a GND.** La pantalla es el único dispositivo del bus
+  SPI, así que puede quedar siempre seleccionada. Libera **GPIO 20** para el
+  sonido, sin perder nada. El firmware deja de manejar CS (`RK_TFT_CS -1`).
+
+En el DevKit de 30 pines sobran pines: ahí se puede probar I2S.
+
+### Tres opciones, de menos a más
+
+| | Qué es | Pines | Sonido | Consumo en reposo | Costo aprox. |
+|---|---|---|---|---|---|
+| **Buzzer pasivo** | piezo de 12 mm por PWM, con un N-MOSFET | 1 (PWM) | pitidos y melodías simples | 0 | muy bajo |
+| **PAM8302 + parlante** ✅ recomendado | amplificador clase D mono de 2,5 W con entrada analógica; el PWM (LEDC o sigma-delta) pasa por un filtro RC | 1 (PWM) | melodías con timbre y volumen reales, efectos cortos | < 1 µA con SD en bajo | bajo |
+| MAX98357A + parlante | amplificador I2S con DAC | 3 (BCLK, LRC, DIN) | muestras de audio de buena calidad | ~2 µA con SD en bajo | medio |
+
+**Recomendado para el producto: PAM8302 + parlante de 8 Ω, 0,5–1 W, de 20 a
+28 mm.** Da carácter sin gastar pines ni batería, y el buzzer queda para
+validar la idea en el banco con lo que haya a mano.
+
+### Cómo se conectaría (PAM8302)
+
+```
+GPIO 20 ──[1 kΩ]──┬── A+ del PAM8302          VBAT (después del interruptor)
+                  │                              │
+               [10 nF]                       VIN del PAM8302
+                  │                              │
+                 GND ── A- del PAM8302       SD ─┴── riel de sensores (P-MOSFET)
+                                           OUT+ / OUT- ── parlante 8 Ω
+```
+
+- **Alimentación desde la batería**, no desde el regulador de 3,3 V: los
+  picos del parlante (hasta 300 mA) no tienen que bajar la tensión de la
+  placa. El capacitor de 220–470 µF del wifi ayuda también acá.
+- **SD al riel de sensores**: el amplificador sólo está prendido cuando el
+  firmware prende los sensores, y en deep sleep consume nada. Para sonar
+  fuera de una medición, el firmware prende el riel un momento.
+- **Parlante hacia un costado o hacia abajo**, con rejilla: el agua de riego
+  cae de arriba (ver [carcasas.md](carcasas.md)).
+
+### Qué suena
+
+Diseñado como datos, igual que las caras: cada Rooti con su "voz" (escala,
+timbre, tempo) y cada evento con su motivo. Despertar del cofre, sed urgente
+(una vez por episodio), riego detectado, toque, batería baja. Con silencio de
+23 a 8 y volumen o silencio por Rooti desde ROOTLAB. Los sonidos se van a
+poder escuchar en el emulador antes de tener hardware.
+
+---
+
 ## Conexiones
 
 ### ESP32-C3 SuperMini
@@ -302,3 +361,8 @@ Por unidad. Los precios de pantalla son los de la cotización actual.
 | 1 | 100 nF | divisor |
 | 1 | 220–470 µF 6,3 V bajo ESR | picos de wifi |
 | 1 | interruptor deslizante | |
+| | **Sonido (opcional, Fase 2b)** | |
+| 1 | buzzer pasivo 12 mm | para probar en el banco |
+| 1 | PAM8302 (módulo) | amplificador clase D mono |
+| 1 | parlante 8 Ω 0,5–1 W, 20–28 mm | |
+| 1 | 1 kΩ + 10 nF | filtro del PWM |

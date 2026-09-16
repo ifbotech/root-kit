@@ -14,7 +14,7 @@
  *
  * POR QUÉ PROCEDURAL Y NO IMÁGENES
  *
- * Seis modelos por once ánimos son sesenta y seis caras, más parpadeo,
+ * Ocho modelos por once ánimos son ochenta y ocho caras, más parpadeo,
  * respiración y mirada que se mueve. Como imágenes serían cientos de
  * cuadros y megas de flash; acá son un puñado de formas por cuadro. Y un
  * modelo nuevo es una fila en core/persona.c, no sesenta imágenes más.

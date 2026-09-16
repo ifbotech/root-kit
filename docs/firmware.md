@@ -69,9 +69,8 @@ instala; para eso, `RK_APP_URL` con la URL de un túnel HTTPS mientras la
 placa sigue hablando con la PC por la red local. El servidor también se
 puede cambiar sin recompilar, desde el portal ("Avanzado").
 
-En el prototipo la placa no verifica el certificado del servidor
-(`setInsecure()`); fijar la CA con `RK_NUBE_CA` está en la fase 3 del
-[roadmap](roadmap.md).
+La placa verifica el certificado del servidor contra raíces fijadas: ver
+"Seguridad" más abajo.
 
 Si la imagen del panel sale corrida o con colores cambiados:
 `-DRK_TFT_OFS_X=2 -DRK_TFT_OFS_Y=1 -DRK_TFT_BGR=1 -DRK_TFT_INVERT=1`.
@@ -158,26 +157,42 @@ FPU.
 El fondo es la piel del personaje, liso, y los párpados se pintan del mismo
 color: un párpado que baja es piel que tapa el ojo. Por eso no hay degradé.
 
-Los personajes son filas de `core/persona.c`: familia de ojos, proporciones
-en centésimas del lado de la pantalla, cejas, boca, adornos y paleta. Cambiar
-una proporción es editar un número; la artista no necesita tocar código.
+Los Rooties son filas de `core/persona.c`: familia de ojos, proporciones en
+centésimas del lado de la pantalla, cejas, boca, adornos, **accesorio** y
+paleta. Cambiar una proporción es editar un número; la artista no necesita
+tocar código.
+
+Los **accesorios** son parte fija del personaje, con cualquier ánimo: hoy
+`RK_ACC_LENTES` (Chica Chill: anteojos redondos más grandes que el ojo, para no
+taparle los párpados, con un reflejo en cada vidrio) y `RK_ACC_CURITA` (Chico
+Malo: una curita cruzada en el cachete). Se dibujan después de ojos, cejas y
+boca y antes de los adornos.
+
+Los colores de Chico Malo y Chica Chill salen de sus paletas, las mismas que
+pintan ROOTLAB cuando salen del cofre (`root-lab/docs/paletas.md`).
 
 ```bash
-make sheet       # 6 personajes × 11 ánimos
+make sheet       # 8 Rooties × 11 ánimos
 make despertar   # el despertar, por personaje
 make pantallas   # QR, dormida, despertar y cara, en los dos paneles
 make golden      # después de un cambio visual intencional
 ```
 
-## Seguridad del prototipo
+## Seguridad
 
 - El token del aparato es HMAC-SHA256 del secreto de fábrica. Si la placa no
   tiene secreto (desarrollo), genera uno y la nube lo acepta la primera vez
   (confianza al primer uso). En producción, el secreto lo graba la estación
   de fábrica y la nube lo rechaza si no está registrado.
-- **Con HTTPS el prototipo no verifica el certificado del servidor**
-  (`setInsecure()`): el canal va cifrado pero no autenticado. Definir
-  `RK_NUBE_CA` con la raíz del proveedor antes de producción. Está en la
-  Fase 3 del [roadmap](roadmap.md).
+- **La nube por HTTPS, verificando el certificado.** La placa confía sólo en
+  las raíces de las dos autoridades que usa el Caddy del servidor:
+  **Let's Encrypt** (ISRG Root X1 y X2, y las de la generación siguiente,
+  Root YE y YR) y **ZeroSSL** (USERTrust ECC y RSA), en
+  `esp32/certificados.h` con sus huellas SHA-256. Un certificado de cualquier
+  otra autoridad no alcanza para hacerse pasar por la nube. mbedTLS en el
+  ESP32 no valida fechas (`MBEDTLS_HAVE_TIME_DATE` apagado), así que no hace
+  falta hora antes de conectarse. Para un servidor con CA propia,
+  `-DRK_NUBE_CA=...`; sólo en desarrollo, contra un túnel,
+  `-DRK_NUBE_INSEGURO=1` vuelve a `setInsecure()`.
 - La clave del wifi se guarda en NVS sin cifrar. El cifrado de flash del
   ESP32 es tarea de la PCB de producción.

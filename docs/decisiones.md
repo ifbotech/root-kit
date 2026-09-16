@@ -22,7 +22,7 @@ modelado, dibujar y animar un cuerpo cuesta semanas. Y una cara sola en
 
 **El ánimo dice qué siente; la persona dice cómo lo muestra.** `core/mood.c`
 decide el estado a partir de la planta y `core/persona.c` decide cómo se
-dibuja ese estado. Seis modelos por once ánimos son sesenta y seis caras, y
+dibuja ese estado. Ocho modelos por once ánimos son ochenta y ocho caras, y
 salen todas del mismo código porque la cara es procedural.
 
 **La especie y la carcasa son ejes independientes.** La especie decide los
@@ -217,7 +217,7 @@ evento van en nanoamperios-hora: en microamperios-hora enteros, una medición de
 0,25 µAh se redondea a cero y desaparece del modelo.
 
 **Regresión visual por hash, una fila por modelo y ánimo.**
-`firmware/test/golden.h` guarda un FNV-1a del framebuffer de las sesenta y seis
+`firmware/test/golden.h` guarda un FNV-1a del framebuffer de las ochenta y ocho
 caras. Se versiona en vez de ignorarse porque el diff del archivo generado *es*
 la revisión del cambio visual: once filas seguidas dicen "se movió un modelo",
 una columna dice "se movió un ánimo en todos".
