@@ -35,6 +35,30 @@ https://ifbotech.com/rootkit/emulador/
 
 ---
 
+## Software de alta gama (hecho)
+
+Quince mejoras de software y firmware sin tocar el hardware ni lo que muestra
+la pantalla (sólo el QR y los ojos):
+
+- [x] La cara no salta de ánimo: transición de un tercio de segundo con
+      parpadeo en el medio (`rk_face_draw_mezcla`), en la placa, el
+      simulador y la app
+- [x] El riego que se escurre se detecta (`nodo/soil.c`) y viaja como
+      `escurre`: tarea y aviso en ROOTLAB
+- [x] Modo escritorio (`/desk/<id>`): la cara a pantalla completa, sin que
+      se apague, con modo nocturno
+- [x] La cara se ve con la luz que mide el BH1750 (penumbra, sol)
+- [x] Caricias: ^ ^ y ronroneo (`rk_face_draw_mimo`), vibración, corazones
+- [x] La voz de cada Rooti mientras escribe (Web Audio, sin archivos)
+- [x] Regar antes: Open-Meteo + la velocidad de secado; VPD y DLI
+- [x] El cuidador: `/sitter/<token>` con "ya regué" y push al dueño
+- [x] El invernadero: los Rooties se miran (`rk_face_draw_mirada`)
+- [x] Álbum con fantasma de encuadre, antes/después y GIF de evolución;
+      pasaporte botánico en A4
+- [x] Paletas OLED Midnight, Cristal y Solar Gold, que se ganan cuidando
+- [x] Sin red: local primero con IndexedDB y cola de cambios; insignia y
+      atajos del ícono
+
 ## Fase 0 — La base (hecho)
 
 ### Firmware

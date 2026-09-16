@@ -333,6 +333,51 @@ static void test_mimo(void)
     CHECK_TRUE("NULL no explota", true);
 }
 
+static uint32_t hash_mirada(int persona, rk_mood_t mood, int mx, int my, int preocupado, uint32_t t_ms)
+{
+    rk_fb_t fb;
+    rk_face_mirada_t m;
+    m.mira_x = mx;
+    m.mira_y = my;
+    m.preocupado = (uint8_t)preocupado;
+    rk_fb_init(&fb, g_px, RK_MINI_W, RK_MINI_H);
+    rk_face_draw_mirada(&fb, rk_persona_at(persona), mood, RK_SEV_OK, 0u, &m, t_ms);
+    return rk_frame_hash(g_px, RK_MINI_PX);
+}
+
+/* La mirada dirigida y la preocupacion, para el invernadero de la app. */
+static void test_mirada(void)
+{
+    int p;
+    uint32_t h0, hx, hp;
+    char lbl[96];
+
+    for (p = 0; p < rk_persona_count; p++) {
+        h0 = hash_cara(p, RK_MOOD_HAPPY, 1200u);
+        snprintf(lbl, sizeof lbl, "%s: sin mirada es la cara de siempre", rk_persona_at(p)->id);
+        CHECK_HEX(lbl, h0, hash_mirada(p, RK_MOOD_HAPPY, 0, 0, 0, 1200u));
+        hx = hash_mirada(p, RK_MOOD_HAPPY, 80, 0, 0, 1200u);
+        snprintf(lbl, sizeof lbl, "%s: mirar al costado cambia la cara", rk_persona_at(p)->id);
+        CHECK_TRUE(lbl, hx != h0);
+        hp = hash_mirada(p, RK_MOOD_HAPPY, 80, 0, 100, 1200u);
+        /* Sin cejas (el visor) la preocupacion no tiene donde verse. */
+        if (rk_persona_at(p)->ceja != RK_CEJA_NINGUNA) {
+            snprintf(lbl, sizeof lbl, "%s: preocupado es otra cara", rk_persona_at(p)->id);
+            CHECK_TRUE(lbl, hp != hx && hp != h0);
+        }
+        snprintf(lbl, sizeof lbl, "%s: es determinista", rk_persona_at(p)->id);
+        CHECK_HEX(lbl, hp, hash_mirada(p, RK_MOOD_HAPPY, 80, 0, 100, 1200u));
+    }
+    CHECK_HEX("la mirada satura en 100", hash_mirada(0, RK_MOOD_HAPPY, 100, 0, 0, 1200u),
+              hash_mirada(0, RK_MOOD_HAPPY, 300, 0, 0, 1200u));
+    CHECK_HEX("la preocupacion satura en 100", hash_mirada(0, RK_MOOD_HAPPY, 0, 0, 100, 1200u),
+              hash_mirada(0, RK_MOOD_HAPPY, 0, 0, 250, 1200u));
+    CHECK_TRUE("mirar a la izquierda y a la derecha es distinto",
+               hash_mirada(1, RK_MOOD_HAPPY, -80, 0, 0, 1200u) != hash_mirada(1, RK_MOOD_HAPPY, 80, 0, 0, 1200u));
+    rk_face_draw_mirada(NULL, NULL, RK_MOOD_HAPPY, RK_SEV_OK, 0u, NULL, 0u);
+    CHECK_TRUE("NULL no explota", true);
+}
+
 static void test_golden(void)
 {
     int i;
@@ -361,6 +406,7 @@ void suite_render(void)
     test_despertar();
     test_transicion();
     test_mimo();
+    test_mirada();
     test_golden();
     RK_SUITE_END();
 }

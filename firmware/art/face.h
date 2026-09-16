@@ -111,6 +111,23 @@ void rk_face_draw_mimo(rk_fb_t *fb, const rk_persona_t *p,
                        rk_severity_t sev, uint8_t adornos_extra,
                        uint32_t t_ms);
 
+/* La mirada dirigida, para el invernadero de la app: varios Rooties en un
+ * estante que se miran entre ellos y miran con preocupación al vecino que
+ * tiene sed o frío. `mira_x`/`mira_y` (-100..100) se suman a la mirada
+ * propia del ánimo; `preocupado` (0..100) sube las cejas por el lado de
+ * adentro y afloja la sonrisa. Con todo en cero es exactamente rk_face_draw.
+ * La maceta no lo usa: no sabe quién tiene al lado. */
+typedef struct {
+    int     mira_x;
+    int     mira_y;
+    uint8_t preocupado;
+} rk_face_mirada_t;
+
+void rk_face_draw_mirada(rk_fb_t *fb, const rk_persona_t *p,
+                         rk_mood_t mood, rk_severity_t sev,
+                         uint8_t adornos_extra, const rk_face_mirada_t *m,
+                         uint32_t t_ms);
+
 /* Qué adornos desbloquea cada etapa del vínculo. El modelo te toca por azar;
  * cómo se ve se gana cuidando la planta. */
 uint8_t rk_face_adornos_etapa(int etapa);

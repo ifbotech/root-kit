@@ -821,10 +821,15 @@ static int32_t respiracion(const cara_t *c, const rk_look_t *lk, uint32_t t)
 /* `desde` y `hacia` son el mismo ánimo salvo durante una transición; `t_pct`
  * dice en qué punto de ella estamos. Con desde == hacia o t_pct == 100 el
  * camino es exactamente el de una cara sola. */
+static int acotar(int v, int lo, int hi)
+{
+    return v < lo ? lo : v > hi ? hi : v;
+}
+
 static void dibujar(rk_fb_t *fb, const rk_persona_t *p, rk_mood_t desde,
                     rk_mood_t hacia, uint8_t t_pct, rk_severity_t sev,
                     uint8_t adornos_extra, uint8_t cierre, uint8_t mimo_pct,
-                    uint32_t t)
+                    const rk_face_mirada_t *mirada, uint32_t t)
 {
     const rk_look_t *lk = rk_look(hacia);
     const rk_look_t *lka = rk_look(desde);
@@ -914,6 +919,23 @@ static void dibujar(rk_fb_t *fb, const rk_persona_t *p, rk_mood_t desde,
         expr_t em = expresion_mimo(p, t);
         e = mezclar(&e, &em, mimo_pct);
     }
+    if (mirada != NULL) {
+        /* La mirada dirigida se suma a la del ánimo (que ya deriva sola). */
+        if (e.cerrado == 0 && !e.cruz && !e.espiral) {
+            e.g.mira_x = acotar(e.g.mira_x + mirada->mira_x, -100, 100);
+            e.g.mira_y = acotar(e.g.mira_y + mirada->mira_y, -100, 100);
+        }
+        if (mirada->preocupado > 0u) {
+            int k = mirada->preocupado > 100u ? 100 : (int)mirada->preocupado;
+            /* Cejas altas por el lado de adentro: preocupación. Y la sonrisa
+             * se afloja: no se puede sonreír mirando a un vecino con sed. */
+            e.g.ceja_dy += 5 * k / 100;
+            e.g.ceja_ang += 14 * k / 100;
+            if (e.g.boca_curva > 0) {
+                e.g.boca_curva -= e.g.boca_curva * 7 * k / 1000;
+            }
+        }
+    }
 
     rx = PQ(&c, p->ojo_rx);
     ry = PQ(&c, p->ojo_ry);
@@ -948,7 +970,7 @@ static void dibujar(rk_fb_t *fb, const rk_persona_t *p, rk_mood_t desde,
 void rk_face_draw(rk_fb_t *fb, const rk_persona_t *p, rk_mood_t mood,
                   rk_severity_t sev, uint8_t adornos_extra, uint32_t t_ms)
 {
-    dibujar(fb, p, mood, mood, 100u, sev, adornos_extra, 0u, 0u, t_ms);
+    dibujar(fb, p, mood, mood, 100u, sev, adornos_extra, 0u, 0u, NULL, t_ms);
 }
 
 void rk_face_draw_cierre(rk_fb_t *fb, const rk_persona_t *p, rk_mood_t mood,
@@ -956,7 +978,7 @@ void rk_face_draw_cierre(rk_fb_t *fb, const rk_persona_t *p, rk_mood_t mood,
                          uint8_t cierre, uint32_t t_ms)
 {
     dibujar(fb, p, mood, mood, 100u, sev, adornos_extra,
-            cierre > 100u ? 100u : cierre, 0u, t_ms);
+            cierre > 100u ? 100u : cierre, 0u, NULL, t_ms);
 }
 
 void rk_face_draw_mezcla(rk_fb_t *fb, const rk_persona_t *p,
@@ -965,7 +987,7 @@ void rk_face_draw_mezcla(rk_fb_t *fb, const rk_persona_t *p,
                          uint8_t cierre, uint32_t t_ms)
 {
     dibujar(fb, p, desde, hacia, t_pct > 100u ? 100u : t_pct, sev, adornos_extra,
-            cierre > 100u ? 100u : cierre, 0u, t_ms);
+            cierre > 100u ? 100u : cierre, 0u, NULL, t_ms);
 }
 
 void rk_face_draw_mimo(rk_fb_t *fb, const rk_persona_t *p,
@@ -974,7 +996,23 @@ void rk_face_draw_mimo(rk_fb_t *fb, const rk_persona_t *p,
                        uint32_t t_ms)
 {
     dibujar(fb, p, mood, mood, 100u, sev, adornos_extra, 0u,
-            mimo_pct > 100u ? 100u : mimo_pct, t_ms);
+            mimo_pct > 100u ? 100u : mimo_pct, NULL, t_ms);
+}
+
+void rk_face_draw_mirada(rk_fb_t *fb, const rk_persona_t *p,
+                         rk_mood_t mood, rk_severity_t sev,
+                         uint8_t adornos_extra, const rk_face_mirada_t *m,
+                         uint32_t t_ms)
+{
+    rk_face_mirada_t mm;
+    if (m == NULL) {
+        rk_face_draw(fb, p, mood, sev, adornos_extra, t_ms);
+        return;
+    }
+    mm.mira_x = acotar(m->mira_x, -100, 100);
+    mm.mira_y = acotar(m->mira_y, -100, 100);
+    mm.preocupado = m->preocupado > 100u ? 100u : m->preocupado;
+    dibujar(fb, p, mood, mood, 100u, sev, adornos_extra, 0u, 0u, &mm, t_ms);
 }
 
 uint8_t rk_face_adornos_etapa(int etapa)

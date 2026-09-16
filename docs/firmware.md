@@ -209,6 +209,15 @@ usan las transiciones, con el parpadeo que esconde el cierre de los ojos. La
 maceta la tiene compilada pero no la usa: el aparato no sabe que lo tocan.
 La app la dibuja vía WebAssembly (`cara_mimo`) al pasar el dedo por la cara.
 
+### La mirada dirigida
+
+`rk_face_draw_mirada` es para el invernadero de la app (varios Rooties en un
+estante que se miran entre ellos): suma `mira_x`/`mira_y` a la mirada propia
+del ánimo, que ya deriva sola, y con `preocupado` sube las cejas por el lado
+de adentro y afloja la sonrisa: es lo que hace un vecino cuando el de al lado
+tiene sed. Con todo en cero es exactamente `rk_face_draw`. La maceta no lo
+usa: no sabe quién tiene al lado. Vía WebAssembly, `cara_mirada`.
+
 ```bash
 make transicion  # la lámina de arriba
 make sheet       # 8 Rooties × 11 ánimos

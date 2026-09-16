@@ -1,12 +1,12 @@
 # Pruebas
 
 ```bash
-make test        # 1415 comprobaciones del firmware, sin placa ni SDL
+make test        # 1449 comprobaciones del firmware, sin placa ni SDL
 make verify      # lo que corre CI: pruebas y referencias visuales al día
 make placa       # compila las cuatro variantes con PlatformIO
 ```
 
-ROOTLAB (la app, la nube y el emulador) tiene sus propias 247 pruebas en
+ROOTLAB (la app, la nube y el emulador) tiene sus propias 300 pruebas en
 [root-lab](https://github.com/ifbotech/root-lab) (`npm test`), incluido el
 flujo completo de punta a punta.
 
@@ -18,7 +18,7 @@ flujo completo de punta a punta.
 | `nodo` | 91 | Calibración de suelo, fallas eléctricas, el riego que se escurre, curva de batería, muestreo adaptativo |
 | `sensores e historial` | 71 | AHT20, BH1750 y DS18B20 con los vectores de las hojas de datos, CRC, riel y USB, sensores caídos, historial en flash |
 | `graficos` | 63 | Recorte, tipografía, **antialiasing**: cobertura, bordes mezclados, triángulos en cualquier orden, alfa |
-| `cara` | 337 | Determinismo, batería sin íconos, cara dormida que no delata, despertar, regresión visual de las 88 caras, la transición entre ánimos (extremos idénticos a las caras fijas, el medio distinto, el reloj con desborde), la cara de mimos (en 0 la del ánimo, en 100 otra, ronronea) |
+| `cara` | 371 | Determinismo, batería sin íconos, cara dormida que no delata, despertar, regresión visual de las 88 caras, la transición entre ánimos (extremos idénticos a las caras fijas, el medio distinto, el reloj con desborde), la cara de mimos (en 0 la del ánimo, en 100 otra, ronronea), la mirada dirigida y la preocupación |
 | `modelos y caras` | 634 | Tabla de Rooties (con accesorios), la caja ciega, que los 8 y los 11 se distingan, centinelas del framebuffer |
 | `pantalla del QR` | 19 | Que el QR dibujado se lea módulo por módulo en los dos paneles, también con la URL del VPS |
 | `identidad y vinculo` | 91 | SHA-256 y HMAC con vectores oficiales, código y token, el flujo completo del enlace y sus caminos feos |

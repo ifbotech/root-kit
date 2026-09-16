@@ -418,6 +418,24 @@ void rk_wasm_cara_mimo(int persona, int mood, int etapa, int mimo_pct, uint32_t 
     a_rgba();
 }
 
+/* La cara mirando a un vecino, con o sin preocupación (el invernadero de
+ * la app; ver rk_face_draw_mirada). */
+EXPORTA("cara_mirada")
+void rk_wasm_cara_mirada(int persona, int mood, int etapa, int mira_x, int mira_y,
+                         int preocupado, uint32_t t_ms)
+{
+    rk_face_mirada_t m;
+    if (g_fb.px == NULL) {
+        return;
+    }
+    m.mira_x = mira_x;
+    m.mira_y = mira_y;
+    m.preocupado = (uint8_t)(preocupado < 0 ? 0 : preocupado > 100 ? 100 : preocupado);
+    rk_face_draw_mirada(&g_fb, rk_persona_at(persona), (rk_mood_t)mood, RK_SEV_OK,
+                        rk_face_adornos_etapa(etapa), &m, t_ms);
+    a_rgba();
+}
+
 /* La cara con los párpados forzados: lo que muestra la maceta mientras se
  * mantiene apretado el botón (los ojos se van cerrando antes de reiniciar). */
 EXPORTA("cara_cierre")
