@@ -52,7 +52,8 @@ typedef struct {
     uint8_t  hr_pct;        /* RK_HIST_SIN_DATO_U8 si falló              */
     uint8_t  animo;         /* rk_mood_t evaluado en el aparato          */
     uint8_t  banderas;      /* bit 0: USB; bits 1-2: severidad;          *
-                             * bits 4-7: RK_FALLA_* << 4                  */
+                             * bit 3: el riego se escurrió (RK_FALLA_    *
+                             * ESCURRE); bits 4-7: fallas de sensor << 4 */
 } rk_registro_t;
 
 typedef struct {
@@ -70,6 +71,8 @@ void rk_historial_iniciar(rk_historial_t *h);
 rk_registro_t rk_registro_desde(const rk_telemetry_t *t, uint32_t reloj_s,
                                 uint8_t animo, uint8_t severidad);
 uint8_t rk_registro_severidad(const rk_registro_t *r);
+/* Las RK_FALLA_* del registro, escurrimiento incluido. */
+uint8_t rk_registro_fallas(const rk_registro_t *r);
 
 /* Agrega al final. Si está lleno pisa el más viejo y cuenta la pérdida: lo
  * reciente importa más que lo de hace tres días. */

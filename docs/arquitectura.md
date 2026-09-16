@@ -106,7 +106,7 @@ segunda implementación que se pueda desincronizar.
 ```
 
 Todo lo que está debajo de la línea es C99 portable y se prueba en el
-escritorio: 1278 comprobaciones, incluida la regresión visual de las 88
+escritorio: 1379 comprobaciones, incluida la regresión visual de las 88
 caras.
 
 ## Decisiones que conviene no revisitar sin leer esto

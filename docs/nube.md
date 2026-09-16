@@ -64,7 +64,8 @@ del protocolo.
 | `lecturas[]` | hasta 20 por pedido; los campos de un sensor que falló no van |
 | `temp`, `tsuelo` | décimas de grado |
 | `animo`, `sev` | lo que evaluó el propio aparato: es lo que muestra su cara |
-| `fallas` | bits: 1 suelo, 2 aire, 4 luz, 8 sonda |
+| `fallas` | bits: 1 suelo, 2 aire, 4 luz, 8 sonda; 16 el último riego se escurrió (no es una falla de sensor) |
+| `escurre` | `true` sólo cuando el detector de riego vio que el agua se escurrió sin empapar (ver [firmware.md](firmware.md#el-riego-que-se-escurre)); la nube lo guarda con la lectura |
 
 **Sin reloj de pared.** El aparato no sabe la fecha y no le hace falta: el
 servidor fecha cada lectura restando `hace` a su propia hora. Sin NTP, sin

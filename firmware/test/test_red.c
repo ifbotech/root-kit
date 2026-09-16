@@ -151,6 +151,20 @@ static void test_armar_sync(void)
 
     n = rk_nube_armar_sync(buf, sizeof buf, &yo, &h, 3u, &incl);
     CHECK_TRUE("arma el cuerpo", n > 0u && n == strlen(buf));
+    CHECK_TRUE("sin escurrimiento no manda la bandera", strstr(buf, "escurre") == NULL);
+    {
+        rk_historial_t h2;
+        rk_registro_t r2;
+        char buf2[1024];
+        rk_historial_iniciar(&h2);
+        t.fallas = RK_FALLA_SONDA | RK_FALLA_ESCURRE;
+        r2 = rk_registro_desde(&t, 10000u, RK_MOOD_THIRSTY, RK_SEV_URGENT);
+        rk_historial_agregar(&h2, &r2);
+        CHECK_TRUE("con escurrimiento arma igual", rk_nube_armar_sync(buf2, sizeof buf2, &yo, &h2, 1u, NULL) > 0u);
+        CHECK_TRUE("y lo dice con nombre", strstr(buf2, "\"escurre\":true") != NULL);
+        CHECK_TRUE("y en las fallas", strstr(buf2, "\"fallas\":24") != NULL);
+        t.fallas = RK_FALLA_SONDA;
+    }
     CHECK_INT("incluye hasta el maximo pedido", 3, incl);
     CHECK_TRUE("con el codigo mientras no esta vinculado",
                rk_json_hay(buf, "codigo"));

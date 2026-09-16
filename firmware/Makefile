@@ -5,6 +5,7 @@
 #   make sheet    los 8 Rooties x 11 animos  -> build/sheet.bmp
 #   make etapas   las 5 etapas de crecimiento -> build/etapas.bmp
 #   make despertar los ojos se abren          -> build/despertar.bmp
+#   make transicion el cambio de animo, cuadro a cuadro -> build/transicion.bmp
 #   make pantallas QR, dormida, despertar y cara -> build/pantallas.bmp
 #   make wasm     el renderer para la app web -> build/rootkit_caras.wasm
 #   make bench    mide el costo de renderizar una cara
@@ -42,7 +43,7 @@ ifneq ($(strip $(SDL_LIBS)),)
   SDL_DEF = -DRK_WITH_SDL
 endif
 
-.PHONY: all test sim sheet etapas despertar pantallas wasm bench golden clean
+.PHONY: all test sim sheet etapas despertar transicion pantallas wasm bench golden clean
 
 all: test
 
@@ -84,6 +85,9 @@ etapas: $(BUILD)/rootkit_sim
 despertar: $(BUILD)/rootkit_sim
 	@./$(BUILD)/rootkit_sim --despertar $(BUILD)/despertar.bmp
 
+transicion: $(BUILD)/rootkit_sim
+	@./$(BUILD)/rootkit_sim --transicion $(BUILD)/transicion.bmp
+
 pantallas: $(BUILD)/rootkit_sim
 	@./$(BUILD)/rootkit_sim --pantallas $(BUILD)/pantallas.bmp
 
@@ -92,7 +96,7 @@ pantallas: $(BUILD)/rootkit_sim
 # (apt install clang lld). La app de root-lab lo carga desde public/caras/.
 WASM_SRC = gfx/fb.c gfx/aa.c gfx/font.c art/look.c art/face.c core/persona.c \
            core/mood.c core/species.c core/vinculo.c core/sha256.c core/codigo.c \
-           core/enlace.c nodo/power.c ui/cara.c ui/despertar.c ui/qr.c \
+           core/enlace.c nodo/power.c nodo/soil.c ui/cara.c ui/despertar.c ui/qr.c \
            third_party/qrcodegen/qrcodegen.c wasm/caras.c
 
 wasm: $(BUILD)/rootkit_caras.wasm

@@ -71,6 +71,93 @@ static void test_soil_mediana(void)
 }
 
 /* ------------------------------------------------------------ bateria ---- */
+/* El agua que se escurre: sube de golpe y se va enseguida. */
+static void test_riego(void)
+{
+    rk_riego_t r;
+    rk_riego_evento_t ev;
+    uint32_t t;
+    int i;
+
+    /* Escurrimiento: 20% -> 55% en dos minutos, y a la media hora 28%. */
+    rk_riego_iniciar(&r);
+    CHECK_INT("la primera lectura ancla", RK_RIEGO_NADA, rk_riego_paso(&r, 20u, 0u));
+    CHECK_INT("un salto de 35 puntos en 2 min es un riego", RK_RIEGO_SUBIENDO, rk_riego_paso(&r, 55u, 120u));
+    CHECK_INT("mientras baja poco se sigue mirando", RK_RIEGO_SUBIENDO, rk_riego_paso(&r, 50u, 420u));
+    CHECK_INT("todavia", RK_RIEGO_SUBIENDO, rk_riego_paso(&r, 40u, 720u));
+    ev = rk_riego_paso(&r, 28u, 1020u);   /* perdio 27 de 35: 77% */
+    CHECK_INT("perder mas del 70% en media hora es escurrimiento", RK_RIEGO_ESCURRIO, ev);
+    CHECK_TRUE("queda la bandera", rk_riego_escurriendo(&r, 1020u));
+    CHECK_TRUE("la bandera sigue 6 h", rk_riego_escurriendo(&r, 1020u + RK_RIEGO_AVISO_S));
+    CHECK_TRUE("y despues se apaga", !rk_riego_escurriendo(&r, 1020u + RK_RIEGO_AVISO_S + 1u));
+    CHECK_INT("despues del aviso la tierra sigue anclada", RK_RIEGO_NADA, rk_riego_paso(&r, 27u, 1320u));
+
+    /* Riego de verdad: sube y se queda. */
+    rk_riego_iniciar(&r);
+    rk_riego_paso(&r, 20u, 0u);
+    CHECK_INT("sube", RK_RIEGO_SUBIENDO, rk_riego_paso(&r, 58u, 300u));
+    CHECK_INT("sigue subiendo con el segundo chorro", RK_RIEGO_SUBIENDO, rk_riego_paso(&r, 63u, 600u));
+    for (t = 900u; t <= 2400u; t += 300u) {
+        ev = rk_riego_paso(&r, (uint8_t)(62u - (t - 900u) / 600u), t);
+        CHECK_INT("mientras dura la media hora se sigue mirando", RK_RIEGO_SUBIENDO, ev);
+    }
+    ev = rk_riego_paso(&r, 59u, 2700u);
+    CHECK_INT("pasada la media hora sigue mojada: empapo", RK_RIEGO_EMPAPO, ev);
+    CHECK_TRUE("sin bandera", !rk_riego_escurriendo(&r, 2700u));
+
+    /* Un riego que empapa cancela el aviso del que se escurrio. */
+    rk_riego_iniciar(&r);
+    rk_riego_paso(&r, 20u, 0u);
+    rk_riego_paso(&r, 50u, 120u);
+    rk_riego_paso(&r, 24u, 900u);
+    CHECK_TRUE("escurrio", rk_riego_escurriendo(&r, 900u));
+    rk_riego_paso(&r, 24u, 3600u);
+    rk_riego_paso(&r, 60u, 3700u);
+    for (t = 4000u; t <= 5800u; t += 300u) {
+        rk_riego_paso(&r, 58u, t);
+    }
+    CHECK_TRUE("el riego bueno apaga el aviso", !rk_riego_escurriendo(&r, 5800u));
+
+    /* Una subida lenta (la humedad del aire, un plato con agua) no es un riego. */
+    rk_riego_iniciar(&r);
+    for (i = 0; i < 20; i++) {
+        ev = rk_riego_paso(&r, (uint8_t)(20 + i * 4), (uint32_t)i * 600u);
+        if (ev != RK_RIEGO_NADA) { break; }
+    }
+    CHECK_INT("subir 4 puntos cada 10 min nunca es un riego", RK_RIEGO_NADA, ev);
+
+    /* El secado normal tampoco. */
+    rk_riego_iniciar(&r);
+    for (i = 0; i < 48; i++) {
+        ev = rk_riego_paso(&r, (uint8_t)(60 - i), (uint32_t)i * 1800u);
+        if (ev != RK_RIEGO_NADA) { break; }
+    }
+    CHECK_INT("secarse no dispara nada", RK_RIEGO_NADA, ev);
+
+    /* Un salto que tarda mas de cinco minutos entre muestras no cuenta. */
+    rk_riego_iniciar(&r);
+    rk_riego_paso(&r, 20u, 0u);
+    CHECK_INT("mas de 5 min entre muestras no es un salto", RK_RIEGO_NADA, rk_riego_paso(&r, 55u, 301u));
+
+    /* Perder el 70% justo despues de la ventana ya es secado. */
+    rk_riego_iniciar(&r);
+    rk_riego_paso(&r, 20u, 0u);
+    rk_riego_paso(&r, 55u, 120u);
+    rk_riego_paso(&r, 50u, 1900u);
+    CHECK_INT("pasada la ventana es un riego que empapo", RK_RIEGO_EMPAPO, rk_riego_paso(&r, 28u, 1950u));
+
+    CHECK_INT("NULL no explota", RK_RIEGO_NADA, rk_riego_paso(NULL, 50u, 0u));
+    CHECK_TRUE("NULL no escurre", !rk_riego_escurriendo(NULL, 0u));
+    rk_riego_iniciar(NULL);
+    {
+        /* La memoria RTC arranca en cero: eso tiene que ser un detector listo. */
+        rk_riego_t cero, ini;
+        memset(&cero, 0, sizeof cero);
+        rk_riego_iniciar(&ini);
+        CHECK_TRUE("todo en cero es un detector iniciado", memcmp(&cero, &ini, sizeof cero) == 0);
+    }
+}
+
 static void test_bateria(void)
 {
     CHECK_INT("celda llena",        100, rk_batt_pct(4200u));
@@ -291,6 +378,7 @@ void suite_nodo(void)
     test_soil_conversion();
     test_soil_fallas();
     test_soil_mediana();
+    test_riego();
     test_bateria();
     test_presupuesto_energetico();
     test_sampler();

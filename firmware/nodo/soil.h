@@ -50,4 +50,59 @@ int rk_soil_pct(const rk_soil_cal_t *cal, uint16_t raw);
  * introduciría un promedio móvil. N impar, máximo 9. */
 uint16_t rk_soil_median(const uint16_t *samples, int n);
 
+/* ---------------------------------------------------------- el riego ----
+ *
+ * EL AGUA QUE SE ESCURRE
+ *
+ * En tierra compactada o hidrofóbica (la de una planta que estuvo semanas
+ * seca) el agua no entra: baja por los costados de la maceta y sale por el
+ * plato. El sensor lo cuenta con claridad: la humedad SUBE de golpe (el agua
+ * pasa por al lado de la sonda) y en media hora VUELVE casi adonde estaba.
+ * Un riego que empapó también baja después, pero de a poco, durante días.
+ *
+ * Este detector mira sólo eso: una subida de al menos RK_RIEGO_SALTO_PCT
+ * puntos en RK_RIEGO_SUBIDA_S o menos, seguida de perder más de
+ * RK_RIEGO_PERDIDA_PCT por ciento de lo ganado dentro de RK_RIEGO_OBSERVA_S.
+ * Si pasa, deja la bandera RK_FALLA_ESCURRE en la telemetría durante
+ * RK_RIEGO_AVISO_S, para que la nube no anote un riego que no fue y la app
+ * explique qué hacer (regar de a poco, en dos o tres veces).
+ *
+ * Es de estado chico a propósito: sobrevive al deep sleep en la memoria RTC
+ * de la placa. La subida se mide entre dos muestras, así que con el muestreo
+ * cada cinco minutos un riego se ve entre una lectura y la siguiente.
+ */
+#define RK_RIEGO_SALTO_PCT      25u   /* subida mínima para ser un riego       */
+#define RK_RIEGO_SUBIDA_S      300u   /* ...en como mucho este tiempo          */
+#define RK_RIEGO_OBSERVA_S    1800u   /* cuánto se mira después del pico       */
+#define RK_RIEGO_PERDIDA_PCT    70u   /* perder tanto de lo ganado = escurrió  */
+#define RK_RIEGO_AVISO_S     21600u   /* la bandera dura 6 h                   */
+
+typedef enum {
+    RK_RIEGO_NADA = 0,      /* la tierra hace lo suyo                      */
+    RK_RIEGO_SUBIENDO,      /* hubo una subida brusca: se está observando  */
+    RK_RIEGO_EMPAPO,        /* la subida se sostuvo: riego de verdad       */
+    RK_RIEGO_ESCURRIO       /* la subida se fue enseguida: el agua escurrió */
+} rk_riego_evento_t;
+
+/* Todo en cero es un detector recién iniciado. */
+typedef struct {
+    bool     hay_ancla;
+    uint8_t  ancla_pct;     /* la tierra antes de la subida                */
+    uint32_t ancla_s;
+    bool     observando;
+    uint8_t  pico_pct;      /* lo más alto que llegó la subida             */
+    uint32_t pico_s;
+    bool     escurrio;      /* el último riego se escurrió                 */
+    uint32_t escurrio_s;
+} rk_riego_t;
+
+void rk_riego_iniciar(rk_riego_t *r);
+
+/* Una lectura más. `t_s` es el reloj monótono del aparato. */
+rk_riego_evento_t rk_riego_paso(rk_riego_t *r, uint8_t soil_pct, uint32_t t_s);
+
+/* ¿Hay que marcar RK_FALLA_ESCURRE en esta lectura? Verdadero durante
+ * RK_RIEGO_AVISO_S después de un escurrimiento, o hasta un riego que empape. */
+bool rk_riego_escurriendo(const rk_riego_t *r, uint32_t t_s);
+
 #endif /* ROOTKIT_SOIL_H */

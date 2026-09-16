@@ -217,6 +217,7 @@ int rk_wasm_despertar_ms(void)
 #include "../core/enlace.h"
 #include "../core/mood.h"
 #include "../ui/qr.h"
+#include "../nodo/soil.h"
 
 static char     g_entrada[256];
 static char     g_salida[128];
@@ -351,6 +352,56 @@ int rk_wasm_persona_indice(void)
 {
     /* `entrada` trae el id. */
     return rk_persona_index(rk_persona_find(g_entrada));
+}
+
+/* Un punto de la transición entre dos ánimos (ver ui/cara.h). `pct` ya viene
+ * con su curva: usar cara_anim_pct. */
+EXPORTA("cara_mezcla")
+void rk_wasm_cara_mezcla(int persona, int desde, int hacia, int pct, int etapa,
+                         int cierre, uint32_t t_ms)
+{
+    if (g_fb.px == NULL) {
+        return;
+    }
+    rk_face_draw_mezcla(&g_fb, rk_persona_at(persona), (rk_mood_t)desde, (rk_mood_t)hacia,
+                        (uint8_t)(pct < 0 ? 0 : pct > 100 ? 100 : pct), RK_SEV_OK,
+                        rk_face_adornos_etapa(etapa),
+                        (uint8_t)(cierre < 0 ? 0 : cierre > 100 ? 100 : cierre), t_ms);
+    a_rgba();
+}
+
+/* Cuánto de la transición pasó a los `pasado_ms`, con la curva suave. */
+EXPORTA("cara_anim_pct")
+int rk_wasm_cara_anim_pct(uint32_t pasado_ms)
+{
+    rk_cara_anim_t a;
+    a.desde = (uint8_t)RK_MOOD_HAPPY;
+    a.hacia = (uint8_t)RK_MOOD_THIRSTY;
+    a.t0_ms = 0u;
+    a.iniciada = true;
+    return (int)rk_cara_anim_pct(&a, pasado_ms);
+}
+
+EXPORTA("transicion_ms")
+int rk_wasm_transicion_ms(void)
+{
+    return (int)RK_CARA_TRANSICION_MS;
+}
+
+/* El detector de riego, para que el emulador marque un escurrimiento igual
+ * que la placa. */
+static rk_riego_t g_riego;
+
+EXPORTA("riego_paso")
+int rk_wasm_riego_paso(int soil_pct, uint32_t t_s)
+{
+    return (int)rk_riego_paso(&g_riego, (uint8_t)(soil_pct < 0 ? 0 : soil_pct), t_s);
+}
+
+EXPORTA("riego_escurre")
+int rk_wasm_riego_escurre(uint32_t t_s)
+{
+    return rk_riego_escurriendo(&g_riego, t_s) ? 1 : 0;
 }
 
 /* La cara con los párpados forzados: lo que muestra la maceta mientras se

@@ -14,6 +14,7 @@
 #include "golden.h"
 #include "../nodo/power.h"
 #include "../ui/despertar.h"
+#include "../art/face.h"
 
 static rk_color_t g_px[RK_MINI_PX];
 
@@ -154,6 +155,143 @@ static void test_despertar(void)
                g_px[RK_MINI_PX / 2] != rk_persona_at(1)->fondo);
 }
 
+/* Un cuadro de la transición entre dos ánimos, por hash. */
+static uint32_t hash_mezcla(int persona, rk_mood_t desde, rk_mood_t hacia,
+                            uint8_t pct, uint32_t t_ms)
+{
+    rk_fb_t fb;
+    rk_fb_init(&fb, g_px, RK_MINI_W, RK_MINI_H);
+    rk_face_draw_mezcla(&fb, rk_persona_at(persona), desde, hacia, pct,
+                        RK_SEV_OK, 0u, 0u, t_ms);
+    return rk_frame_hash(g_px, RK_MINI_PX);
+}
+
+static uint32_t hash_cara(int persona, rk_mood_t mood, uint32_t t_ms)
+{
+    rk_fb_t fb;
+    rk_fb_init(&fb, g_px, RK_MINI_W, RK_MINI_H);
+    rk_face_draw(&fb, rk_persona_at(persona), mood, RK_SEV_OK, 0u, t_ms);
+    return rk_frame_hash(g_px, RK_MINI_PX);
+}
+
+/* La cara no salta de un ánimo a otro: pasa por el medio. */
+static void test_transicion(void)
+{
+    rk_face_geom_t a = { 100, 100, 0, 0, 0, -100, 0, 0, 0, 100 };
+    rk_face_geom_t b = { 50, 60, 44, -10, 22, 100, 45, 12, 3, -100 };
+    rk_face_geom_t m = rk_face_geom_lerp(&a, &b, 50u);
+    rk_face_geom_t z = rk_face_geom_lerp(&a, &b, 0u);
+    rk_face_geom_t f = rk_face_geom_lerp(&a, &b, 100u);
+    rk_cara_anim_t an;
+    uint32_t h_a, h_b, h_m, h1, h2, h3;
+    int p, i, ok;
+    char lbl[96];
+
+    CHECK_INT("a mitad de camino la boca esta recta", 0, m.boca_curva);
+    CHECK_INT("y el parpado a medio bajar", 22, m.tapa_sup);
+    CHECK_INT("y la mirada al centro", 0, m.mira_x);
+    CHECK_TRUE("en 0 es exactamente el origen", memcmp(&z, &a, sizeof a) == 0);
+    CHECK_TRUE("en 100 es exactamente el destino", memcmp(&f, &b, sizeof b) == 0);
+    CHECK_INT("mas de 100 satura", b.abre, rk_face_geom_lerp(&a, &b, 250u).abre);
+
+    CHECK_INT("ease en 0", 0, rk_face_ease(0u));
+    CHECK_INT("ease en 50", 50, rk_face_ease(50u));
+    CHECK_INT("ease en 100", 100, rk_face_ease(100u));
+    CHECK_TRUE("arranca despacio", rk_face_ease(25u) < 20u);
+    CHECK_TRUE("termina despacio", rk_face_ease(75u) > 80u);
+    ok = 1;
+    for (i = 1; i <= 100; i++) {
+        if (rk_face_ease((uint8_t)i) < rk_face_ease((uint8_t)(i - 1))) { ok = 0; }
+    }
+    CHECK_TRUE("la curva nunca retrocede", ok);
+
+    /* Los extremos de la mezcla son las caras de siempre, pixel por pixel:
+     * la transición no cambia lo que ya estaba fijado en golden.h. */
+    for (p = 0; p < rk_persona_count; p++) {
+        h_a = hash_cara(p, RK_MOOD_HAPPY, 1200u);
+        h_b = hash_cara(p, RK_MOOD_THIRSTY, 1200u);
+        snprintf(lbl, sizeof lbl, "%s: en 0 es la cara de origen", rk_persona_at(p)->id);
+        CHECK_HEX(lbl, h_a, hash_mezcla(p, RK_MOOD_HAPPY, RK_MOOD_THIRSTY, 0u, 1200u));
+        snprintf(lbl, sizeof lbl, "%s: en 100 es la cara de destino", rk_persona_at(p)->id);
+        CHECK_HEX(lbl, h_b, hash_mezcla(p, RK_MOOD_HAPPY, RK_MOOD_THIRSTY, 100u, 1200u));
+        snprintf(lbl, sizeof lbl, "%s: mismo animo con mezcla es la misma cara", rk_persona_at(p)->id);
+        CHECK_HEX(lbl, h_a, hash_mezcla(p, RK_MOOD_HAPPY, RK_MOOD_HAPPY, 37u, 1200u));
+        h_m = hash_mezcla(p, RK_MOOD_HAPPY, RK_MOOD_THIRSTY, 30u, 1200u);
+        snprintf(lbl, sizeof lbl, "%s: en el medio es otra cara", rk_persona_at(p)->id);
+        CHECK_TRUE(lbl, h_m != h_a && h_m != h_b);
+    }
+    /* Y el medio se mueve: tres instantes, tres cuadros distintos. */
+    h1 = hash_mezcla(0, RK_MOOD_HAPPY, RK_MOOD_COLD, 20u, 1200u);
+    h2 = hash_mezcla(0, RK_MOOD_HAPPY, RK_MOOD_COLD, 50u, 1200u);
+    h3 = hash_mezcla(0, RK_MOOD_HAPPY, RK_MOOD_COLD, 80u, 1200u);
+    CHECK_TRUE("la transicion avanza", h1 != h2 && h2 != h3 && h1 != h3);
+    /* Entre sonrisa y mueca, la boca pasa por todas las curvas sin saltar:
+     * cada instante intermedio es distinto del anterior. */
+    h1 = hash_mezcla(1, RK_MOOD_HAPPY, RK_MOOD_SCORCHED, 10u, 1200u);
+    h2 = hash_mezcla(1, RK_MOOD_HAPPY, RK_MOOD_SCORCHED, 20u, 1200u);
+    CHECK_TRUE("la boca se curva de a poco", h1 != h2);
+
+    /* El reloj de la transición. */
+    rk_cara_anim_iniciar(&an, RK_MOOD_HAPPY, 1000u);
+    CHECK_INT("recien iniciada no hay transicion", 100, rk_cara_anim_pct(&an, 1000u));
+    rk_cara_anim_animo(&an, RK_MOOD_HAPPY, 1500u);
+    CHECK_TRUE("el mismo animo no arranca nada", !rk_cara_anim_en_curso(&an, 1500u));
+    rk_cara_anim_animo(&an, RK_MOOD_THIRSTY, 2000u);
+    CHECK_TRUE("cambiar de animo arranca la transicion", rk_cara_anim_en_curso(&an, 2000u));
+    CHECK_INT("arranca en 0", 0, rk_cara_anim_pct(&an, 2000u));
+    CHECK_INT("a mitad de tiempo va por la mitad", 50, rk_cara_anim_pct(&an, 2000u + RK_CARA_TRANSICION_MS / 2u));
+    CHECK_TRUE("tarda lo que dice",
+               rk_cara_anim_pct(&an, 2000u + RK_CARA_TRANSICION_MS - 1u) < 100u &&
+               rk_cara_anim_pct(&an, 2000u + RK_CARA_TRANSICION_MS) == 100u);
+    CHECK_TRUE("y despues termino", !rk_cara_anim_en_curso(&an, 3000u));
+    ok = 1;
+    for (i = 1; i <= (int)RK_CARA_TRANSICION_MS; i++) {
+        if (rk_cara_anim_pct(&an, 2000u + (uint32_t)i) < rk_cara_anim_pct(&an, 2000u + (uint32_t)i - 1u)) { ok = 0; }
+    }
+    CHECK_TRUE("nunca retrocede", ok);
+    /* Interrumpida pasada la mitad, sigue desde el destino que ya dominaba. */
+    rk_cara_anim_animo(&an, RK_MOOD_COLD, 2000u + 300u);
+    CHECK_INT("interrumpida: viene del animo que dominaba", RK_MOOD_THIRSTY, an.desde);
+    CHECK_INT("y va al nuevo", RK_MOOD_COLD, an.hacia);
+    /* Interrumpida antes de la mitad, vuelve al origen. */
+    rk_cara_anim_animo(&an, RK_MOOD_HOT, 2000u + 300u + 40u);
+    CHECK_INT("interrumpida temprano: vuelve al origen", RK_MOOD_THIRSTY, an.desde);
+    /* Desborde del reloj: una transición que empezó justo antes de que el
+     * contador diera la vuelta termina igual. */
+    rk_cara_anim_iniciar(&an, RK_MOOD_HAPPY, 0xFFFFFFF0u);
+    rk_cara_anim_animo(&an, RK_MOOD_THIRSTY, 0xFFFFFFF0u);
+    CHECK_INT("aguanta el desborde del reloj", 100, rk_cara_anim_pct(&an, 400u));
+
+    /* Con un nodo: el cuadro a mitad de transición no es ninguno de los dos. */
+    {
+        rk_node_t n;
+        rk_fb_t fb;
+        uint32_t hx;
+        rk_golden_nodo(&n, 0, RK_MOOD_HAPPY);
+        rk_fb_init(&fb, g_px, RK_MINI_W, RK_MINI_H);
+        memset(&an, 0, sizeof an);
+        rk_cara_draw_anim(&fb, &n, &an, 0u, 5000u);
+        h_a = rk_frame_hash(g_px, RK_MINI_PX);
+        CHECK_HEX("sin transicion es la cara de siempre", rk_golden_cara(0, RK_MOOD_HAPPY, 5000u), h_a);
+        n.verdict.mood = RK_MOOD_THIRSTY;
+        rk_cara_draw_anim(&fb, &n, &an, 0u, 5100u);
+        hx = rk_frame_hash(g_px, RK_MINI_PX);
+        rk_cara_draw_anim(&fb, &n, &an, 0u, 5100u + 100u);
+        h_m = rk_frame_hash(g_px, RK_MINI_PX);
+        h_b = rk_golden_cara(0, RK_MOOD_THIRSTY, 5100u + 100u);
+        CHECK_HEX("al cambiar el animo arranca desde la cara anterior",
+                  rk_golden_cara(0, RK_MOOD_HAPPY, 5100u), hx);
+        CHECK_TRUE("a los 100 ms no es ninguna de las dos", h_m != h_b && h_m != hash_cara(0, RK_MOOD_HAPPY, 5200u));
+        rk_cara_draw_anim(&fb, &n, &an, 0u, 5100u + RK_CARA_TRANSICION_MS);
+        CHECK_HEX("al terminar es la cara nueva", rk_golden_cara(0, RK_MOOD_THIRSTY, 5100u + RK_CARA_TRANSICION_MS),
+                  rk_frame_hash(g_px, RK_MINI_PX));
+        rk_cara_draw_anim(NULL, &n, &an, 0u, 0u);
+        rk_cara_draw_anim(&fb, NULL, &an, 0u, 0u);
+        rk_cara_anim_draw(&fb, NULL, NULL, RK_SEV_OK, 0u, 0u, 0u);
+        CHECK_TRUE("NULL no explota", true);
+    }
+}
+
 static void test_golden(void)
 {
     int i;
@@ -180,6 +318,7 @@ void suite_render(void)
     test_bateria_sin_iconos();
     test_dormida_no_delata();
     test_despertar();
+    test_transicion();
     test_golden();
     RK_SUITE_END();
 }

@@ -19,6 +19,10 @@
 #define RK_FALLA_AIRE   0x02u   /* AHT20: temperatura y humedad del aire */
 #define RK_FALLA_LUZ    0x04u
 #define RK_FALLA_SONDA  0x08u   /* DS18B20: es opcional, no afecta el ánimo */
+/* No es una falla de sensor: es el aviso del detector de riego (nodo/soil.h,
+ * rk_riego_t) de que el último riego se escurrió sin empapar. Viaja en el
+ * mismo byte para que la app lo reciba con la lectura; el ánimo lo ignora. */
+#define RK_FALLA_ESCURRE 0x10u
 
 typedef struct {
     bool     valid;     /* false si nunca llegó una lectura de este nodo   */

@@ -31,6 +31,7 @@ extern "C" {
 #include "../core/persona.h"
 #include "../art/face.h"
 #include "../ui/cara.h"
+#include "../nodo/soil.h"
 #include "../ui/qr.h"
 #include "../ui/despertar.h"
 #include "../nodo/sampler.h"
@@ -95,6 +96,10 @@ static rk_enlace_estado_t g_estado_prev = RK_ENL_COUNT;
 
 RTC_DATA_ATTR static uint32_t g_dia_desde_s;
 RTC_DATA_ATTR static bool     g_dia_urgente;
+/* El detector de riego mira varias lecturas seguidas: vive en la memoria
+ * RTC para sobrevivir al deep sleep entre una y otra. */
+RTC_DATA_ATTR static rk_riego_t g_riego;
+static rk_cara_anim_t g_anim;
 
 /* --------------------------------------------------------- identidad ---- */
 static void refrescar_codigo(void)
@@ -134,6 +139,19 @@ static void medir(uint32_t ahora)
 
     sensores_leer(&crudos);
     rk_sensores_telemetria(&crudos, &A.cal, &N.tel);
+
+    /* ¿El último riego empapó o se escurrió por los costados? */
+    if (!(N.tel.fallas & RK_FALLA_SUELO)) {
+        rk_riego_evento_t ev = rk_riego_paso(&g_riego, N.tel.soil_pct, reloj);
+        if (ev == RK_RIEGO_ESCURRIO) {
+            Serial.println("[riego] el agua se escurrio sin empapar");
+        } else if (ev == RK_RIEGO_EMPAPO) {
+            Serial.println("[riego] riego de verdad");
+        }
+    }
+    if (rk_riego_escurriendo(&g_riego, reloj)) {
+        N.tel.fallas |= RK_FALLA_ESCURRE;
+    }
 
     if (N.sp != NULL) {
         N.verdict = rk_mood_eval(&N.mst, N.sp, &N.tel);
@@ -446,16 +464,17 @@ static void dibujar(uint32_t ahora, uint32_t apretado_ms)
         rk_despertar_draw(fb, N.persona, rk_enlace_en_estado_ms(&E, ahora));
         break;
     case RK_PANT_CARA:
-    default:
+    default: {
+        /* Con transición entre ánimos; apretando el botón los párpados van
+         * bajando hasta el reinicio. */
+        uint8_t cierre = 0u;
         if (apretado_ms > BOTON_AVISO_MS) {
             uint32_t k = (apretado_ms - BOTON_AVISO_MS) * 100u / (BOTON_LARGO_MS - BOTON_AVISO_MS);
-            rk_face_draw_cierre(fb, N.persona, N.verdict.mood, N.verdict.severity,
-                                rk_face_adornos_etapa((int)rk_stage_from_bond(&N.bond)),
-                                (uint8_t)(k > 100u ? 100u : k), ahora);
-        } else {
-            rk_cara_draw(fb, &N, ahora);
+            cierre = (uint8_t)(k > 100u ? 100u : k);
         }
+        rk_cara_draw_anim(fb, &N, &g_anim, cierre, ahora);
         break;
+    }
     }
     pantalla_presentar(fb->px[0]);
 }

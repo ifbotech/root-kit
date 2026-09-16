@@ -1,10 +1,11 @@
 # ROOTKIT — entrada única al proyecto.
 #
 #   make test       las pruebas del firmware (no necesitan placa)
-#   make sim        los seis personajes en una ventana, en vivo
+#   make sim        los ocho Rooties en una ventana, en vivo
 #   make sheet      los 8 Rooties x 11 animos
 #   make etapas     las 5 etapas de crecimiento, por personaje
 #   make despertar  los ojos se abren, por personaje
+#   make transicion el cambio de animo, cuadro a cuadro
 #   make pantallas  QR, dormida, despertar y cara en los dos paneles
 #   make capturas   regenera las imagenes de tools/preview
 #   make wasm       el renderer compilado para la app (root-lab)
@@ -27,10 +28,11 @@ sim sheet etapas despertar pantallas wasm bench golden:
 	@$(MAKE) -C firmware --no-print-directory $@
 
 capturas:
-	@$(MAKE) -C firmware --no-print-directory sheet etapas despertar pantallas
+	@$(MAKE) -C firmware --no-print-directory sheet etapas despertar transicion pantallas
 	@python3 tools/bmp2png.py firmware/build/sheet.bmp tools/preview/sheet.png
 	@python3 tools/bmp2png.py firmware/build/etapas.bmp tools/preview/etapas.png
 	@python3 tools/bmp2png.py firmware/build/despertar.bmp tools/preview/despertar.png
+	@python3 tools/bmp2png.py firmware/build/transicion.bmp tools/preview/transicion.png
 	@python3 tools/bmp2png.py firmware/build/pantallas.bmp tools/preview/pantallas.png
 
 placa:

@@ -70,7 +70,10 @@ size_t rk_nube_armar_sync(char *buf, size_t cap, const rk_nube_yo_t *yo,
             static const char *SEV[4] = { "OK", "WATCH", "URGENT", "OK" };
             rk_jw_clave(&w, "sev"); rk_jw_texto(&w, SEV[rk_registro_severidad(r)]);
         }
-        rk_jw_clave(&w, "fallas"); rk_jw_entero(&w, (long)(r->banderas >> 4));
+        rk_jw_clave(&w, "fallas"); rk_jw_entero(&w, (long)rk_registro_fallas(r));
+        if (r->banderas & 0x08u) {
+            rk_jw_clave(&w, "escurre"); rk_jw_bool(&w, true);
+        }
         rk_jw_fin_obj(&w);
     }
     rk_jw_fin_arr(&w);

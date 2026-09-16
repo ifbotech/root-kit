@@ -171,12 +171,57 @@ boca y antes de los adornos.
 Los colores de Chico Malo y Chica Chill salen de sus paletas, las mismas que
 pintan ROOTLAB cuando salen del cofre (`root-lab/docs/paletas.md`).
 
+### La transición entre ánimos
+
+La cara no salta de contenta a sedienta: cambia en 350 ms
+(`RK_CARA_TRANSICION_MS`). La expresión se separa en dos partes:
+
+- **La geometría** (`rk_face_geom_t`: apertura del ojo, párpados, pupila,
+  mirada, cejas, curva de la boca) se interpola con `rk_face_geom_lerp` y una
+  curva suave (`rk_face_ease`, smoothstep en enteros). La boca es una sola
+  curva de sonrisa (+100) a mueca (−100) pasando por la recta: a los extremos
+  dibuja exactamente lo de siempre, en el medio un arco de círculo más
+  grande por los mismos extremos.
+- **Lo discreto** (ojos en cruz, espiral, lengua afuera, la boca de gato o
+  la dentada) cambia a mitad de camino, y en ese momento el ojo **parpadea**:
+  el párpado baja hasta cerrarse en el 50 % y vuelve a abrir. Es lo que hace
+  un animador para esconder un corte.
+
+Los colores (tinte, penumbra) y la respiración también se funden.
+`rk_face_draw_mezcla` dibuja cualquier punto intermedio; `rk_cara_anim_t`
+(`ui/cara.h`) lleva el reloj: quien dibuja le dice cada cuadro el ánimo
+vigente y él sabe desde cuál viene. Es función pura del tiempo, así que la
+placa, el simulador y el emulador muestran lo mismo. En 0 y en 100 la mezcla
+es pixel por pixel la cara de siempre: los hashes de `golden.h` no cambiaron.
+Cuesta lo mismo que un cuadro normal (dos expresiones, un dibujo).
+
+![De contento a sediento, cuadro a cuadro](../tools/preview/transicion.png)
+
 ```bash
+make transicion  # la lámina de arriba
 make sheet       # 8 Rooties × 11 ánimos
 make despertar   # el despertar, por personaje
 make pantallas   # QR, dormida, despertar y cara, en los dos paneles
 make golden      # después de un cambio visual intencional
 ```
+
+## El riego que se escurre
+
+En tierra compactada o hidrofóbica el agua no entra: baja por los costados y
+sale por el plato. El sensor lo cuenta con claridad: la humedad sube de golpe
+y en media hora vuelve casi adonde estaba. `rk_riego_t` (`nodo/soil.h`) mira
+sólo eso: una subida de ≥ 25 puntos entre dos muestras a ≤ 5 minutos, seguida
+de perder más del 70 % de lo ganado dentro de los 30 minutos. Si pasa, marca
+`RK_FALLA_ESCURRE` en la telemetría durante 6 horas (o hasta un riego que
+empape) y la lectura viaja a la nube con `"escurre": true`. La app deja de
+contar ese riego como riego, muestra la tarea "el agua se escurrió: regá
+despacio, en dos o tres veces" y avisa una vez por día. El ánimo no cambia
+por esto: la tierra sigue seca y la cara ya lo dice.
+
+Vive en la memoria RTC de la placa (`RTC_DATA_ATTR`) para sobrevivir al deep
+sleep entre una lectura y la siguiente; todo en cero es un detector listo.
+Una subida lenta (el aire húmedo, un plato con agua) nunca cuenta como riego,
+y el secado normal tampoco: `test/test_nodo.c` recorre las cuatro series.
 
 ## Seguridad
 

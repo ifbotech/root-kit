@@ -18,6 +18,11 @@ Cuando abrís el cofre en la app, la maceta abre los ojos:
 
 ![El despertar de cada Rooti](tools/preview/despertar.png)
 
+Y cuando cambia de ánimo no salta: la cara pasa de una expresión a la otra
+en un tercio de segundo, con un parpadeo en el medio.
+
+![De contento a sediento, cuadro a cuadro](tools/preview/transicion.png)
+
 Los dos primeros Rooties de Rocío, **Chico Malo** y **Chica Chill**, traen
 además su paleta: cuando salen del cofre, ROOTLAB se pinta con sus colores.
 
@@ -46,9 +51,10 @@ circuito de carga y las conexiones: [docs/hardware.md](docs/hardware.md).
 ## Empezar
 
 ```bash
-make test         # 1278 comprobaciones del firmware, sin placa
+make test         # 1379 comprobaciones del firmware, sin placa
 make sim          # los ocho Rooties en una ventana, en vivo
 make sheet        # 8 Rooties × 11 ánimos
+make transicion   # el cambio de ánimo, cuadro a cuadro
 make pantallas    # QR, dormida, despertar y cara en los dos paneles
 make wasm         # el renderer para la app (necesita clang y lld)
 make placa        # compila las cuatro variantes con PlatformIO

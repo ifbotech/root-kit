@@ -232,6 +232,16 @@ static void test_historial(void)
     CHECK_INT("temperatura negativa", -35, r.temp_dc);
     CHECK_TRUE("usb en la bandera", (r.banderas & 1u) != 0u);
     CHECK_INT("fallas en el nibble alto", RK_FALLA_LUZ, r.banderas >> 4);
+    CHECK_INT("y se leen enteras", RK_FALLA_LUZ, rk_registro_fallas(&r));
+    CHECK_TRUE("sin escurrimiento el bit 3 queda libre", (r.banderas & 0x08u) == 0u);
+
+    t.fallas = RK_FALLA_LUZ | RK_FALLA_ESCURRE;
+    r = rk_registro_desde(&t, 77u, RK_MOOD_COLD, RK_SEV_URGENT);
+    CHECK_TRUE("el escurrimiento va en el bit 3", (r.banderas & 0x08u) != 0u);
+    CHECK_INT("y no pisa las fallas de sensor", RK_FALLA_LUZ, r.banderas >> 4);
+    CHECK_INT("la lectura junta las dos", RK_FALLA_LUZ | RK_FALLA_ESCURRE, rk_registro_fallas(&r));
+    CHECK_INT("la severidad no se toca", RK_SEV_URGENT, rk_registro_severidad(&r));
+    t.fallas = RK_FALLA_LUZ;
 
     rk_historial_iniciar(&h);
     CHECK_TRUE("vacio no tiene nada que ver", rk_historial_ver(&h, 0u) == NULL);

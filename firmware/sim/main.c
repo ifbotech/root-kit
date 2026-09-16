@@ -4,6 +4,7 @@
  *   ./build/rootkit_sim --sheet F     8 modelos x 11 animos
  *   ./build/rootkit_sim --etapas F    las 5 etapas de crecimiento
  *   ./build/rootkit_sim --despertar F los ojos se abren, por modelo
+ *   ./build/rootkit_sim --transicion F de contento a sediento, cuadro a cuadro
  *   ./build/rootkit_sim --shot F [M] [T]  un cuadro suelto
  *   ./build/rootkit_sim --pantallas F QR, dormida, despertar y cara, en los dos paneles
  *   ./build/rootkit_sim --sprites DIR [LADO]  una imagen por modelo y animo, para la app
@@ -102,8 +103,9 @@ typedef struct {
     int lux_peak;
 } env_t;
 
-static rk_roster_t g_kit;
-static env_t       g_env[RK_MAX_NODES];
+static rk_roster_t    g_kit;
+static env_t          g_env[RK_MAX_NODES];
+static rk_cara_anim_t g_anim[RK_MAX_NODES];   /* la transición de cada cara */
 static rk_mood_t   g_force = RK_MOOD_COUNT;   /* COUNT = no forzar */
 
 /* Un nodo por modelo: la ventana muestra los ocho a la vez, cada uno con su
@@ -282,6 +284,36 @@ static const char *et_etapas(int i)
     return (i % RK_ETAPA_COUNT == 0)
            ? rk_persona_at(i / RK_ETAPA_COUNT)->nombre
            : rk_stage_name((rk_stage_t)(i % RK_ETAPA_COUNT));
+}
+
+/* --- la transición entre ánimos: cada modelo, de HAPPY a THIRSTY --------- */
+/* Once cuadros por modelo, a intervalos iguales de la transición (ya con su
+ * curva). Es la lámina para juzgar que la cara no salta: la boca se afloja,
+ * el párpado baja, la gota aparece detrás de un parpadeo. */
+#define TRANS_PASOS 11
+
+static void cel_transicion(rk_color_t *px, int i, uint32_t t_ms)
+{
+    rk_fb_t fb;
+    int persona = i / TRANS_PASOS;
+    int paso = i % TRANS_PASOS;
+    uint32_t pasado = (uint32_t)paso * RK_CARA_TRANSICION_MS / (TRANS_PASOS - 1);
+    rk_cara_anim_t a;
+    (void)t_ms;
+    rk_cara_anim_iniciar(&a, RK_MOOD_HAPPY, 1200u);
+    rk_cara_anim_animo(&a, RK_MOOD_THIRSTY, 1200u);
+    rk_fb_init(&fb, px, RK_MINI_W, RK_MINI_H);
+    rk_cara_anim_draw(&fb, rk_persona_at(persona), &a, RK_SEV_URGENT, 0u, 0u, 1200u + pasado);
+}
+
+static const char *et_transicion(int i)
+{
+    static char lbl[24];
+    if (i % TRANS_PASOS == 0) {
+        return rk_persona_at(i / TRANS_PASOS)->nombre;
+    }
+    snprintf(lbl, sizeof lbl, "%u MS", (unsigned)((i % TRANS_PASOS) * RK_CARA_TRANSICION_MS / (TRANS_PASOS - 1)));
+    return lbl;
 }
 
 /* --- el despertar --------------------------------------------------------- */
@@ -623,7 +655,7 @@ static int run_window(void)
                 rk_despertar_draw(&fb, g_kit.nodes[i].persona, t_ms - rev_t0);
             } else {
                 if (i == sel) { rev = 0; }
-                rk_cara_draw(&fb, &g_kit.nodes[i], t_ms);
+                rk_cara_draw_anim(&fb, &g_kit.nodes[i], &g_anim[i], 0u, t_ms);
             }
             pegar(&big, celda, RK_MINI_W, RK_MINI_H, ox, oy);
             rk_rect(&big, ox - 1, oy - 1, RK_MINI_W + 2, RK_MINI_H + 2,
@@ -665,6 +697,10 @@ int main(int argc, char **argv)
         return hoja(argv[2], rk_persona_count * RK_ETAPA_COUNT,
                     RK_ETAPA_COUNT, RK_MINI_W, RK_MINI_H,
                     cel_etapas, et_etapas, NULL);
+    }
+    if (argc >= 3 && strcmp(argv[1], "--transicion") == 0) {
+        return hoja(argv[2], rk_persona_count * TRANS_PASOS, TRANS_PASOS,
+                    RK_MINI_W, RK_MINI_H, cel_transicion, et_transicion, NULL);
     }
     if (argc >= 3 && strcmp(argv[1], "--despertar") == 0) {
         return hoja(argv[2], rk_persona_count * 6, 6, RK_MINI_W, RK_MINI_H,

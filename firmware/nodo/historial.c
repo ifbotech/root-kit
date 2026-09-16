@@ -26,6 +26,14 @@ void rk_historial_iniciar(rk_historial_t *h)
     }
 }
 
+uint8_t rk_registro_fallas(const rk_registro_t *r)
+{
+    if (r == NULL) {
+        return 0u;
+    }
+    return (uint8_t)((r->banderas >> 4) | ((r->banderas & 0x08u) ? RK_FALLA_ESCURRE : 0u));
+}
+
 uint8_t rk_registro_severidad(const rk_registro_t *r)
 {
     return r == NULL ? 0u : (uint8_t)((r->banderas >> 1) & 0x03u);
@@ -54,6 +62,9 @@ rk_registro_t rk_registro_desde(const rk_telemetry_t *t, uint32_t reloj_s,
     r.suelo_dc  = (t->fallas & RK_FALLA_SONDA) ? RK_TEMP_NO_HAY : t->suelo_dc;
     r.lux       = (t->fallas & RK_FALLA_LUZ) ? RK_HIST_SIN_LUX : t->lux;
     r.bat_mv    = t->batt_mv;
+    if (t->fallas & RK_FALLA_ESCURRE) {
+        r.banderas |= 0x08u;
+    }
     r.suelo_raw = t->suelo_raw;
     r.banderas  = (uint8_t)(r.banderas | (t->usb ? 1u : 0u) | ((t->fallas & 0x0Fu) << 4));
     return r;
