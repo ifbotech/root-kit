@@ -6,7 +6,7 @@ make verify      # lo que corre CI: pruebas y referencias visuales al día
 make placa       # compila las cuatro variantes con PlatformIO
 ```
 
-ROOTLAB (la app, la nube y el emulador) tiene sus propias 300 pruebas en
+ROOTLAB (la app, la nube y el emulador) tiene sus propias 301 pruebas en
 [root-lab](https://github.com/ifbotech/root-lab) (`npm test`), incluido el
 flujo completo de punta a punta.
 
