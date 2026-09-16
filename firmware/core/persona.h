@@ -29,9 +29,13 @@
  *   sed + CICLOPE  -> la pupila enorme se contrae
  *   sed + HONGO    -> los párpados caen todavía más, lengua afuera
  *
- * Cinco modelos por once ánimos son cincuenta y cinco caras distintas, y
- * salen todas del mismo código porque la cara es PROCEDURAL y no sprites.
- * Agregar un modelo es agregar una fila a esta tabla.
+ * Ocho modelos por once ánimos son ochenta y ocho caras distintas, y salen
+ * todas del mismo código porque la cara es PROCEDURAL y no sprites. Agregar
+ * un modelo es agregar una fila a esta tabla.
+ *
+ * En la app cada modelo es un ROOTI (plural: Rooties), y los que tienen
+ * paleta propia pintan la app con sus colores al salir del cofre
+ * (root-lab/public/lib/paletas.mjs).
  *
  * LA RAREZA AHORA ES FÍSICA
  *
@@ -52,8 +56,8 @@
 #include <stdbool.h>
 #include "../gfx/fb.h"
 
-/* Rareza dentro de la caja ciega. Cinco modelos a la vista y un secreto,
- * que es la mecánica exacta que hizo coleccionables a los Smiski. */
+/* Rareza dentro de la caja ciega. Los modelos a la vista y un secreto, que
+ * es la mecánica exacta que hizo coleccionables a los Smiski. */
 typedef enum {
     RK_RAR_COMUN = 0,
     RK_RAR_RARO,
@@ -102,6 +106,16 @@ typedef enum {
 #define RK_ADORNO_AURA      0x40u   /* resplandor: lo da el crecimiento   */
 #define RK_ADORNO_CORONA    0x80u   /* tres puntas: la última etapa       */
 
+/* Un accesorio fijo del personaje: va siempre, con cualquier ánimo, encima
+ * de los ojos o de la cara. No es un adorno porque no se gana ni se combina:
+ * es parte de quién es. */
+typedef enum {
+    RK_ACC_NINGUNO = 0,
+    RK_ACC_LENTES,          /* anteojos redondos: la que leyó todo        */
+    RK_ACC_CURITA,          /* una curita en el cachete: se peleó con algo */
+    RK_ACC_COUNT
+} rk_accesorio_t;
+
 typedef struct {
     const char *id;            /* clave estable: "cresta"                 */
     const char *nombre;        /* lo que muestra la app: "Cresta"         */
@@ -123,6 +137,7 @@ typedef struct {
     uint8_t  boca_ancho;       /* en centésimas del ancho del panel       */
 
     uint8_t  adornos;          /* los de fábrica                          */
+    uint8_t  accesorio;        /* rk_accesorio_t                          */
 
     /* Paleta de la cara, en colores PLANOS: el estilo es ilustración sin
      * degradés ni contornos negros, así que cada rasgo es un solo color y

@@ -55,6 +55,8 @@ static void test_catalogo(void)
         CHECK_TRUE(lbl, p->ceja < RK_CEJA_COUNT);
         snprintf(lbl, sizeof lbl, "%s tiene rareza valida", p->id);
         CHECK_TRUE(lbl, p->rareza < RK_RAR_COUNT);
+        snprintf(lbl, sizeof lbl, "%s usa un accesorio valido", p->id);
+        CHECK_TRUE(lbl, p->accesorio < RK_ACC_COUNT);
         /* Los rasgos van en centésimas del ancho: si alguno se pasa de 50,
          * el ojo sale más ancho que media pantalla y se come la cara. */
         snprintf(lbl, sizeof lbl, "%s tiene ojos de tamano sensato", p->id);

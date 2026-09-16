@@ -1,7 +1,7 @@
 /* main.c — simulador de escritorio del ROOTKIT.
  *
- *   ./build/rootkit_sim               los seis modelos en vivo, lado a lado
- *   ./build/rootkit_sim --sheet F     6 modelos x 11 animos
+ *   ./build/rootkit_sim               los ocho modelos en vivo, lado a lado
+ *   ./build/rootkit_sim --sheet F     8 modelos x 11 animos
  *   ./build/rootkit_sim --etapas F    las 5 etapas de crecimiento
  *   ./build/rootkit_sim --despertar F los ojos se abren, por modelo
  *   ./build/rootkit_sim --shot F [M] [T]  un cuadro suelto
@@ -14,7 +14,7 @@
  *
  * LA VENTANA MUESTRA LOS SEIS MODELOS A LA VEZ
  *
- * Es lo unico que permite juzgar lo que hay que juzgar: si los seis se leen
+ * Es lo unico que permite juzgar lo que hay que juzgar: si los ocho se leen
  * como el MISMO producto y como SEIS personajes distintos al mismo tiempo.
  * Con una cara por vez las dos cosas son imposibles de evaluar, porque el
  * parecido y la diferencia solo existen en comparacion.
@@ -106,27 +106,29 @@ static rk_roster_t g_kit;
 static env_t       g_env[RK_MAX_NODES];
 static rk_mood_t   g_force = RK_MOOD_COUNT;   /* COUNT = no forzar */
 
-/* Un nodo por modelo: la ventana muestra los seis a la vez, cada uno con su
+/* Un nodo por modelo: la ventana muestra los ocho a la vez, cada uno con su
  * planta y su vinculo de distinta edad. */
 static void world_init(void)
 {
     static const struct {
         const char *nom; const char *sp;
         int soil, t, rh, dry, lux, dias;
-    } SEED[6] = {
+    } SEED[RK_MAX_NODES] = {
         { "MONSTERA", "monstera",     42, 235, 58, 4,  6200,  95 },
         { "POTUS",    "pothos",       33, 228, 46, 6,  3100,  34 },
         { "CACTUS",   "cactus",       12, 262, 24, 2, 26000,   9 },
         { "BONSAI",   "bonsai",       38, 222, 52, 5,  9000, 200 },
         { "HELECHO",  "helecho",      56, 219, 68, 7,  1800,  62 },
         { "ORQUIDEA", "orquidea",     44, 240, 62, 4,  4200, 140 },
+        { "ALOE",     "aloe",         18, 250, 30, 5, 30000,  21 },
+        { "CALATHEA", "calathea",     52, 226, 72, 5,  2600,  48 },
     };
     int i, d;
 
     rk_roster_init(&g_kit);
     g_kit.wifi = true;
 
-    for (i = 0; i < 6 && i < rk_persona_count; i++) {
+    for (i = 0; i < RK_MAX_NODES && i < rk_persona_count; i++) {
         int k = rk_roster_add(&g_kit, SEED[i].nom,
                               rk_species_find(SEED[i].sp),
                               rk_persona_at(i));
@@ -242,7 +244,7 @@ static int hoja(const char *path, int n, int cols, int w, int h,
     return 0;
 }
 
-/* --- 6 modelos x 11 animos: la lamina que decide si el rig funciona ------ */
+/* --- 8 modelos x 11 animos: la lamina que decide si el rig funciona ------ */
 static void cel_sheet(rk_color_t *px, int i, uint32_t t_ms)
 {
     rk_fb_t fb;
@@ -548,7 +550,7 @@ static int run_window(void)
         return 1;
     }
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
-    win = SDL_CreateWindow("ROOTKIT / los seis modelos",
+    win = SDL_CreateWindow("ROOTKIT / los ocho Rooties",
                            SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                            LW * SIM_ESC, LH * SIM_ESC, SDL_WINDOW_SHOWN);
     ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED);

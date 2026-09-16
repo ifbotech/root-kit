@@ -18,6 +18,8 @@
 #define COL_LENGUA  RK_RGB(255, 112, 142)
 #define COL_GOTA    RK_RGB(120, 204, 255)
 #define COL_ORO     RK_RGB(255, 200,  60)
+#define COL_CURITA  RK_RGB(242, 196, 150)
+#define COL_GASA    RK_RGB(214, 160, 116)
 
 typedef struct {
     rk_fb_t            *fb;
@@ -649,6 +651,54 @@ static void adornos(cara_t *c, const expr_t *e, uint8_t set, int32_t ex_izq,
     }
 }
 
+/* ---------------------------------------------------------- accesorios --- */
+/* Van después de ojos, cejas y boca, y antes de los adornos: los anteojos
+ * tienen que quedar encima de los párpados y los destellos encima de todo. */
+static void accesorio(cara_t *c, const rk_persona_t *p, int32_t ex_izq,
+                      int32_t ex_der, int32_t rx, int32_t ry)
+{
+    switch (p->accesorio) {
+    case RK_ACC_LENTES: {
+        /* Dos aros alrededor de los ojos y un puente. El aro es más grande
+         * que el ojo para no taparle el párpado: la expresión la siguen
+         * haciendo los ojos. Sólo para modelos de dos ojos. */
+        int32_t r = (rx > ry ? rx : ry) + PQ(c, 4);
+        int32_t g = PX(c, 4);
+        int32_t brillo = r * 6 / 10;
+        rk_forma_t f;
+
+        if (p->familia == RK_OJOS_VISOR || p->familia == RK_OJOS_UNICO) {
+            return;
+        }
+        f = rk_anillo_q4(ex_izq, c->oy, r, g);
+        pintar(c, &f, 1, c->trazo, 255);
+        f = rk_anillo_q4(ex_der, c->oy, r, g);
+        pintar(c, &f, 1, c->trazo, 255);
+        capsula(c, ex_izq + r, c->oy - PQ(c, 2), ex_der - r, c->oy - PQ(c, 2), g / 2, c->trazo);
+        capsula(c, ex_izq - r - PQ(c, 3), c->oy - PQ(c, 3), ex_izq - r, c->oy - PQ(c, 2), g / 2, c->trazo);
+        capsula(c, ex_der + r, c->oy - PQ(c, 2), ex_der + r + PQ(c, 3), c->oy - PQ(c, 3), g / 2, c->trazo);
+        /* Un reflejo en cada vidrio, arriba a la derecha. */
+        f = rk_capsula_q4(ex_izq + brillo / 3, c->oy - brillo, ex_izq + brillo, c->oy - brillo / 3, PX(c, 2));
+        pintar(c, &f, 1, c->blanco, 120);
+        f = rk_capsula_q4(ex_der + brillo / 3, c->oy - brillo, ex_der + brillo, c->oy - brillo / 3, PX(c, 2));
+        pintar(c, &f, 1, c->blanco, 120);
+        break;
+    }
+    case RK_ACC_CURITA: {
+        /* Una curita cruzada en el cachete derecho, con su gasa al medio. */
+        int32_t x = ex_der + PQ(c, 10);
+        int32_t y = c->oy + ry + PQ(c, 6);
+        capsula(c, x - PQ(c, 8), y + PQ(c, 3), x + PQ(c, 8), y - PQ(c, 3), PQ(c, 3), COL_CURITA);
+        capsula(c, x - PQ(c, 2), y + PQ(c, 1), x + PQ(c, 2), y - PQ(c, 1), PQ(c, 2), COL_GASA);
+        circulo(c, x - PQ(c, 5), y + PQ(c, 2), PX(c, 2), COL_GASA, 255);
+        circulo(c, x + PQ(c, 5), y - PQ(c, 2), PX(c, 2), COL_GASA, 255);
+        break;
+    }
+    default:
+        break;
+    }
+}
+
 /* ---------------------------------------------------------------- cara --- */
 static void dibujar(rk_fb_t *fb, const rk_persona_t *p, rk_mood_t mood,
                     rk_severity_t sev, uint8_t adornos_extra, uint8_t cierre,
@@ -717,6 +767,7 @@ static void dibujar(rk_fb_t *fb, const rk_persona_t *p, rk_mood_t mood,
 
     cejas(&c, &e, c.cx - dx, c.cx + dx, ry);
     boca(&c, &e);
+    accesorio(&c, p, c.cx - dx, c.cx + dx, rx, ry);
     adornos(&c, &e,
             (uint8_t)((p->adornos | adornos_extra) & (uint8_t)~RK_ADORNO_AURA),
             c.cx - dx, c.cx + dx, ry);

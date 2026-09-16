@@ -2,6 +2,7 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <WiFiClientSecure.h>
+#include "certificados.h"
 
 #define CUERPO_MAX     4096
 #define RESPUESTA_MAX  2048
@@ -79,14 +80,19 @@ static void tarea_nube(void *)
             http.setTimeout(8000);
             http.setReuse(false);
             if (strncmp(g_url, "https://", 8) == 0) {
-#ifdef RK_NUBE_CA
+#if defined(RK_NUBE_INSEGURO) && RK_NUBE_INSEGURO
+                /* SÓLO DESARROLLO: un túnel o un servidor con certificado
+                 * propio. Cifra pero no autentica: cualquiera en el camino
+                 * podría hacerse pasar por la nube. Nunca en una placa que
+                 * sale del banco. */
+                seguro.setInsecure();
+#elif defined(RK_NUBE_CA)
+                /* Una CA propia, para un servidor que no use las públicas. */
                 seguro.setCACert(RK_NUBE_CA);
 #else
-                /* PROTOTIPO: sin verificar el certificado del servidor. El
-                 * canal va cifrado pero no autenticado. Antes de producción se
-                 * define RK_NUBE_CA con la raíz del proveedor (ver
-                 * docs/roadmap.md, "seguridad"). */
-                seguro.setInsecure();
+                /* Lo normal: sólo las raíces de Let's Encrypt y ZeroSSL, las
+                 * que usa el Caddy del servidor (esp32/certificados.h). */
+                seguro.setCACert(RK_CA_RAICES);
 #endif
                 ok = http.begin(seguro, g_url);
             } else {

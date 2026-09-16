@@ -13,24 +13,24 @@ static char g_codigo[12];
 static const char PAGINA[] PROGMEM = R"HTML(<!doctype html>
 <html lang="es"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>ROOTKIT</title>
+<title>ROOTLAB · Conectá tu Rooti</title>
 <style>
-:root{--fondo:#16181e;--carta:#20232b;--texto:#eef0f4;--suave:#9aa0ad;--verde:#58cc02;--borde:#2e323c}
+:root{--fondo:#0c1217;--carta:#1c2731;--texto:#f8f9fa;--suave:#bcc9d4;--verde:#90be6d;--borde:#2e3e4d}
 *{box-sizing:border-box}body{margin:0;background:var(--fondo);color:var(--texto);
 font:17px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding:24px 18px 40px}
 h1{font-size:26px;margin:4px 0 6px;letter-spacing:.5px}p{color:var(--suave);margin:0 0 18px}
 .carta{background:var(--carta);border:2px solid var(--borde);border-radius:18px;padding:18px;margin-bottom:16px}
 label{display:block;font-weight:700;margin:12px 0 6px}
 input,select{width:100%;font:inherit;color:var(--texto);background:var(--fondo);border:2px solid var(--borde);
-border-radius:12px;padding:13px 12px}input:focus,select:focus{outline:none;border-color:var(--verde)}
-button{width:100%;margin-top:18px;font:inherit;font-weight:800;letter-spacing:.6px;color:#fff;background:var(--verde);
-border:0;border-radius:14px;padding:15px;box-shadow:0 5px 0 #46a302}button:active{transform:translateY(3px);box-shadow:0 2px 0 #46a302}
-.redes button{background:var(--fondo);box-shadow:none;border:2px solid var(--borde);margin:6px 0 0;text-align:left;font-weight:600;display:flex;justify-content:space-between}
+border-radius:12px;padding:13px 12px}input:focus,select:focus{outline:none;border-color:#277da1}
+button{width:100%;margin-top:18px;font:inherit;font-weight:800;letter-spacing:.6px;color:#0b0f14;background:var(--verde);
+border:0;border-radius:14px;padding:15px;box-shadow:0 5px 0 #5b7944}button:active{transform:translateY(3px);box-shadow:0 2px 0 #5b7944}
+.redes button{color:var(--texto);background:var(--fondo);box-shadow:none;border:2px solid var(--borde);margin:6px 0 0;text-align:left;font-weight:600;display:flex;justify-content:space-between}
 .chip{font-size:13px;color:var(--suave)}details{margin-top:14px;color:var(--suave)}
-#estado{font-weight:700;min-height:24px}.ok{color:var(--verde)}.mal{color:#ff6b6b}
+#estado{font-weight:700;min-height:24px}.ok{color:var(--verde)}.mal{color:#ff6963}
 .codigo{font:800 20px ui-monospace,Menlo,monospace;letter-spacing:2px}
 </style></head><body>
-<h1>Conectá tu ROOTKIT</h1>
+<h1>Conectá tu Rooti</h1>
 <p>Elegí el wifi de tu casa. Es solo de 2,4 GHz: si tu router tiene dos redes, usá la que no dice 5G.</p>
 <div class="carta redes" id="redes"><span class="chip">Buscando redes…</span></div>
 <form class="carta" method="post" action="/guardar" id="form">
@@ -40,7 +40,7 @@ border:0;border-radius:14px;padding:15px;box-shadow:0 5px 0 #46a302}button:activ
 <input id="nube" name="nube" placeholder="se deja vacío" maxlength="95"></details>
 <button type="submit">CONECTAR</button>
 </form>
-<div class="carta"><div id="estado"></div><p style="margin:8px 0 0">Código de esta maceta: <span class="codigo">%CODIGO%</span></p></div>
+<div class="carta"><div id="estado"></div><p style="margin:8px 0 0">Código de este Rooti: <span class="codigo">%CODIGO%</span></p></div>
 <script>
 function redes(){fetch('/redes').then(r=>r.json()).then(l=>{const d=document.getElementById('redes');
 if(!l.length){d.innerHTML='<span class="chip">Buscando redes…</span>';return setTimeout(redes,2500)}
@@ -49,7 +49,7 @@ b.innerHTML='<span></span><span class="chip">'+(n.segura?'🔒 ':'')+n.senal+'</
 b.onclick=()=>{document.getElementById('ssid').value=n.ssid;document.getElementById('clave').focus()};d.appendChild(b)})}).catch(()=>setTimeout(redes,2500))}
 function estado(){fetch('/estado').then(r=>r.json()).then(e=>{const s=document.getElementById('estado');
 s.className=e.estado=='ok'?'ok':e.estado=='fallo'?'mal':'';
-s.textContent={esperando:'',probando:'Probando la red…',ok:'¡Listo! Ya podés volver a la app.',fallo:'No pude conectarme. Revisá la clave.'}[e.estado]||''}).catch(()=>{}).finally(()=>setTimeout(estado,1500))}
+s.textContent={esperando:'',probando:'Probando la red…',ok:'¡Listo! Ya podés volver a ROOTLAB.',fallo:'No pude conectarme. Revisá la clave.'}[e.estado]||''}).catch(()=>{}).finally(()=>setTimeout(estado,1500))}
 redes();estado();
 </script></body></html>)HTML";
 

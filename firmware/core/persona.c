@@ -2,7 +2,7 @@
 #include <stddef.h>
 #include <string.h>
 
-/* Los seis modelos de la primera tanda.
+/* Los modelos de la primera tanda, más los dos primeros de Rocío.
  *
  * Están pensados para ser distintos DOS VECES: como silueta impresa a un
  * metro de distancia, y como cara en 128x128. Un modelo que se distingue
@@ -17,6 +17,10 @@
  * bordes suavizados. Es la dirección de arte del tipo Duolingo. Los números
  * de esta tabla son un punto de partida para que la artista ajuste: cambiar
  * una proporción o un color es editar una fila, no tocar código.
+ *
+ * CHICO MALO y CHICA CHILL son los primeros personajes de Rocío. Sus colores
+ * salen de las paletas que entregó (las mismas que pintan la app); las
+ * proporciones son una primera versión hasta que lleguen sus bocetos.
  */
 const rk_persona_t rk_persona_table[] = {
 {
@@ -31,6 +35,7 @@ const rk_persona_t rk_persona_table[] = {
     RK_CEJA_DESPEINADA, -12, 7,
     RK_BOCA_DIENTES, 11,
     RK_ADORNO_COLMILLO,
+    RK_ACC_NINGUNO,
     RK_RGB( 98, 197,  54), RK_RGB( 72, 160,  38),
     RK_RGB( 33,  52,  24), RK_RGB(255, 255, 255),
     RK_RGB( 60, 120,  40), RK_RGB(255, 110, 140)
@@ -46,6 +51,7 @@ const rk_persona_t rk_persona_table[] = {
     RK_CEJA_NINGUNA, 0, 0,
     RK_BOCA_GATO, 6,
     RK_ADORNO_BRILLOS | RK_ADORNO_RUBOR,
+    RK_ACC_NINGUNO,
     RK_RGB(255, 168, 208), RK_RGB(255, 112, 168),
     RK_RGB( 84,  32,  64), RK_RGB(255, 255, 255),
     RK_RGB(140,  80, 200), RK_RGB(255, 255, 255)
@@ -61,6 +67,7 @@ const rk_persona_t rk_persona_table[] = {
     RK_CEJA_NINGUNA, 0, 0,
     RK_BOCA_NINGUNA, 0,
     RK_ADORNO_SCANLINE,
+    RK_ACC_NINGUNO,
     RK_RGB( 58,  82, 106), RK_RGB( 44,  64,  84),
     RK_RGB( 18,  26,  36), RK_RGB(225, 250, 255),
     RK_RGB( 70, 215, 255), RK_RGB( 70, 215, 255)
@@ -76,6 +83,7 @@ const rk_persona_t rk_persona_table[] = {
     RK_CEJA_GRUESA, -4, 6,
     RK_BOCA_CHICA, 6,
     0u,
+    RK_ACC_NINGUNO,
     RK_RGB(255, 168,  56), RK_RGB(236, 132,  28),
     RK_RGB( 46,  30,  12), RK_RGB(255, 255, 255),
     RK_RGB( 60, 150, 235), RK_RGB(255, 110, 140)
@@ -91,9 +99,44 @@ const rk_persona_t rk_persona_table[] = {
     RK_CEJA_FINA, 8, 7,
     RK_BOCA_LINEA, 7,
     RK_ADORNO_ESPORAS,
+    RK_ACC_NINGUNO,
     RK_RGB(186, 142, 242), RK_RGB(156, 112, 214),
     RK_RGB( 48,  28,  74), RK_RGB(255, 255, 255),
     RK_RGB(110,  70, 170), RK_RGB(250, 242, 255)
+},
+{
+    "chico-malo", "Chico Malo", "carcasas/chico-malo.stl",
+    "Se hace el malo. Igual te espera despierto.",
+    RK_RAR_COMUN,
+    /* Ojos angostos e inclinados hacia la nariz, cejas gruesas y bajas, una
+     * boca de línea con un colmillo que asoma y una curita en el cachete.
+     * Rojos de brasa sobre bordó con iris ámbar: la paleta Chico Malo
+     * (Oxblood, Black Cherry, Ink Black, Amber Flame, Dark Orange). */
+    RK_OJOS_FIEROS, 15, 12, 21, 16,
+    RK_CEJA_GRUESA, -16, 5,
+    RK_BOCA_LINEA, 9,
+    RK_ADORNO_COLMILLO,
+    RK_ACC_CURITA,
+    RK_RGB(157,   2,   8), RK_RGB(106,   4,  15),
+    RK_RGB(  3,   7,  30), RK_RGB(255, 246, 232),
+    RK_RGB(255, 186,   8), RK_RGB(244, 140,   6)
+},
+{
+    "chica-chill", "Chica Chill", "carcasas/chica-chill.stl",
+    "Leyó todo sobre tu planta. No se estresa por nada.",
+    RK_RAR_COMUN,
+    /* Párpados relajados a media altura, anteojos redondos, cejas finas
+     * apenas levantadas y una sonrisa chica. Azules de medianoche y acero:
+     * la paleta Chica Chill (Smart Blue, Steel Azure, Prussian Blue, Cool
+     * Steel). */
+    RK_OJOS_PESADOS, 14, 14, 21, 0,
+    RK_CEJA_FINA, 5, 9,
+    RK_BOCA_CHICA, 7,
+    RK_ADORNO_RUBOR,
+    RK_ACC_LENTES,
+    RK_RGB(  4, 102, 200), RK_RGB(  3,  83, 164),
+    RK_RGB(  0,  18,  51), RK_RGB(255, 255, 255),
+    RK_RGB(  2,  62, 125), RK_RGB(151, 157, 172)
 },
 {
     "glitch", "?????", "carcasas/glitch.stl",
@@ -106,6 +149,7 @@ const rk_persona_t rk_persona_table[] = {
     RK_CEJA_FINA, 0, 7,
     RK_BOCA_ONDA, 9,
     RK_ADORNO_ESTATICA,
+    RK_ACC_NINGUNO,
     RK_RGB( 28,  28,  38), RK_RGB( 44,  44,  58),
     RK_RGB(  8,   8,  14), RK_RGB(245, 248, 255),
     RK_RGB( 40, 240, 220), RK_RGB(255,  60, 170)

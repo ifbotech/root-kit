@@ -12,6 +12,7 @@ const rk_persona_t rk_persona_incognita = {
     RK_CEJA_NINGUNA, 0, 0,
     RK_BOCA_NINGUNA, 0,
     0u,
+    RK_ACC_NINGUNO,
     RK_RGB( 38,  40,  46), RK_RGB( 30,  32,  38),
     RK_RGB(150, 154, 166), RK_RGB(210, 214, 222),
     RK_RGB(120, 124, 136), RK_RGB(210, 214, 222)
