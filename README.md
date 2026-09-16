@@ -51,7 +51,7 @@ circuito de carga y las conexiones: [docs/hardware.md](docs/hardware.md).
 ## Empezar
 
 ```bash
-make test         # 1379 comprobaciones del firmware, sin placa
+make test         # 1415 comprobaciones del firmware, sin placa
 make sim          # los ocho Rooties en una ventana, en vivo
 make sheet        # 8 Rooties × 11 ánimos
 make transicion   # el cambio de ánimo, cuadro a cuadro

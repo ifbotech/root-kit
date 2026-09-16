@@ -197,6 +197,18 @@ Cuesta lo mismo que un cuadro normal (dos expresiones, un dibujo).
 
 ![De contento a sediento, cuadro a cuadro](../tools/preview/transicion.png)
 
+### La cara de mimos
+
+`rk_face_draw_mimo` es la cara mientras la acarician desde la app: la de
+contento con los ojos cerrados en `^ ^` (el gesto de alegría que en HAPPY
+aparece cada tanto, acá sostenido), las cejas altas y un ronroneo, un vaivén
+de un pixel de cara ocho veces por segundo en vez de la respiración. Recibe
+`mimo_pct`: en 0 es exactamente la cara del ánimo (mismo pixel que
+`rk_face_draw`), en 100 el mimo entero, y en el medio la misma mezcla que
+usan las transiciones, con el parpadeo que esconde el cierre de los ojos. La
+maceta la tiene compilada pero no la usa: el aparato no sabe que lo tocan.
+La app la dibuja vía WebAssembly (`cara_mimo`) al pasar el dedo por la cara.
+
 ```bash
 make transicion  # la lámina de arriba
 make sheet       # 8 Rooties × 11 ánimos

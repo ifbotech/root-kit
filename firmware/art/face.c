@@ -218,6 +218,27 @@ static expr_t expresion(const rk_persona_t *p, rk_mood_t mood,
     return e;
 }
 
+/* La expresión del mimo: contento, con los ojos en ^ ^ y las cejas altas.
+ * Parte de la cara de contento del mismo modelo, así que conserva lo que la
+ * familia de ojos y la boca de cada uno le ponen. */
+static expr_t expresion_mimo(const rk_persona_t *p, uint32_t t)
+{
+    expr_t e = expresion(p, RK_MOOD_HAPPY, rk_look(RK_MOOD_HAPPY), t, 0u);
+
+    e.cerrado = 1;
+    e.cruz = false;
+    e.espiral = false;
+    e.g.tapa_sup = 0;
+    e.g.tapa_inf = 0;
+    e.g.ceja_dy = 6;
+    e.g.ceja_ang = 6;
+    e.g.boca_curva = 100;
+    if (e.boca != RK_BOCA_SMILE) {
+        e.boca = RK_BOCA_SMILE;
+    }
+    return e;
+}
+
 /* Un punto intermedio entre dos expresiones. La geometría se interpola; lo
  * discreto (ojos en cruz, lengua afuera, el estilo de boca) lo pone el que
  * domina, y si difiere, el ojo parpadea justo cuando cambia: el párpado baja
@@ -802,7 +823,8 @@ static int32_t respiracion(const cara_t *c, const rk_look_t *lk, uint32_t t)
  * camino es exactamente el de una cara sola. */
 static void dibujar(rk_fb_t *fb, const rk_persona_t *p, rk_mood_t desde,
                     rk_mood_t hacia, uint8_t t_pct, rk_severity_t sev,
-                    uint8_t adornos_extra, uint8_t cierre, uint32_t t)
+                    uint8_t adornos_extra, uint8_t cierre, uint8_t mimo_pct,
+                    uint32_t t)
 {
     const rk_look_t *lk = rk_look(hacia);
     const rk_look_t *lka = rk_look(desde);
@@ -845,6 +867,18 @@ static void dibujar(rk_fb_t *fb, const rk_persona_t *p, rk_mood_t desde,
         c.iris   = rk_mix(tratar(p->iris, lka),   c.iris,   t255);
         c.acento = rk_mix(tratar(p->acento, lka), c.acento, t255);
     }
+    if (mimo_pct > 0u) {
+        /* El mimo trae los colores de contento: la penumbra de una cara
+         * triste se levanta mientras la acarician. */
+        const rk_look_t *lkm = rk_look(RK_MOOD_HAPPY);
+        uint8_t m255 = (uint8_t)((uint32_t)mimo_pct * 255u / 100u);
+        c.bg     = rk_mix(c.bg,     tratar(p->fondo, lkm),  m255);
+        c.sombra = rk_mix(c.sombra, tratar(p->sombra, lkm), m255);
+        c.trazo  = rk_mix(c.trazo,  tratar(p->trazo, lkm),  m255);
+        c.blanco = rk_mix(c.blanco, tratar(p->blanco, lkm), m255);
+        c.iris   = rk_mix(c.iris,   tratar(p->iris, lkm),   m255);
+        c.acento = rk_mix(c.acento, tratar(p->acento, lkm), m255);
+    }
 
     rk_fb_clear(fb, c.bg);
 
@@ -857,6 +891,13 @@ static void dibujar(rk_fb_t *fb, const rk_persona_t *p, rk_mood_t desde,
             temblor = lka->shiver ? (((t / 60u) % 2u) ? PX(&c, 2) : -PX(&c, 2)) : 0;
         }
     }
+    if (mimo_pct > 0u) {
+        /* El ronroneo: un vaivén de un pixel de cara, ocho veces por
+         * segundo, que reemplaza a la respiración. Y el temblor se va. */
+        int32_t ronroneo = (int32_t)rk_sin8((uint8_t)(t * 2u)) * PX(&c, 1) / 127;
+        bob = bob + (ronroneo - bob) * (int32_t)mimo_pct / 100;
+        temblor = temblor * (100 - (int32_t)mimo_pct) / 100;
+    }
 
     c.cx = (int32_t)fb->w * 8 + temblor;
     c.cy = (int32_t)fb->h * 8 + bob;
@@ -868,6 +909,10 @@ static void dibujar(rk_fb_t *fb, const rk_persona_t *p, rk_mood_t desde,
         e = mezclar(&ea, &eb, t_pct);
     } else {
         e = expresion(p, hacia, lk, t, cierre);
+    }
+    if (mimo_pct > 0u) {
+        expr_t em = expresion_mimo(p, t);
+        e = mezclar(&e, &em, mimo_pct);
     }
 
     rx = PQ(&c, p->ojo_rx);
@@ -903,7 +948,7 @@ static void dibujar(rk_fb_t *fb, const rk_persona_t *p, rk_mood_t desde,
 void rk_face_draw(rk_fb_t *fb, const rk_persona_t *p, rk_mood_t mood,
                   rk_severity_t sev, uint8_t adornos_extra, uint32_t t_ms)
 {
-    dibujar(fb, p, mood, mood, 100u, sev, adornos_extra, 0u, t_ms);
+    dibujar(fb, p, mood, mood, 100u, sev, adornos_extra, 0u, 0u, t_ms);
 }
 
 void rk_face_draw_cierre(rk_fb_t *fb, const rk_persona_t *p, rk_mood_t mood,
@@ -911,7 +956,7 @@ void rk_face_draw_cierre(rk_fb_t *fb, const rk_persona_t *p, rk_mood_t mood,
                          uint8_t cierre, uint32_t t_ms)
 {
     dibujar(fb, p, mood, mood, 100u, sev, adornos_extra,
-            cierre > 100u ? 100u : cierre, t_ms);
+            cierre > 100u ? 100u : cierre, 0u, t_ms);
 }
 
 void rk_face_draw_mezcla(rk_fb_t *fb, const rk_persona_t *p,
@@ -920,7 +965,16 @@ void rk_face_draw_mezcla(rk_fb_t *fb, const rk_persona_t *p,
                          uint8_t cierre, uint32_t t_ms)
 {
     dibujar(fb, p, desde, hacia, t_pct > 100u ? 100u : t_pct, sev, adornos_extra,
-            cierre > 100u ? 100u : cierre, t_ms);
+            cierre > 100u ? 100u : cierre, 0u, t_ms);
+}
+
+void rk_face_draw_mimo(rk_fb_t *fb, const rk_persona_t *p,
+                       rk_mood_t mood, uint8_t mimo_pct,
+                       rk_severity_t sev, uint8_t adornos_extra,
+                       uint32_t t_ms)
+{
+    dibujar(fb, p, mood, mood, 100u, sev, adornos_extra, 0u,
+            mimo_pct > 100u ? 100u : mimo_pct, t_ms);
 }
 
 uint8_t rk_face_adornos_etapa(int etapa)

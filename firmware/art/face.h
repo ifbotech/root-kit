@@ -98,6 +98,19 @@ void rk_face_draw_mezcla(rk_fb_t *fb, const rk_persona_t *p,
                          rk_severity_t sev, uint8_t adornos_extra,
                          uint8_t cierre, uint32_t t_ms);
 
+/* La cara cuando la acarician desde la app: la de contento, con los ojos
+ * cerrados en ^ ^ (el gesto de alegría que en HAPPY aparece cada tanto,
+ * acá sostenido), las cejas altas y un ronroneo: un vaivén corto y rápido
+ * en vez de la respiración. `mimo_pct` dice cuánto se aplica sobre la cara
+ * del ánimo `mood`: 0 es exactamente esa cara (mismo pixel que
+ * rk_face_draw), 100 es el mimo entero; la app lo sube al empezar la
+ * caricia y lo baja al soltar, con la misma curva de las transiciones.
+ * Nunca se muestra en la maceta: el aparato no sabe que lo tocan. */
+void rk_face_draw_mimo(rk_fb_t *fb, const rk_persona_t *p,
+                       rk_mood_t mood, uint8_t mimo_pct,
+                       rk_severity_t sev, uint8_t adornos_extra,
+                       uint32_t t_ms);
+
 /* Qué adornos desbloquea cada etapa del vínculo. El modelo te toca por azar;
  * cómo se ve se gana cuidando la planta. */
 uint8_t rk_face_adornos_etapa(int etapa);

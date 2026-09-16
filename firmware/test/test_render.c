@@ -292,6 +292,47 @@ static void test_transicion(void)
     }
 }
 
+static uint32_t hash_mimo(int persona, rk_mood_t mood, uint8_t pct, uint32_t t_ms)
+{
+    rk_fb_t fb;
+    rk_fb_init(&fb, g_px, RK_MINI_W, RK_MINI_H);
+    rk_face_draw_mimo(&fb, rk_persona_at(persona), mood, pct, RK_SEV_OK, 0u, t_ms);
+    return rk_frame_hash(g_px, RK_MINI_PX);
+}
+
+/* La cara mientras la acarician desde la app: ^ ^ y ronroneo. */
+static void test_mimo(void)
+{
+    int p;
+    uint32_t h0, h100, h50, hb;
+    char lbl[96];
+
+    for (p = 0; p < rk_persona_count; p++) {
+        /* 1200 ms: en HAPPY los ojos estan abiertos (el gesto ^ ^ propio
+         * aparece entre 6000 y 7100), asi que el mimo se distingue. */
+        h0 = hash_mimo(p, RK_MOOD_THIRSTY, 0u, 1200u);
+        h50 = hash_mimo(p, RK_MOOD_THIRSTY, 50u, 1200u);
+        h100 = hash_mimo(p, RK_MOOD_THIRSTY, 100u, 1200u);
+        snprintf(lbl, sizeof lbl, "%s: sin mimo es la cara del animo", rk_persona_at(p)->id);
+        CHECK_HEX(lbl, hash_cara(p, RK_MOOD_THIRSTY, 1200u), h0);
+        snprintf(lbl, sizeof lbl, "%s: el mimo entero es otra cara", rk_persona_at(p)->id);
+        CHECK_TRUE(lbl, h100 != h0 && h100 != hash_cara(p, RK_MOOD_HAPPY, 1200u));
+        snprintf(lbl, sizeof lbl, "%s: a medias, entre las dos", rk_persona_at(p)->id);
+        CHECK_TRUE(lbl, h50 != h0 && h50 != h100);
+        snprintf(lbl, sizeof lbl, "%s: es determinista", rk_persona_at(p)->id);
+        CHECK_HEX(lbl, h100, hash_mimo(p, RK_MOOD_THIRSTY, 100u, 1200u));
+    }
+    /* Ronronea: dos instantes a 60 ms son dos cuadros distintos, y sobre
+     * contento tambien cambia algo (los ojos se cierran en ^ ^). */
+    h100 = hash_mimo(0, RK_MOOD_HAPPY, 100u, 1200u);
+    hb = hash_mimo(0, RK_MOOD_HAPPY, 100u, 1260u);
+    CHECK_TRUE("ronronea", h100 != hb);
+    CHECK_TRUE("sobre contento cierra los ojos", h100 != hash_cara(0, RK_MOOD_HAPPY, 1200u));
+    CHECK_HEX("mas de 100 satura", h100, hash_mimo(0, RK_MOOD_HAPPY, 250u, 1200u));
+    rk_face_draw_mimo(NULL, NULL, RK_MOOD_HAPPY, 100u, RK_SEV_OK, 0u, 0u);
+    CHECK_TRUE("NULL no explota", true);
+}
+
 static void test_golden(void)
 {
     int i;
@@ -319,6 +360,7 @@ void suite_render(void)
     test_dormida_no_delata();
     test_despertar();
     test_transicion();
+    test_mimo();
     test_golden();
     RK_SUITE_END();
 }

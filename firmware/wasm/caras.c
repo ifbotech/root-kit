@@ -404,6 +404,20 @@ int rk_wasm_riego_escurre(uint32_t t_s)
     return rk_riego_escurriendo(&g_riego, t_s) ? 1 : 0;
 }
 
+/* La cara mientras la acarician en el teléfono: `mimo_pct` 0..100 sobre la
+ * cara del ánimo (ver rk_face_draw_mimo). Nunca llega a la maceta. */
+EXPORTA("cara_mimo")
+void rk_wasm_cara_mimo(int persona, int mood, int etapa, int mimo_pct, uint32_t t_ms)
+{
+    if (g_fb.px == NULL) {
+        return;
+    }
+    rk_face_draw_mimo(&g_fb, rk_persona_at(persona), (rk_mood_t)mood,
+                      (uint8_t)(mimo_pct < 0 ? 0 : mimo_pct > 100 ? 100 : mimo_pct),
+                      RK_SEV_OK, rk_face_adornos_etapa(etapa), t_ms);
+    a_rgba();
+}
+
 /* La cara con los párpados forzados: lo que muestra la maceta mientras se
  * mantiene apretado el botón (los ojos se van cerrando antes de reiniciar). */
 EXPORTA("cara_cierre")
