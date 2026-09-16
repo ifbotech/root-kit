@@ -13,8 +13,10 @@ framerate— no para desarrollar.
 | GNU Make | 4.3 | Los targets |
 | SDL2 | 2.30.0 | Sólo la ventana interactiva |
 | WSLg | driver x11, `DISPLAY=:0` | Mostrar esa ventana en Windows |
-| Node | 22+ | El Hub |
-| Python | 3.10+ | Generar el arte y el catálogo |
+| clang + lld | 18 | `make wasm`: el renderer para la app |
+| PlatformIO | 6.1+ | Compilar y flashear las placas (`pip install platformio`) |
+| Python | 3.10+ | Convertir capturas |
+| Node | 20+ | root-lab: la app, la nube y el emulador |
 
 Las pruebas y las capturas **no necesitan SDL**: el Makefile lo detecta con
 `pkg-config` y compila el simulador sin ventana si no está. Sólo `make sim` lo
@@ -70,7 +72,7 @@ cosas son imposibles de evaluar.
 | `W` | Regar la maceta seleccionada |
 | `M` | Ciclar los ánimos a la fuerza |
 | `R` | Volver al ánimo real |
-| `G` | Disparar el primer encendido del seleccionado |
+| `G` | Disparar el despertar del seleccionado |
 | `+` / `-` | Acelerar o frenar el tiempo |
 | `S` | Capturar la ventana entera a `captura.bmp` |
 | `ESC` | Salir |
@@ -89,7 +91,8 @@ crecimiento sin tener que esperar seis meses.
 ```bash
 make sheet       # los 6 modelos x 11 ánimos
 make etapas      # las 5 etapas de crecimiento, por modelo
-make revelado    # el primer encendido, por modelo
+make despertar   # los ojos se abren, por modelo
+make pantallas   # QR, dormida, despertar y cara en los dos paneles
 make bench       # costo de rasterizado y cota del bus
 ```
 
@@ -103,32 +106,27 @@ cambió, no si quedó mejor o peor.**
 ## Por qué no hay LVGL
 
 El plan original era usar LVGL con su port de SDL. Se descartó, y las razones
-están en [decisiones.md](decisiones.md). En resumen: el pixel art necesita
-la cara es procedural —elipses, arcos y trazos calculados— y LVGL trae un motor
+están en [decisiones.md](decisiones.md). En resumen: la cara es procedural —elipses, arcos y trazos calculados— y LVGL trae un motor
 de widgets que acá no se usaría nunca; y un buffer RGB565 plano es exactamente
 lo que espera `esp_lcd_panel_draw_bitmap()`, sin capa intermedia.
 
-El renderer propio son unas 400 líneas en `gfx/`, y el mismo código corre en el
-simulador, en los tests y en las dos placas.
+El renderer propio vive en `gfx/`, y el mismo código corre en el simulador, en
+los tests, en las placas y, compilado a WebAssembly, en la app.
 
 ## Lo que NO se puede probar acá
 
 Anotarlo ahora evita sorpresas cuando lleguen las placas:
 
-- **El consumo.** Es lo más importante y es enteramente un modelo. El reposo
-  real del C3 y la corriente de cada retroiluminación son los dos números que
-  pueden mover la autonomía de 595 días a cualquier otra cosa. Multímetro en
-  serie, el día uno.
-- **Framerate real.** El simulador corre en un x86. El benchmark ya dice que
-  el límite no va a ser rasterizar sino el bus: 6,25 ms por cuadro a 40 MHz de
-  SPI, o sea 160 fps de techo. Hay que confirmar a qué reloj anda el panel.
-- **Colores.** El IPS no tiene el mismo gamma que tu monitor, y las seis
-  paletas se eligieron mirando una pantalla de PC. Peor: el Hongo se diseñó
-  oscuro porque su carcasa le tira sombra, y eso sólo se puede juzgar con la
-  pieza impresa encima.
-- **Bytes invertidos.** Si al flashear los colores salen raros, es el orden de
-  bytes del RGB565. Se arregla con un flag del driver.
-- **Cómo se ve una cara dentro de su carcasa.** Es lo más importante que falta
-  probar, y no hay forma de simularlo: hay que imprimir.
-- **La radio.** `net/link.c` se prueba pasando estructuras en memoria. ESP-NOW
-  está sin escribir.
+- **El consumo.** Es un modelo (`nodo/power.c`). El reposo real del C3 y la
+  corriente de cada retroiluminación pueden mover mucho la autonomía.
+  Medidor en serie, el día uno.
+- **Framerate real.** La cara con antialiasing tarda ~0,5 ms por cuadro de
+  128×128 en una PC; en el C3, sin FPU y a 160 MHz, puede tardar cincuenta
+  veces más. Se mide en la Fase 1.
+- **Colores.** El IPS no tiene el mismo gamma que un monitor. Si salen raros,
+  es el orden de bytes o de colores del panel: `RK_TFT_BGR` y
+  `RK_TFT_INVERT` en `platformio.ini`.
+- **Cómo se ve una cara dentro de su carcasa.** No hay forma de simularlo: hay
+  que imprimir.
+- **El portal cautivo en cada teléfono.** Para el resto del flujo está el
+  emulador de root-lab.

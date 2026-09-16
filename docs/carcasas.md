@@ -106,27 +106,20 @@ Dos reglas, y las dos salieron de mirar la lámina de las seis caras juntas:
 
 ## Cómo sabe el aparato qué carcasa lleva
 
-**Hoy: se lo dice el usuario.** Al dar de alta la maceta elige el modelo en la
-app, y viaja al aparato en el byte `persona_idx` de la trama de
-configuración. Cero costo, cero pines.
+**Se lo graban en fábrica.** La estación que ensambla la carcasa escribe el id
+del personaje en la NVS del aparato (`persona`), junto con su secreto. El
+aparato lo informa en cada sincronización y el cofre de la app lo revela: el
+usuario no declara nada, lo descubre.
+
+Si una placa no tiene persona grabada (prototipos, placas de desarrollo), el
+cofre tira con las probabilidades públicas y la nube se la asigna.
 
 **Lo que se descartó, y por qué.** La versión elegante es una **resistencia
 dentro de la carcasa** leída por un divisor: se cambia la carcasa y la cara
-cambia sola, sin tocar el teléfono. Es un efecto muy bueno y cuesta una
-resistencia. El problema es de pines, no de plata:
-
-| Uso | Pines |
-|---|---:|
-| Pantalla SPI (CS, DC, MOSI, SCK, LED) | 5 |
-| I2C del AHT21 y el BH1750 | 2 |
-| Suelo: señal al ADC + alimentación por GPIO | 2 |
-| Divisor de batería al ADC | 1 |
-| **Total** | **10** |
-
-Un C3 SuperMini tiene diez pines útiles. No queda ninguno. Las salidas serían
-multiplexar el ADC o pasar a un C3 con más pines expuestos, y las dos son
-decisiones de la próxima revisión de placa, no de esta. Está anotado en
-`decisiones.md` para que no se vuelva a discutir desde cero.
+cambia sola. Cuesta una resistencia, pero un pin de ADC, y el C3 SuperMini
+tiene sus trece pines ocupados (ver [hardware.md](hardware.md#conexiones)). Es
+candidata para la PCB propia de la Fase 5 del [roadmap](roadmap.md), donde el
+C3 en módulo expone más pines.
 
 ## Antes de imprimir sesenta
 

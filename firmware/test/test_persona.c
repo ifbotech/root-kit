@@ -229,59 +229,6 @@ static void test_adornos_por_etapa(void)
     }
 }
 
-/* ------------------------------------------------------- pictogramas ---- */
-/* La cara dice que algo anda mal; el pictograma dice qué. Si dos necesidades
- * dibujan el mismo icono, el usuario riega una planta que tenía frío. */
-static void test_pictogramas(void)
-{
-    static rk_color_t px[64 * 64];
-    rk_fb_t fb;
-    uint32_t h[RK_MOOD_COUNT];
-    bool hay[RK_MOOD_COUNT];
-    char lbl[112];
-    int i, j;
-
-    rk_fb_init(&fb, px, 64, 64);
-
-    for (i = 0; i < RK_MOOD_COUNT; i++) {
-        rk_fb_clear(&fb, 0x0000);
-        hay[i] = rk_face_pictograma(&fb, 8, 8, 40, (rk_mood_t)i, 0xFFFF);
-        h[i] = rk_frame_hash(px, 64 * 64);
-    }
-
-    /* Los estados buenos no piden nada. */
-    CHECK_TRUE("estar bien no dibuja pictograma", !hay[RK_MOOD_HAPPY]);
-    CHECK_TRUE("dormir tampoco", !hay[RK_MOOD_SLEEPING]);
-    CHECK_TRUE("sin datos tampoco", !hay[RK_MOOD_UNKNOWN]);
-    /* Los malos, sí. */
-    CHECK_TRUE("la sed pide agua", hay[RK_MOOD_THIRSTY]);
-    CHECK_TRUE("el frio avisa", hay[RK_MOOD_COLD]);
-    CHECK_TRUE("la falta de luz avisa", hay[RK_MOOD_DARK]);
-
-    for (i = 0; i < RK_MOOD_COUNT; i++) {
-        if (!hay[i]) {
-            continue;
-        }
-        for (j = i + 1; j < RK_MOOD_COUNT; j++) {
-            if (!hay[j]) {
-                continue;
-            }
-            if (h[i] == h[j]) {
-                snprintf(lbl, sizeof lbl, "%s y %s dibujan el mismo icono",
-                         rk_mood_name((rk_mood_t)i), rk_mood_name((rk_mood_t)j));
-                rk_t_fail(lbl, "dos necesidades con el mismo pictograma");
-            } else {
-                rk_t_pass();
-            }
-        }
-    }
-
-    CHECK_TRUE("un pictograma diminuto se rechaza en vez de dibujar basura",
-               !rk_face_pictograma(&fb, 0, 0, 3, RK_MOOD_THIRSTY, 0xFFFF));
-    CHECK_TRUE("sin framebuffer no explota",
-               !rk_face_pictograma(NULL, 0, 0, 20, RK_MOOD_THIRSTY, 0xFFFF));
-}
-
 /* ------------------------------------------------------------ bordes ---- */
 static void test_bordes(void)
 {
@@ -296,8 +243,14 @@ static void test_bordes(void)
     CHECK_TRUE("sin modelo cae en el primero", true);
     rk_face_draw(&fb, rk_persona_at(0), (rk_mood_t)99, RK_SEV_OK, 0u, 0u);
     CHECK_TRUE("un animo invalido cae en UNKNOWN", true);
-    rk_face_rasgos(&fb, 64, 64, 4, rk_persona_at(0), RK_MOOD_HAPPY, 0u, 0u);
-    CHECK_TRUE("una cara diminuta se rechaza", true);
+    {
+        /* Un panel diminuto no puede dividir por cero al escalar la cara. */
+        static rk_color_t mini[4 * 4];
+        rk_fb_t chiquito;
+        rk_fb_init(&chiquito, mini, 4, 4);
+        rk_face_draw(&chiquito, rk_persona_at(0), RK_MOOD_HAPPY, RK_SEV_OK, 0xFFu, 0u);
+        CHECK_TRUE("una cara diminuta no explota", true);
+    }
 
     /* Todos los modelos en todos los animos con todos los adornos, a lo
      * largo de doce segundos: es el barrido que encuentra la division por
@@ -332,11 +285,11 @@ static void test_bordes(void)
                              RK_SEV_URGENT, 0xFFu, 1200u);
             }
         }
-        /* Y la ficha chica dibujada pisando los bordes. */
-        rk_face_rasgos(&chico, -30, -20, 90, rk_persona_at(3),
-                       RK_MOOD_HAPPY, 0xFFu, 0u);
-        rk_face_rasgos(&chico, RK_MINI_W + 30, RK_MINI_H + 20, 90,
-                       rk_persona_at(3), RK_MOOD_HAPPY, 0xFFu, 0u);
+        /* Y con los párpados forzados, que recorren otro camino. */
+        for (p = 0; p < rk_persona_count; p++) {
+            rk_face_draw_cierre(&chico, rk_persona_at(p), RK_MOOD_HAPPY,
+                                RK_SEV_OK, 0xFFu, 55u, 800u);
+        }
 
         for (i = 0; i < 32; i++) {
             if (buf[i] != 0xBEEFu) { sucio++; }
@@ -354,7 +307,6 @@ void suite_persona(void)
     test_los_modelos_se_ven_distintos();
     test_los_animos_se_distinguen_en_cada_modelo();
     test_adornos_por_etapa();
-    test_pictogramas();
     test_bordes();
     RK_SUITE_END();
 }

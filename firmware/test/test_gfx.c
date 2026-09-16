@@ -6,6 +6,7 @@
 #include "rk_test.h"
 #include "../gfx/fb.h"
 #include "../gfx/font.h"
+#include "../gfx/aa.h"
 
 #define W 32
 #define H 24
@@ -186,6 +187,140 @@ static void test_tipografia(void)
     CHECK_TRUE("la I dibuja algo", contar(0xABCD) > 0);
 }
 
+/* --------------------------------------------------- antialiasing ------ */
+/* El estilo de ilustración depende de que el borde de cada forma sea una
+ * mezcla y no un escalón. Estas pruebas fijan las tres cosas que lo hacen
+ * funcionar: adentro es opaco, afuera no toca, y el borde es intermedio. */
+static void test_aa_cobertura(void)
+{
+    rk_forma_t c = rk_circulo_q4(RK_Q4(16), RK_Q4(12), RK_Q4(8));
+    rk_forma_t e = rk_elipse_q4(RK_Q4(16), RK_Q4(12), RK_Q4(12), RK_Q4(4));
+    rk_forma_t k = rk_capsula_q4(RK_Q4(4), RK_Q4(12), RK_Q4(28), RK_Q4(12), RK_Q4(3));
+    rk_forma_t a = rk_anillo_q4(RK_Q4(16), RK_Q4(12), RK_Q4(8), RK_Q4(2));
+    rk_forma_t s = rk_semiplano_arriba_q4(RK_Q4(16), RK_Q4(12), 0);
+    uint8_t borde;
+
+    CHECK_INT("el centro del circulo es opaco", 255,
+              rk_forma_cobertura(&c, RK_Q4(16), RK_Q4(12)));
+    CHECK_INT("lejos del circulo no hay nada", 0,
+              rk_forma_cobertura(&c, RK_Q4(30), RK_Q4(2)));
+    borde = rk_forma_cobertura(&c, RK_Q4(24), RK_Q4(12));
+    CHECK_TRUE("justo en el borde la cobertura es intermedia",
+               borde > 60u && borde < 200u);
+
+    CHECK_INT("la elipse cubre su centro", 255,
+              rk_forma_cobertura(&e, RK_Q4(16), RK_Q4(12)));
+    CHECK_INT("y no cubre arriba de su radio menor", 0,
+              rk_forma_cobertura(&e, RK_Q4(16), RK_Q4(6)));
+    CHECK_INT("pero si a lo ancho", 255,
+              rk_forma_cobertura(&e, RK_Q4(26), RK_Q4(12)));
+
+    CHECK_INT("la capsula cubre su eje", 255,
+              rk_forma_cobertura(&k, RK_Q4(16), RK_Q4(12)));
+    CHECK_INT("y sus puntas son redondas", 0,
+              rk_forma_cobertura(&k, RK_Q4(1), RK_Q4(9)));
+
+    CHECK_INT("el anillo esta hueco", 0,
+              rk_forma_cobertura(&a, RK_Q4(16), RK_Q4(12)));
+    CHECK_INT("y cubre su radio", 255,
+              rk_forma_cobertura(&a, RK_Q4(24), RK_Q4(12)));
+
+    CHECK_INT("el semiplano de arriba cubre arriba", 255,
+              rk_forma_cobertura(&s, RK_Q4(16), RK_Q4(4)));
+    CHECK_INT("y no cubre abajo", 0,
+              rk_forma_cobertura(&s, RK_Q4(16), RK_Q4(20)));
+    {
+        rk_forma_t inv = rk_forma_invertida(s);
+        CHECK_INT("invertido cubre lo contrario", 255,
+                  rk_forma_cobertura(&inv, RK_Q4(16), RK_Q4(20)));
+    }
+    {
+        /* Arista: cubre el lado donde está el punto de referencia, sin
+         * importar el sentido en que se recorre. */
+        rk_forma_t h1 = rk_semiplano_arista_q4(0, RK_Q4(10), RK_Q4(30), RK_Q4(10),
+                                               RK_Q4(15), RK_Q4(20));
+        rk_forma_t h2 = rk_semiplano_arista_q4(RK_Q4(30), RK_Q4(10), 0, RK_Q4(10),
+                                               RK_Q4(15), RK_Q4(20));
+        CHECK_INT("la arista cubre el lado del interior", 255,
+                  rk_forma_cobertura(&h1, RK_Q4(15), RK_Q4(18)));
+        CHECK_INT("recorrida al reves, tambien", 255,
+                  rk_forma_cobertura(&h2, RK_Q4(15), RK_Q4(18)));
+        CHECK_INT("y no cubre el otro lado", 0,
+                  rk_forma_cobertura(&h2, RK_Q4(15), RK_Q4(2)));
+    }
+
+    CHECK_INT("raiz de 0", 0, (long)rk_isqrt64(0u));
+    CHECK_INT("raiz de un cuadrado perfecto", 4096, (long)rk_isqrt64(16777216u));
+    CHECK_INT("raiz entera redondea hacia abajo", 3, (long)rk_isqrt64(15u));
+    CHECK_TRUE("raiz de un numero de 64 bits",
+               rk_isqrt64(9223372030926249001ull) == 3037000499u);
+}
+
+static void test_aa_pintado(void)
+{
+    int i, mezclas = 0;
+
+    /* Un circulo blanco sobre negro: tiene que haber pixeles intermedios en
+     * el borde, que es exactamente lo que distingue ilustracion de pixel art. */
+    arena_init();
+    rk_aa_circulo(&g_fb, RK_Q4C(16), RK_Q4C(12), RK_Q4(7), 0xFFFF);
+    for (i = 0; i < W * H; i++) {
+        rk_color_t v = g_mem[GUARD + i];
+        if (v != 0x0000 && v != 0xFFFF) { mezclas++; }
+    }
+    CHECK_TRUE("el borde del circulo tiene pixeles mezclados", mezclas >= 12);
+    CHECK_HEX("el centro queda del color pleno", 0xFFFF,
+              g_mem[GUARD + 12 * W + 16]);
+    CHECK_HEX("la esquina no se toca", 0x0000, g_mem[GUARD + 0]);
+
+    /* Un triangulo y un rombo, en cualquier orden de vertices. */
+    arena_init();
+    rk_aa_triangulo(&g_fb, RK_Q4(2), RK_Q4(20), RK_Q4(16), RK_Q4(2),
+                    RK_Q4(30), RK_Q4(20), 0xF800, 255);
+    CHECK_HEX("el triangulo cubre su interior", 0xF800,
+              g_mem[GUARD + 15 * W + 16]);
+    CHECK_HEX("y no la esquina de arriba", 0x0000, g_mem[GUARD + 1 * W + 2]);
+    arena_init();
+    rk_aa_triangulo(&g_fb, RK_Q4(30), RK_Q4(20), RK_Q4(16), RK_Q4(2),
+                    RK_Q4(2), RK_Q4(20), 0xF800, 255);
+    CHECK_HEX("con los vertices al reves da lo mismo", 0xF800,
+              g_mem[GUARD + 15 * W + 16]);
+    arena_init();
+    rk_aa_rombo(&g_fb, RK_Q4C(16), RK_Q4C(12), RK_Q4(8), RK_Q4(8), 0x07E0, 255);
+    CHECK_HEX("el rombo cubre su centro", 0x07E0, g_mem[GUARD + 12 * W + 16]);
+    CHECK_HEX("y no sus esquinas", 0x0000, g_mem[GUARD + 5 * W + 10]);
+
+    /* Recorte: nada se sale del buffer, ni con formas gigantes ni con
+     * coordenadas negativas. */
+    arena_init();
+    rk_aa_circulo(&g_fb, RK_Q4(-5), RK_Q4(-5), RK_Q4(40), 0xFFFF);
+    rk_aa_elipse(&g_fb, RK_Q4(W + 10), RK_Q4(H + 10), RK_Q4(30), RK_Q4(9), 0xFFFF);
+    rk_aa_capsula(&g_fb, RK_Q4(-50), RK_Q4(-50), RK_Q4(90), RK_Q4(90), RK_Q4(6), 0xFFFF);
+    rk_aa_arco(&g_fb, RK_Q4(0), RK_Q4(H), RK_Q4(40), RK_Q4(5), true, 0xFFFF);
+    rk_aa_triangulo(&g_fb, RK_Q4(-40), 0, RK_Q4(90), RK_Q4(-9), 0, RK_Q4(90), 0xFFFF, 255);
+    rk_aa_rombo(&g_fb, 0, 0, RK_Q4(90), RK_Q4(90), 0xFFFF, 128);
+    {
+        rk_forma_t f[2];
+        f[0] = rk_semiplano_abajo_q4(0, RK_Q4(4), 20);
+        f[1] = rk_forma_invertida(rk_circulo_q4(0, 0, RK_Q4(5)));
+        rk_aa_pintar(&g_fb, f, 2, 0xFFFF, 255, -100, -100, 1000, 1000);
+        rk_aa_pintar(&g_fb, f, 0, 0xFFFF, 255, 0, 0, W, H);
+        rk_aa_pintar(NULL, f, 2, 0xFFFF, 255, 0, 0, W, H);
+    }
+    CHECK_TRUE("ninguna forma suavizada se sale del framebuffer",
+               guards_intactos());
+
+    /* Alfa: un rubor al 50% sobre negro no puede quedar pleno. */
+    arena_init();
+    {
+        rk_forma_t f = rk_circulo_q4(RK_Q4C(16), RK_Q4C(12), RK_Q4(6));
+        rk_aa_pintar(&g_fb, &f, 1, 0xFFFF, 128, 0, 0, W, H);
+    }
+    CHECK_TRUE("con alfa a la mitad el centro no es pleno",
+               g_mem[GUARD + 12 * W + 16] != 0xFFFF &&
+               g_mem[GUARD + 12 * W + 16] != 0x0000);
+}
+
 void suite_gfx(void)
 {
     RK_SUITE("graficos");
@@ -194,5 +329,7 @@ void suite_gfx(void)
     test_primitivas();
     test_seno_y_hash();
     test_tipografia();
+    test_aa_cobertura();
+    test_aa_pintado();
     RK_SUITE_END();
 }

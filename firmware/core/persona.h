@@ -87,6 +87,7 @@ typedef enum {
     RK_BOCA_DIENTES,        /* boca abierta con dentadura: agresiva       */
     RK_BOCA_ONDA,           /* una onda: robótica, sin labios             */
     RK_BOCA_CHICA,          /* un puntito, para caras dominadas por ojos  */
+    RK_BOCA_NINGUNA,        /* sólo ojos: la carcasa hace de boca         */
     RK_BOCA_ESTILO_COUNT
 } rk_boca_estilo_t;
 
@@ -123,14 +124,21 @@ typedef struct {
 
     uint8_t  adornos;          /* los de fábrica                          */
 
-    /* Paleta de la cara. Son pocos colores a propósito: el personaje lo
-     * pone la carcasa, y una cara con demasiados tonos compite con ella. */
-    rk_color_t fondo;
-    rk_color_t fondo2;         /* el degradé de la escena                 */
-    rk_color_t trazo;          /* contorno de ojos y boca                 */
+    /* Paleta de la cara, en colores PLANOS: el estilo es ilustración sin
+     * degradés ni contornos negros, así que cada rasgo es un solo color y
+     * la forma la da el borde suavizado. Son pocos a propósito: el
+     * personaje lo pone la carcasa, y una cara con demasiados tonos compite
+     * con ella.
+     *
+     * El fondo es liso y los párpados se pintan del mismo color. Esa es la
+     * razón de que el fondo NO sea un degradé: un párpado que "tapa" el ojo
+     * sólo funciona si el color que tapa es exactamente el de alrededor. */
+    rk_color_t fondo;          /* la piel: toda la pantalla               */
+    rk_color_t sombra;         /* un tono más oscuro, para rubor y bordes */
+    rk_color_t trazo;          /* pupilas, cejas y boca                   */
     rk_color_t blanco;         /* esclerótica                             */
-    rk_color_t iris;
-    rk_color_t acento;         /* brillos, rubor, aura                    */
+    rk_color_t iris;           /* anillo del iris o brillo del visor      */
+    rk_color_t acento;         /* brillos, lengua, aura                   */
 } rk_persona_t;
 
 extern const rk_persona_t rk_persona_table[];

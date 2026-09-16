@@ -67,7 +67,7 @@ int  rk_t_report(void);
         const char *_e = (expected), *_a = (actual);                       \
         if (_a != NULL && strcmp(_e, _a) == 0) { rk_t_pass(); }            \
         else {                                                             \
-            char _b[192];                                                  \
+            char _b[640];                                                  \
             snprintf(_b, sizeof _b, "esperaba \"%s\", obtuvo \"%s\"",      \
                      _e, _a ? _a : "(null)");                              \
             rk_t_fail((label), _b);                                        \
@@ -87,11 +87,13 @@ int  rk_t_report(void);
     } while (0)
 
 void suite_mood(void);
-void suite_proto(void);
 void suite_nodo(void);
 void suite_gfx(void);
 void suite_render(void);
 void suite_persona(void);
-void suite_link(void);
+void suite_sensores(void);
+void suite_qr(void);
+void suite_enlace(void);
+void suite_red(void);
 
 #endif /* RK_TEST_H */

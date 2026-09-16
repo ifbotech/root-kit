@@ -136,14 +136,15 @@ static void test_presupuesto_energetico(void)
 }
 
 /* ---------------------------------------------------------- muestreador -- */
-static rk_telemetry_pkt_t tp(uint8_t soil, int16_t temp, uint8_t rh, uint32_t lux)
+static rk_telemetry_t tp(uint8_t soil, int16_t temp, uint8_t rh, uint32_t lux)
 {
-    rk_telemetry_pkt_t p;
+    rk_telemetry_t p;
     memset(&p, 0, sizeof p);
     p.soil_pct = soil;
     p.temp_dc  = temp;
     p.rh_pct   = rh;
     p.lux      = lux;
+    p.valid    = true;
     p.batt_mv  = 3900;
     return p;
 }
@@ -153,7 +154,7 @@ static void test_sampler(void)
     const rk_species_t *sp = rk_species_find("monstera");
     rk_sampler_t s;
     rk_sampler_decision_t d;
-    rk_telemetry_pkt_t t;
+    rk_telemetry_t t;
     uint32_t up = 0;
     int i;
 
@@ -206,7 +207,7 @@ static void test_sampler(void)
     rk_sampler_init(&s, NULL);
     t = tp(45, 235, 60, 5000);
     rk_sampler_step(&s, &t, 0, sp);
-    t.flags |= RK_FLAG_LOW_BATT;
+    t.batt_mv = 3300;                    /* debajo de RK_BATT_WARN_MV */
     d = rk_sampler_step(&s, &t, 600, sp);
     CHECK_TRUE("pasar a bateria baja se transmite", d.transmit);
     CHECK_INT("motivo: bateria", RK_TX_BATERIA, d.reason);
@@ -247,7 +248,7 @@ static void test_sampler_una_semana(void)
 
     rk_sampler_init(&s, NULL);
     while (up < 7u * 86400u) {
-        rk_telemetry_pkt_t t;
+        rk_telemetry_t t;
         int fase = (int)((up % 86400u) * 256u / 86400u);
         int sol  = rk_sin8((uint8_t)fase);
 

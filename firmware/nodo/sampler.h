@@ -14,7 +14,7 @@
  *   - una magnitud se movió más que su banda muerta,
  *   - se cruzó un umbral de la especie (cambia el ánimo del simbionte),
  *   - cambió el estado de batería baja,
- *   - o venció el latido, para que el Prime no marque el nodo como caído.
+ *   - o venció el latido, para que la app no marque el aparato como caído.
  *
  * Además el período de medición se adapta: si todo está estable y lejos de
  * los bordes se estira, y si algo se acerca a un umbral se acorta. Una
@@ -25,7 +25,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "../net/proto.h"
+#include "../core/telemetry.h"
 #include "../core/species.h"
 
 typedef struct {
@@ -56,7 +56,7 @@ typedef struct {
     rk_sampler_cfg_t   cfg;
     uint16_t           interval_s;
     uint32_t           last_tx_s;
-    rk_telemetry_pkt_t last_sent;
+    rk_telemetry_t     last_sent;
     bool               have_last;
     bool               last_low_batt;
     uint16_t           seq;
@@ -77,7 +77,7 @@ void rk_sampler_init(rk_sampler_t *s, const rk_sampler_cfg_t *cfg);
  * tiempo de encendido acumulado. Decide si transmitir y cuánto dormir.
  * `sp` puede ser NULL si el nodo todavía no tiene especie asignada. */
 rk_sampler_decision_t rk_sampler_step(rk_sampler_t *s,
-                                      const rk_telemetry_pkt_t *now,
+                                      const rk_telemetry_t *now,
                                       uint32_t uptime_s,
                                       const rk_species_t *sp);
 

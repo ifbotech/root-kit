@@ -104,6 +104,8 @@ lectura. El propio aviso admite las dos cosas.
 
 ## Comunicación
 
+*(Revisada: ver "El protocolo binario sobre ESP-NOW" abajo.)*
+
 **Protocolo binario, no JSON.** Una trama de telemetría son 26 bytes; el mismo
 contenido en JSON son unos 190. Cada byte es tiempo de radio encendida, y la
 radio es cerca de la mitad del presupuesto energético del aparato.
@@ -234,16 +236,137 @@ están inventando. No mostrarlo es honesto y además es un argumento de venta pa
 el público al que apunta ROOTKIT.
 
 **El azar está en la caja, no en el software.** Es la misma mecánica que los
-Smiski: comprás una caja ciega y te toca un juguete. Dentro de la app no hay
-ninguna tirada de dados, así que el riesgo regulatorio de las cajas de botín
-—que Bélgica y Países Bajos ya restringen— directamente no aplica.
+Smiski: comprás una caja ciega y te toca un juguete. El cofre de la app revela
+la persona grabada en fábrica; sólo tira dados en prototipos sin persona, con
+probabilidades públicas y nada que comprar, así que el riesgo regulatorio de
+las cajas de botín —que Bélgica y Países Bajos ya restringen— no aplica.
 
 **Nada de la palabra Tamagotchi en el marketing.** Es marca registrada de Bandai.
 El vocabulario propio — simbionte, criatura digital — es más distintivo igual.
 
+## La nube, el QR y el cofre
+
+**La pantalla muestra dos cosas: el QR y los ojos.** Ni batería, ni wifi, ni
+pictogramas, ni texto. Todo lo que no es una cara es presentación, y la
+presentación vive en la app. La batería crítica se nota igual: con la planta
+bien, la cara se duerme; el aviso con palabras llega como notificación.
+
+**El primer encendido es un QR.** Lleva a la app en `/v/<código>`. Debajo va el
+código en letras grandes, partido en dos grupos de cuatro, porque es el plan B
+cuando la cámara no enfoca y el plan A en iPhone cuando hay que tipearlo.
+
+**Base32 de Crockford para el código.** Sin I, L, O ni U: se dicta y se tipea
+sin confundir 0 con O. Y todos sus caracteres entran en el modo alfanumérico
+del QR, que en el panel de 128 es la diferencia entre módulos de 3 y de 2
+pixeles.
+
+**El código cambia con cada desvinculación.** Sale de una época que sube al
+desvincular. Un QR fotografiado por el dueño anterior deja de valer en ese
+instante.
+
+**Portal cautivo para pasar el wifi.** Anda en cualquier teléfono sin instalar
+nada. Web Bluetooth no existe en iPhone, y una página HTTPS no puede hablarle a
+`192.168.4.1`.
+
+**En la app, instalar antes que avisos.** En iPhone las notificaciones web
+existen sólo para la app instalada. Pedir el permiso antes sería pedir algo
+imposible, y el usuario lo rechazaría para siempre.
+
+**El cofre se abre en la app y la maceta despierta.** La sorpresa de quién
+te tocó pasa en la pantalla grande, con luz y confeti. La maceta muestra la
+consecuencia: abre los ojos. El pedido al servidor sale recién al tercer toque
+para que las dos cosas pasen juntas.
+
+**Antes del cofre, ojos dormidos y grises.** Mostrar la piel del personaje en
+la maceta arruinaría la sorpresa.
+
+**La persona se graba en fábrica; si no hay, el cofre tira.** Con carcasa
+impresa, el personaje ya existe y el cofre lo revela. En prototipos sin
+persona grabada, el cofre elige con probabilidades públicas (70 / 25 / 5) y
+nada que comprar para cambiarlas.
+
+**La especie sale de una foto, y los umbrales del catálogo.** La IA identifica;
+si la planta está en el catálogo curado se usan sus números y no los del
+modelo. Si no está, los rangos del modelo pasan por la misma validación que el
+firmware (acotados y coherentes).
+
+**Las caras de la app las dibuja el firmware.** El núcleo compilado a
+WebAssembly pesa 50 KB. No hay una versión CSS de las caras que se pueda
+desincronizar de la maceta.
+
+**El aparato decide su cara; la nube, los días sanos.** La cara no puede
+depender de la red. Los días sanos sí se cuentan en la nube, que ve el día
+entero aunque el aparato duerma, y se los devuelve para los adornos.
+
+**Un pedido por sincronización.** Cada conexión TLS cuesta casi un segundo de
+radio: juntar estado, lecturas y configuración en un ida y vuelta es la mayor
+optimización del protocolo.
+
+**Sin reloj de pared.** Las lecturas llevan "hace N segundos" desde un reloj
+monótono que suma el deep sleep. El servidor les pone fecha.
+
+**Una respuesta sin `"ok": true` no se aplica.** Un portal de hotel que
+contesta HTML no puede desvincular una maceta.
+
+**C3 SuperMini y no ESP32 de 30 pines.** El regulador del DevKit consume más
+durmiendo que el C3 midiendo. Detalle en [hardware.md](hardware.md).
+
+**Un sensor caído no inventa problemas.** Cada lectura marca qué sensores
+fallaron y el ánimo ignora esas magnitudes: sin AHT20 no hay frío, hay "no sé".
+
+**Avisar por estado, no por lectura.** Una sed de seis horas es un aviso, no
+veinticuatro. Se repite a las 8 h, o a las 3 h si es urgente. De 23 a 8, sólo
+lo urgente.
+
 ---
 
 ## Decisiones revisadas
+
+### El protocolo binario sobre ESP-NOW
+
+**Antes:** tramas binarias de 26 y 32 bytes con CRC16, un Prime que recibía por
+ESP-NOW y servía el tablero en la red local.
+
+**Qué lo tumbó:** las notificaciones. Tienen que llegar con la app cerrada y
+el teléfono fuera de casa, y eso lo manda un servidor. Con la maceta hablando
+HTTPS con la nube, el costo de radio lo pone el apretón de manos TLS y no el
+tamaño del cuerpo: JSON pasó a costar lo mismo y se lee en un log. Lo que
+sobrevivió del protocolo viejo: medir y transmitir desacoplados, y el ánimo
+evaluado en el aparato.
+
+### El pixel art
+
+**Antes:** caras de trazo duro, sin suavizado, escaladas por enteros.
+
+**Qué lo tumbó:** la dirección de arte. Las caras tienen que ser ilustración
+plana tipo Duolingo, y ese estilo vive en el borde de las curvas: sin
+suavizado se ve escalonado. Se escribió `gfx/aa.c`, antialiasing en punto
+fijo, y el fondo de la cara pasó a ser liso para que los párpados sean piel.
+
+### El primer encendido como ceremonia en la pantalla
+
+**Antes:** la maceta se "descubría la cara" sola, con nombre y rareza en
+letras.
+
+**Qué lo tumbó:** el cofre en la app. La sorpresa pasa en el teléfono; la
+maceta sólo abre los ojos, sin texto. La pantalla del aparato ya no escribe
+nada salvo el código del QR.
+
+### El aviso de batería y el pictograma en la pantalla
+
+**Antes:** un ícono de pila parpadeante y un pictograma (gota, sol, copo) en la
+esquina.
+
+**Qué lo tumbó:** la regla de "QR y ojos". Lo que pide la planta lo dice la
+cara y lo detalla la notificación; la batería crítica duerme la cara.
+
+### Declarar la carcasa en la app
+
+**Antes:** al dar de alta la maceta, el usuario elegía qué carcasa le había
+tocado.
+
+**Qué lo tumbó:** la persona grabada en fábrica y el cofre. El usuario no
+declara nada: lo descubre.
 
 ### El gachapón se volvió físico
 

@@ -6,34 +6,24 @@ on:
   pull_request:
 
 jobs:
-  verificar:
+  nucleo:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Dependencias del simulador
-        # SDL2 sólo hace falta para compilar el simulador interactivo; las
-        # pruebas del núcleo y del render corren sin pantalla.
+      - name: Dependencias
+        # SDL2 sólo para el simulador interactivo; clang y lld para el
+        # renderer en WebAssembly. Las pruebas no necesitan ninguno.
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends libsdl2-dev
+          sudo apt-get install -y --no-install-recommends libsdl2-dev clang lld
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-
-      - name: Compilar sin warnings
+      - name: Compilar sin warnings y probar
         # -Werror sólo en CI: en desarrollo un warning no debe frenar una
         # prueba rápida, pero nada llega a main con advertencias.
         run: make -C firmware CFLAGS="-std=c99 -Wall -Wextra -Wpedantic -Werror -O2" test
 
-      - name: Pruebas del Hub
-        run: node --test hub/test/hub.test.mjs hub/test/app.test.mjs
-
-      - name: El catalogo de la app sigue al del firmware
-        run: python3 tools/sync_catalog.py --check
-
-      - name: Las referencias visuales estan al dia
+      - name: Las referencias visuales están al día
         run: |
           make -C firmware golden
           if [ -n "$(git status --porcelain firmware/test/golden.h)" ]; then
@@ -45,7 +35,29 @@ jobs:
       - name: El simulador compila y captura
         run: |
           make -C firmware build/rootkit_sim
-          ./firmware/build/rootkit_sim --sheet    /tmp/sheet.bmp
-          ./firmware/build/rootkit_sim --etapas   /tmp/etapas.bmp
-          ./firmware/build/rootkit_sim --revelado /tmp/revelado.bmp
+          ./firmware/build/rootkit_sim --sheet     /tmp/sheet.bmp
+          ./firmware/build/rootkit_sim --etapas    /tmp/etapas.bmp
+          ./firmware/build/rootkit_sim --despertar /tmp/despertar.bmp
+          ./firmware/build/rootkit_sim --pantallas /tmp/pantallas.bmp
           ./firmware/build/rootkit_sim --bench
+
+      - name: El renderer compila a WebAssembly
+        run: make -C firmware wasm
+
+  placas:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        entorno: [c3-22, c3-144, devkit-22, devkit-144]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/cache@v4
+        with:
+          path: ~/.platformio
+          key: pio-${{ hashFiles('firmware/platformio.ini') }}
+      - run: pip install platformio
+      - name: Compilar ${{ matrix.entorno }}
+        run: cd firmware && pio run -e ${{ matrix.entorno }}

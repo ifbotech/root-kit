@@ -13,6 +13,7 @@
 #include "golden_util.h"
 #include "golden.h"
 #include "../nodo/power.h"
+#include "../ui/despertar.h"
 
 static rk_color_t g_px[RK_MINI_PX];
 
@@ -47,54 +48,110 @@ static void test_pantalla_sin_nodo(void)
     CHECK_TRUE("sin nodo la pantalla no explota", true);
     rk_cara_draw(NULL, NULL, 0u);
     CHECK_TRUE("sin framebuffer tampoco", true);
-
-    rk_cara_emparejar(&fb, NULL, NULL, 0u);
-    CHECK_TRUE("emparejar sin id ni modelo no explota", true);
-    {
-        uint8_t id[6] = { 0x52, 0, 0, 0xAB, 0xCD, 0xEF };
-        rk_cara_emparejar(&fb, id, rk_persona_at(2), 900u);
-        CHECK_TRUE("la pantalla de emparejamiento dibuja", true);
-    }
+    rk_cara_dormida(NULL, 0u);
+    rk_despertar_draw(NULL, NULL, 0u);
+    CHECK_TRUE("dormida y despertar sin framebuffer no explotan", true);
 }
 
-/* El aviso de batería es lo único que la app no puede resolver sola, así que
- * tiene que aparecer y tiene que parpadear. */
-static void test_aviso_de_bateria(void)
+/* La pantalla muestra el QR y los ojos, nada más. La batería no se dibuja:
+ * con la celda crítica y la planta bien, la cara se duerme. */
+static void test_bateria_sin_iconos(void)
 {
     rk_node_t n;
     rk_fb_t   fb;
-    uint32_t  llena, vacia_on, vacia_off;
+    uint32_t  llena, media, critica, dormida;
 
     rk_fb_init(&fb, g_px, RK_MINI_W, RK_MINI_H);
 
-    /* Las tres capturas van en el MISMO instante salvo donde se compara el
-     * parpadeo. La cara se anima sola —la mirada deriva, la respiracion
-     * mueve todo— asi que comparar dos instantes distintos no dice nada
-     * sobre el aviso de bateria: dice que paso el tiempo. */
     rk_golden_nodo(&n, 0, RK_MOOD_HAPPY);
-    n.tel.batt_mv = 4100;               /* celda llena */
-    rk_cara_draw(&fb, &n, 0u);
+    n.tel.batt_mv = 4100;
+    rk_cara_draw(&fb, &n, 1200u);
     llena = rk_frame_hash(g_px, RK_MINI_PX);
 
-    n.tel.batt_mv = 3250;               /* por debajo del aviso */
-    CHECK_TRUE("3250 mV esta por debajo del umbral de aviso",
-               rk_batt_pct(3250) < 15);
-    rk_cara_draw(&fb, &n, 0u);
-    vacia_on = rk_frame_hash(g_px, RK_MINI_PX);
+    n.tel.batt_mv = 3420;               /* baja, pero no crítica */
+    rk_cara_draw(&fb, &n, 1200u);
+    media = rk_frame_hash(g_px, RK_MINI_PX);
+    CHECK_HEX("con batería baja la pantalla no cambia: el aviso va a la app",
+              llena, media);
 
-    CHECK_TRUE("con la celda baja aparece el aviso", llena != vacia_on);
+    n.tel.batt_mv = 3100;               /* crítica */
+    rk_cara_draw(&fb, &n, 1200u);
+    critica = rk_frame_hash(g_px, RK_MINI_PX);
+    rk_golden_nodo(&n, 0, RK_MOOD_SLEEPING);
+    rk_cara_draw(&fb, &n, 1200u);
+    dormida = rk_frame_hash(g_px, RK_MINI_PX);
+    CHECK_HEX("con la celda crítica la cara contenta se duerme", dormida, critica);
 
-    /* Medio periodo despues el aviso se apaga. Se compara contra la celda
-     * llena EN ESE MISMO INSTANTE, que es lo unico que aisla el aviso del
-     * resto de la animacion. */
-    rk_cara_draw(&fb, &n, 900u);
-    vacia_off = rk_frame_hash(g_px, RK_MINI_PX);
-    n.tel.batt_mv = 4100;
-    rk_cara_draw(&fb, &n, 900u);
-    CHECK_TRUE("y parpadea, que es lo que lo hace avisar",
-               vacia_on != vacia_off);
-    CHECK_HEX("apagado, la pantalla es la de siempre",
-              rk_frame_hash(g_px, RK_MINI_PX), vacia_off);
+    /* Pero una planta con sed sigue pidiendo agua aunque no haya batería:
+     * es lo último que conviene esconder. */
+    rk_golden_nodo(&n, 0, RK_MOOD_THIRSTY);
+    rk_cara_draw(&fb, &n, 1200u);
+    llena = rk_frame_hash(g_px, RK_MINI_PX);
+    n.tel.batt_mv = 3100;
+    rk_cara_draw(&fb, &n, 1200u);
+    CHECK_HEX("la sed se muestra igual con la celda crítica",
+              llena, rk_frame_hash(g_px, RK_MINI_PX));
+}
+
+/* Dormida antes del cofre: no puede delatar al personaje. */
+static void test_dormida_no_delata(void)
+{
+    rk_fb_t fb;
+    uint32_t a, b;
+    int i, n = RK_MINI_PX, color_de_piel = 0;
+
+    rk_fb_init(&fb, g_px, RK_MINI_W, RK_MINI_H);
+    rk_cara_dormida(&fb, 1200u);
+    a = rk_frame_hash(g_px, RK_MINI_PX);
+    for (i = 0; i < n; i++) {
+        int k;
+        for (k = 0; k < rk_persona_count; k++) {
+            if (g_px[i] == rk_persona_at(k)->fondo) {
+                color_de_piel++;
+            }
+        }
+    }
+    CHECK_INT("la cara dormida no usa la piel de ningún personaje", 0, color_de_piel);
+    rk_cara_dormida(&fb, 2600u);
+    b = rk_frame_hash(g_px, RK_MINI_PX);
+    CHECK_TRUE("y respira: otro instante da otro cuadro", a != b);
+}
+
+/* El despertar: negro, ojos cerrados, dos intentos, abiertos. */
+static void test_despertar(void)
+{
+    rk_fb_t fb;
+    uint32_t t;
+    int subidas = 0;
+    uint8_t antes = 100u;
+    uint32_t h_cerrado, h_abierto;
+
+    CHECK_INT("arranca con los ojos cerrados", 100, rk_despertar_cierre(0u));
+    CHECK_INT("termina con los ojos abiertos", 0, rk_despertar_cierre(RK_DESP_OJOS_MS));
+    CHECK_TRUE("no terminó a mitad de escena", !rk_despertar_termino(RK_DESP_OJOS_MS));
+    CHECK_TRUE("terminó al final", rk_despertar_termino(RK_DESP_FIN_MS));
+
+    for (t = 0u; t < RK_DESP_FIN_MS; t += 20u) {
+        uint8_t c = rk_despertar_cierre(t);
+        if (c > antes) {
+            subidas++;
+        }
+        antes = c;
+        CHECK_TRUE("el cierre está en rango", c <= 100u);
+    }
+    /* Hay un tramo en que los párpados vuelven a bajar: el segundo intento. */
+    CHECK_TRUE("los ojos se vuelven a cerrar una vez antes de abrirse", subidas > 0);
+
+    rk_fb_init(&fb, g_px, RK_MINI_W, RK_MINI_H);
+    rk_despertar_draw(&fb, rk_persona_at(1), 850u);
+    h_cerrado = rk_frame_hash(g_px, RK_MINI_PX);
+    rk_despertar_draw(&fb, rk_persona_at(1), 2400u);
+    h_abierto = rk_frame_hash(g_px, RK_MINI_PX);
+    CHECK_TRUE("cerrado y abierto son cuadros distintos", h_cerrado != h_abierto);
+
+    rk_despertar_draw(&fb, rk_persona_at(1), 100u);
+    CHECK_TRUE("en el negro no hay piel todavía",
+               g_px[RK_MINI_PX / 2] != rk_persona_at(1)->fondo);
 }
 
 static void test_golden(void)
@@ -120,7 +177,9 @@ void suite_render(void)
     RK_SUITE("cara");
     test_determinismo();
     test_pantalla_sin_nodo();
-    test_aviso_de_bateria();
+    test_bateria_sin_iconos();
+    test_dormida_no_delata();
+    test_despertar();
     test_golden();
     RK_SUITE_END();
 }

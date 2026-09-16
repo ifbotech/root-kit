@@ -15,7 +15,7 @@ static const rk_look_t LOOKS[RK_MOOD_COUNT] = {
 /* UNKNOWN     */ { RK_OJO_DIZZY,  RK_BOCA_FLAT,  0,            0,   1, 30, 0,   0, false },
 /* OFFLINE     */ { RK_OJO_GLITCH, RK_BOCA_FLAT,  TINT_MUERTO, 120,  0,  0, 0,  60, false },
 /* SLEEPING    */ { RK_OJO_BLINK,  RK_BOCA_FLAT,  0,            0,   3, 14, 0,  95, false },
-/* HAPPY       */ { RK_OJO_HAPPY,  RK_BOCA_SMILE, 0,            0,   4, 42, 0,   0, true  },
+/* HAPPY       */ { RK_OJO_OPEN,   RK_BOCA_SMILE, 0,            0,   4, 42, 0,   0, true  },
 /* THIRSTY     */ { RK_OJO_SLEEPY, RK_BOCA_FROWN, TINT_SED,    70,   1, 22, 0,   0, true  },
 /* DROWNING    */ { RK_OJO_WIDE,   RK_BOCA_OPEN,  TINT_AGUA,   85,   3, 64, 0,  25, false },
 /* COLD        */ { RK_OJO_SLEEPY, RK_BOCA_WAVY,  TINT_FRIO,   90,   1, 26, 1,   0, false },

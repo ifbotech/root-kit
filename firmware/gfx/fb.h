@@ -4,9 +4,9 @@
  *
  *   1. La cara es procedural: elipses, arcos y trazos calculados, no sprites.
  *      LVGL trae un motor de widgets que acá no se usaría nunca.
- *   2. Un buffer RGB565 plano es exactamente lo que espera
- *      esp_lcd_panel_draw_bitmap(). El mismo código que corre en el
- *      simulador corre en el Prime y en cada Mini sin capa intermedia.
+ *   2. Un buffer RGB565 plano es exactamente lo que espera el panel. El
+ *      mismo código corre en el simulador, en las placas y, compilado a
+ *      WebAssembly, en la app, sin capa intermedia.
  *   3. El sistema tiene DOS paneles de tamaños distintos —240x320 y
  *      128x128— y LVGL pesa lo mismo en los dos. Acá el Mini paga
  *      exactamente las primitivas que usa.

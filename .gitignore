@@ -16,3 +16,6 @@ sdkconfig.old
 # Sistema
 Thumbs.db
 .DS_Store
+
+# PlatformIO dentro de firmware/
+firmware/.pio/

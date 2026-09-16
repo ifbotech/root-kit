@@ -1,7 +1,7 @@
 /* power.h — estado de carga y presupuesto energético de un nodo a batería.
  *
- * O sea, de un Mini: el Prime va enchufado. Vive acá y no en core/ porque es
- * lo único del sistema que depende de que haya una celda.
+ * Vive acá y no en core/ porque es lo único del sistema que depende de que
+ * haya una celda. Los números de autonomía de docs/hardware.md salen de acá.
  *
  * El modelo de consumo vive acá, en código testeado, y no en una planilla:
  * las cifras de autonomía que se publican salen de correr estas funciones,

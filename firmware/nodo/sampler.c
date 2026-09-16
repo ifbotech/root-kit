@@ -1,4 +1,5 @@
 #include "sampler.h"
+#include "power.h"
 #include <stddef.h>
 #include <string.h>
 
@@ -6,7 +7,7 @@ const rk_sampler_cfg_t RK_SAMPLER_DEFAULT = {
     300u,      /* mide cada 5 min                                          */
     120u,      /* hasta cada 2 min si hay movimiento                       */
     1800u,     /* hasta cada 30 min si no pasa nada                        */
-    7200u,     /* latido cada 2 h: el Prime da por caído a las 6 h         */
+    7200u,     /* latido cada 2 h: la app da por caído a las 6 h           */
     3u,        /* 3 puntos de humedad de suelo                             */
     5u,        /* 5 puntos de humedad relativa                             */
     8,         /* 0,8 grados                                               */
@@ -54,7 +55,7 @@ static bool lux_changed(uint32_t a, uint32_t b, uint8_t pct)
 }
 
 /* ¿Alguna magnitud está a punto de cruzar un límite de la especie? */
-static bool near_threshold(const rk_telemetry_pkt_t *t,
+static bool near_threshold(const rk_telemetry_t *t,
                            const rk_species_t *sp, uint8_t margin)
 {
     if (sp == NULL) {
@@ -74,8 +75,8 @@ static bool near_threshold(const rk_telemetry_pkt_t *t,
 /* ¿La lectura nueva cae de otro lado de un umbral que la anterior? Eso
  * significa que el simbionte va a cambiar de cara, y eso siempre se
  * transmite aunque el movimiento numérico sea de un solo punto. */
-static bool crossed_threshold(const rk_telemetry_pkt_t *a,
-                              const rk_telemetry_pkt_t *b,
+static bool crossed_threshold(const rk_telemetry_t *a,
+                              const rk_telemetry_t *b,
                               const rk_species_t *sp)
 {
     if (sp == NULL) {
@@ -92,7 +93,7 @@ static bool crossed_threshold(const rk_telemetry_pkt_t *a,
 }
 
 rk_sampler_decision_t rk_sampler_step(rk_sampler_t *s,
-                                      const rk_telemetry_pkt_t *now,
+                                      const rk_telemetry_t *now,
                                       uint32_t uptime_s,
                                       const rk_species_t *sp)
 {
@@ -108,7 +109,7 @@ rk_sampler_decision_t rk_sampler_step(rk_sampler_t *s,
         return d;
     }
     s->measure_count++;
-    low = (now->flags & RK_FLAG_LOW_BATT) != 0u;
+    low = !now->usb && now->batt_mv > 0u && rk_batt_is_low(now->batt_mv);
 
     /* ---- ¿hay algo que contar? ---------------------------------------- */
     if (!s->have_last) {
@@ -153,7 +154,6 @@ rk_sampler_decision_t rk_sampler_step(rk_sampler_t *s,
         s->seq++;
         d.seq            = s->seq;
         s->last_sent     = *now;
-        s->last_sent.seq = s->seq;
         s->last_tx_s     = uptime_s;
         s->last_low_batt = low;
         s->have_last     = true;

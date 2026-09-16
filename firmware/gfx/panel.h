@@ -1,35 +1,21 @@
 /* panel.h — las dos pantallas del ROOTKIT, como datos.
  *
- * El sistema tiene dos paneles de tamaños muy distintos y el mismo motor
- * gráfico dibuja en los dos. Todo lo que cambia entre ellos vive acá, y
- * ninguna otra parte del código tiene constantes de tamaño escritas a mano:
- * las funciones de dibujo trabajan sobre `fb->w` y `fb->h`.
+ * El mismo motor gráfico dibuja en las dos. Todo lo que cambia entre ellas
+ * vive acá; las funciones de dibujo trabajan sobre `fb->w` y `fb->h`.
  *
- *   PRIME   TFT 2,2" ILI9341, 240x320, SPI, enchufado
+ *   PRIME   TFT 2,2" ILI9341, 240x320, SPI — el ROOTKIT de maceta mediana
  *           área activa 36,5 x 47,5 mm  ->  paso 0,152 mm
- *           el adulto a 2x mide 144 px = 21,9 mm
  *
- *   MINI    TFT 1,44" ST7735 IPS, 128x128, SPI, a batería
+ *   MINI    TFT 1,44" ST7735 IPS, 128x128, SPI — el ROOTKIT mini
  *           área activa 25,9 x 25,9 mm  ->  paso 0,202 mm
- *           el brote a 2x mide 64 px = 12,9 mm
  *
- * POR QUÉ NATIVO Y NO UN LIENZO LÓGICO
+ * Los nombres PRIME y MINI quedaron de la arquitectura anterior; hoy son sólo
+ * los dos tamaños del mismo aparato, con el mismo firmware.
  *
- * La versión anterior rasterizaba a 160x240 y escalaba 2x al presentar,
- * porque el panel de la Terminal era de 320x480 y 300 KB de framebuffer no
- * entraban en la SRAM interna. Con 240x320 el cuadro son 150 KB y con
- * 128x128 son 32 KB: los dos entran holgados, así que se dibuja directo en
- * resolución nativa y desaparece una capa entera de conversión de
- * coordenadas. El arte se sigue escalando por enteros, que es lo que de
- * verdad importaba del lienzo lógico.
- *
- * LA CONSECUENCIA TIPOGRÁFICA, QUE NO ES OBVIA
- *
- * Al dibujar nativo, un glifo de 5x7 a escala 1 mide 0,76 x 1,06 mm en el
- * Prime: ilegible. Por eso el texto del Prime arranca en escala 2 y los
- * títulos van en 3. En el Mini el paso es mayor y la distancia de lectura
- * menor, así que la escala 1 sirve para la línea de datos y la 2 para lo
- * que tiene que leerse de reojo.
+ * La cara se escala con el lado corto del panel, así que no necesita escalas
+ * enteras: en la placa de 240x320 se dibuja un cuadrado de 240x240 y las
+ * franjas se pintan lisas (ver esp32/pantalla.h). El texto sólo aparece en la
+ * pantalla del QR, a escala 2 en el panel chico y 3 en el grande.
  */
 #ifndef ROOTKIT_PANEL_H
 #define ROOTKIT_PANEL_H

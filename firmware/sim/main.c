@@ -3,8 +3,10 @@
  *   ./build/rootkit_sim               los seis modelos en vivo, lado a lado
  *   ./build/rootkit_sim --sheet F     6 modelos x 11 animos
  *   ./build/rootkit_sim --etapas F    las 5 etapas de crecimiento
- *   ./build/rootkit_sim --revelado F  el primer encendido, por modelo
+ *   ./build/rootkit_sim --despertar F los ojos se abren, por modelo
  *   ./build/rootkit_sim --shot F [M] [T]  un cuadro suelto
+ *   ./build/rootkit_sim --pantallas F QR, dormida, despertar y cara, en los dos paneles
+ *   ./build/rootkit_sim --sprites DIR [LADO]  una imagen por modelo y animo, para la app
  *   ./build/rootkit_sim --bench       costo de renderizar
  *
  * Todos los modos de captura menos el interactivo funcionan sin SDL: sirven
@@ -28,7 +30,8 @@
 #include "../gfx/font.h"
 #include "../gfx/panel.h"
 #include "../ui/cara.h"
-#include "../ui/revelado.h"
+#include "../ui/despertar.h"
+#include "../ui/qr.h"
 #include "../art/face.h"
 #include "../core/mood.h"
 #include "../core/node.h"
@@ -279,25 +282,25 @@ static const char *et_etapas(int i)
            : rk_stage_name((rk_stage_t)(i % RK_ETAPA_COUNT));
 }
 
-/* --- el primer encendido -------------------------------------------------- */
-static const uint32_t MOM[5] = { 260u, 1100u, 1900u, 3000u, 4400u };
+/* --- el despertar --------------------------------------------------------- */
+static const uint32_t MOM[6] = { 250u, 800u, 1150u, 1400u, 1700u, 2400u };
 
-static void cel_revelado(rk_color_t *px, int i, uint32_t t_ms)
+static void cel_despertar(rk_color_t *px, int i, uint32_t t_ms)
 {
     rk_fb_t fb;
     (void)t_ms;
     rk_fb_init(&fb, px, RK_MINI_W, RK_MINI_H);
-    rk_revelado_draw(&fb, rk_persona_at(i / 5), MOM[i % 5]);
+    rk_despertar_draw(&fb, rk_persona_at(i / 6), MOM[i % 6]);
 }
 
-static const char *et_revelado(int i)
+static const char *et_despertar(int i)
 {
-    return (i % 5 == 0) ? rk_persona_at(i / 5)->nombre : "";
+    return (i % 6 == 0) ? rk_persona_at(i / 6)->nombre : "";
 }
 
-static rk_color_t bd_revelado(int i)
+static rk_color_t bd_despertar(int i)
 {
-    return rk_rarity_color(rk_persona_at(i / 5)->rareza);
+    return rk_rarity_color(rk_persona_at(i / 6)->rareza);
 }
 
 /* --- un cuadro suelto ----------------------------------------------------- */
@@ -328,6 +331,109 @@ static int do_shot(const char *path, const char *mood_name, uint32_t t_ms)
         return 1;
     }
     printf("cuadro %dx%d -> %s\n", RK_MINI_W, RK_MINI_H, path);
+    free(px);
+    return 0;
+}
+
+/* --- las pantallas del vínculo: QR, dormida, despertar y cara --------------
+ * Arriba el panel de 1,44"; abajo el de 2,2". Es la lámina que muestra todo lo
+ * que la pantalla del ROOTKIT puede llegar a mostrar en su vida. */
+static int do_pantallas(const char *path)
+{
+    enum { PAD = 10 };
+    static rk_color_t chico[RK_MINI_PX];
+    static rk_color_t grande[RK_PRIME_PX];
+    static rk_qr_t q;
+    int W = PAD + 4 * (RK_PRIME_W + PAD);
+    int H = PAD + RK_MINI_H + PAD + 12 + RK_PRIME_H + PAD + 12;
+    rk_color_t *lienzo = calloc((size_t)W * (size_t)H, sizeof(rk_color_t));
+    rk_fb_t big, fb;
+    rk_node_t *n;
+    int i;
+    static const char *ET[4] = { "QR: PORTAL", "QR: CONECTANDO", "QR: EN LINEA", "COFRE CERRADO" };
+
+    if (lienzo == NULL) {
+        return 1;
+    }
+    rk_fb_init(&big, lienzo, W, H);
+    rk_fb_clear(&big, RK_RGB(12, 14, 13));
+    rk_qr_preparar(&q, "HTTP://192.168.0.20:8080/V/K7Q2M9XA", "K7Q2M9XA");
+    asentar(1200u);
+    n = &g_kit.nodes[1];
+
+    for (i = 0; i < 4; i++) {
+        int ox = PAD + i * (RK_PRIME_W + PAD) + (RK_PRIME_W - RK_MINI_W) / 2;
+        rk_fb_init(&fb, chico, RK_MINI_W, RK_MINI_H);
+        if (i < 3) {
+            rk_qr_draw(&fb, &q, (rk_qr_estado_t)i, 300u);
+        } else {
+            rk_cara_dormida(&fb, 1200u);
+        }
+        pegar(&big, chico, RK_MINI_W, RK_MINI_H, ox, PAD + 12);
+        rk_text(&big, ox, PAD, ET[i], RK_RGB(227, 165, 74), 1);
+    }
+    for (i = 0; i < 4; i++) {
+        int ox = PAD + i * (RK_PRIME_W + PAD);
+        int oy = PAD + 12 + RK_MINI_H + PAD + 12;
+        rk_fb_init(&fb, grande, RK_PRIME_W, RK_PRIME_H);
+        switch (i) {
+        case 0:  rk_qr_draw(&fb, &q, RK_QR_EN_LINEA, 300u); break;
+        case 1:  rk_cara_dormida(&fb, 1200u); break;
+        case 2:  rk_despertar_draw(&fb, n->persona, 1150u); break;
+        default: rk_cara_draw(&fb, n, 1200u); break;
+        }
+        pegar(&big, grande, RK_PRIME_W, RK_PRIME_H, ox, oy);
+        rk_text(&big, ox, oy - 12,
+                i == 0 ? "2,2 QR" : i == 1 ? "2,2 DORMIDA" : i == 2 ? "2,2 DESPERTANDO" : "2,2 CARA",
+                RK_RGB(227, 165, 74), 1);
+    }
+    if (save_bmp(path, lienzo, W, H) != 0) {
+        free(lienzo);
+        return 1;
+    }
+    printf("%dx%d -> %s\n", W, H, path);
+    free(lienzo);
+    return 0;
+}
+
+/* --- caras sueltas para la app ---------------------------------------------
+ * Una imagen por modelo y ánimo, más la cara dormida. La app las usa donde
+ * no corre el renderer en WebAssembly: íconos de notificación, la tarjeta
+ * para compartir y la primera pintada antes de que cargue el módulo. */
+static int do_sprites(const char *dir, int lado)
+{
+    rk_color_t *px;
+    rk_fb_t fb;
+    char path[512];
+    int p, m;
+
+    if (lado < 32 || lado > 512) {
+        fprintf(stderr, "lado fuera de rango: %d\n", lado);
+        return 1;
+    }
+    px = calloc((size_t)lado * (size_t)lado, sizeof(rk_color_t));
+    if (px == NULL) {
+        return 1;
+    }
+    rk_fb_init(&fb, px, lado, lado);
+    for (p = 0; p < rk_persona_count; p++) {
+        for (m = 0; m < RK_MOOD_COUNT; m++) {
+            /* Un instante sin parpadeo ni gesto de alegría: la foto carnet. */
+            rk_face_draw(&fb, rk_persona_at(p), (rk_mood_t)m, RK_SEV_OK,
+                         rk_face_adornos_etapa(RK_ETAPA_JOVEN), 1200u);
+            snprintf(path, sizeof path, "%s/%s-%s.bmp", dir, rk_persona_at(p)->id,
+                     rk_mood_name((rk_mood_t)m));
+            if (save_bmp(path, px, lado, lado) != 0) {
+                fprintf(stderr, "no pude escribir %s\n", path);
+                free(px);
+                return 1;
+            }
+        }
+    }
+    rk_cara_dormida(&fb, 1200u);
+    snprintf(path, sizeof path, "%s/incognito.bmp", dir);
+    save_bmp(path, px, lado, lado);
+    printf("%d caras de %dx%d -> %s\n", rk_persona_count * RK_MOOD_COUNT + 1, lado, lado, dir);
     free(px);
     return 0;
 }
@@ -400,9 +506,9 @@ static int do_bench(void)
 
     t0 = ahora_ms();
     for (i = 0; i < BENCH_N; i++) {
-        rk_revelado_draw(&fb, rk_persona_at(5), (uint32_t)(i * 3u) % 5200u);
+        rk_despertar_draw(&fb, rk_persona_at(5), (uint32_t)(i * 3u) % RK_DESP_FIN_MS);
     }
-    printf("%-26s %11.4f\n", "un cuadro del revelado",
+    printf("%-26s %11.4f\n", "un cuadro del despertar",
            (ahora_ms() - t0) / BENCH_N);
 
     printf("\n  COTA DEL BUS\n");
@@ -511,8 +617,8 @@ static int run_window(void)
             int ox = GAP + (i % COLS) * (RK_MINI_W + GAP);
             int oy = GAP + (i / COLS) * (RK_MINI_H + GAP + 12);
 
-            if (rev && i == sel && !rk_revelado_termino(t_ms - rev_t0)) {
-                rk_revelado_draw(&fb, g_kit.nodes[i].persona, t_ms - rev_t0);
+            if (rev && i == sel && !rk_despertar_termino(t_ms - rev_t0)) {
+                rk_despertar_draw(&fb, g_kit.nodes[i].persona, t_ms - rev_t0);
             } else {
                 if (i == sel) { rev = 0; }
                 rk_cara_draw(&fb, &g_kit.nodes[i], t_ms);
@@ -542,7 +648,7 @@ static int run_window(void)
 #else
 static int run_window(void)
 {
-    fprintf(stderr, "compilado sin SDL: usa --sheet, --etapas o --revelado\n");
+    fprintf(stderr, "compilado sin SDL: usa --sheet, --etapas o --despertar\n");
     return 1;
 }
 #endif
@@ -558,12 +664,18 @@ int main(int argc, char **argv)
                     RK_ETAPA_COUNT, RK_MINI_W, RK_MINI_H,
                     cel_etapas, et_etapas, NULL);
     }
-    if (argc >= 3 && strcmp(argv[1], "--revelado") == 0) {
-        return hoja(argv[2], rk_persona_count * 5, 5, RK_MINI_W, RK_MINI_H,
-                    cel_revelado, et_revelado, bd_revelado);
+    if (argc >= 3 && strcmp(argv[1], "--despertar") == 0) {
+        return hoja(argv[2], rk_persona_count * 6, 6, RK_MINI_W, RK_MINI_H,
+                    cel_despertar, et_despertar, bd_despertar);
     }
     if (argc >= 2 && strcmp(argv[1], "--bench") == 0) {
         return do_bench();
+    }
+    if (argc >= 3 && strcmp(argv[1], "--pantallas") == 0) {
+        return do_pantallas(argv[2]);
+    }
+    if (argc >= 3 && strcmp(argv[1], "--sprites") == 0) {
+        return do_sprites(argv[2], argc >= 4 ? atoi(argv[3]) : 256);
     }
     if (argc >= 3 && strcmp(argv[1], "--shot") == 0) {
         return do_shot(argv[2],

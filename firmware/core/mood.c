@@ -68,7 +68,10 @@ rk_verdict_t rk_mood_eval(rk_mood_state_t      *st,
     }
 
     /* ---- Ciclo día / noche ------------------------------------------- */
-    if (t->lux < LUX_NOCHE) {
+    if (t->fallas & RK_FALLA_LUZ) {
+        /* Sin sensor de luz no se sabe si es de noche: se conserva lo que
+         * se sabía. */
+    } else if (t->lux < LUX_NOCHE) {
         if (st->dark_samples < 0xFFFFu) {
             st->dark_samples++;
         }
@@ -91,12 +94,13 @@ rk_verdict_t rk_mood_eval(rk_mood_state_t      *st,
         mojado = (uint8_t)(mojado - HYST_SOIL_PCT);
     }
 
-    if (t->soil_pct < seco) {
+    if (t->fallas & RK_FALLA_SUELO) {
+        /* sin dato de suelo no hay sed ni ahogo que juzgar */
+    } else if (t->soil_pct < seco) {
         rk_severity_t s = (t->soil_pct + URGENTE_SOIL_PCT < sp->soil_min)
                           ? RK_SEV_URGENT : RK_SEV_WATCH;
         return mk(&v, st, RK_MOOD_THIRSTY, s, "tengo sed");
-    }
-    if (t->soil_pct > mojado) {
+    } else if (t->soil_pct > mojado) {
         rk_severity_t s = (t->soil_pct > sp->soil_max + 12)
                           ? RK_SEV_URGENT : RK_SEV_WATCH;
         return mk(&v, st, RK_MOOD_DROWNING, s, "me estoy ahogando");
@@ -112,12 +116,13 @@ rk_verdict_t rk_mood_eval(rk_mood_state_t      *st,
         calor = (int16_t)(calor - HYST_TEMP_DC);
     }
 
-    if (t->temp_dc < frio) {
+    if (t->fallas & RK_FALLA_AIRE) {
+        /* sin AHT20 no se juzga ni temperatura ni humedad del aire */
+    } else if (t->temp_dc < frio) {
         rk_severity_t s = (t->temp_dc < sp->temp_min_dc - URGENTE_TEMP_DC)
                           ? RK_SEV_URGENT : RK_SEV_WATCH;
         return mk(&v, st, RK_MOOD_COLD, s, "tengo frio");
-    }
-    if (t->temp_dc > calor) {
+    } else if (t->temp_dc > calor) {
         rk_severity_t s = (t->temp_dc > sp->temp_max_dc + URGENTE_TEMP_DC)
                           ? RK_SEV_URGENT : RK_SEV_WATCH;
         return mk(&v, st, RK_MOOD_HOT, s, "tengo calor");
@@ -138,10 +143,11 @@ rk_verdict_t rk_mood_eval(rk_mood_state_t      *st,
         lux_max -= lux_max / HYST_LUX_DIV;
     }
 
-    if (t->lux > lux_max) {
+    if (t->fallas & RK_FALLA_LUZ) {
+        /* sin sensor de luz no hay sol de más ni de menos */
+    } else if (t->lux > lux_max) {
         return mk(&v, st, RK_MOOD_SCORCHED, RK_SEV_WATCH, "demasiado sol");
-    }
-    if (t->lux < lux_min) {
+    } else if (t->lux < lux_min) {
         return mk(&v, st, RK_MOOD_DARK, RK_SEV_WATCH, "necesito mas luz");
     }
 
@@ -150,7 +156,7 @@ rk_verdict_t rk_mood_eval(rk_mood_state_t      *st,
     if (sticky(st, RK_MOOD_PARCHED_AIR)) {
         rh_min = (uint8_t)(rh_min + HYST_RH_PCT);
     }
-    if (t->rh_pct < rh_min) {
+    if (!(t->fallas & RK_FALLA_AIRE) && t->rh_pct < rh_min) {
         return mk(&v, st, RK_MOOD_PARCHED_AIR, RK_SEV_WATCH, "el aire esta seco");
     }
 

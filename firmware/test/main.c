@@ -14,12 +14,14 @@ int main(void)
     printf("  =================\n");
 
     suite_mood();
-    suite_proto();
     suite_nodo();
+    suite_sensores();
     suite_gfx();
     suite_render();
     suite_persona();
-    suite_link();
+    suite_qr();
+    suite_enlace();
+    suite_red();
 
     return rk_t_report();
 }

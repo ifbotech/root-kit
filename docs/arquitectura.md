@@ -1,201 +1,136 @@
 # Arquitectura
 
-Un ROOTKIT es **un aparato en una maceta**: una placa, sus sensores y una
-carcasa impresa en 3D que le da la cara. Se compra en caja ciega, como un
-Smiski: cinco modelos a la vista y un secreto.
+## Tres piezas
 
 ```
-   ┌─────────────────────┐   telemetría 26 B   ┌──────────┐
-   │      ROOTKIT        │ ──────────────────▶ │   APP    │
-   │  ESP32-C3           │                     │   PWA    │
-   │  TFT 1,44" 128x128  │ ◀────────────────── │  celular │
-   │  18650              │   config 32 B       └──────────┘
-   │  + carcasa impresa  │                      el tablero
-   └─────────────────────┘                      el historial
-    mide                                        la colección
-    evalúa su propia maceta                          │
-    dibuja UNA CARA                                  ▼ al registrar
-                                               API de visión
+   ┌───────────────────────┐        HTTPS         ┌────────────────────────┐
+   │        ROOTKIT        │  POST /api/d/sync    │         NUBE           │
+   │  ESP32-C3 + pantalla  │ ───────────────────► │   root-lab/server      │
+   │  + sensores + batería │ ◄─────────────────── │  cuentas, vínculos,    │
+   │                       │  vínculo, especie,   │  lecturas, cofre, IA,  │
+   │  QR  ·  ojos          │  nombre, días sanos  │  notificaciones        │
+   └───────────┬───────────┘                      └───────────▲────────────┘
+               │ portal cautivo (sólo para                    │ HTTPS
+               │ pasarle el wifi)                              │ /api/...
+               ▼                                               │ Web Push
+   ┌───────────────────────────────────────────────────────────┴────────────┐
+   │                               APP (PWA)                                 │
+   │   root-lab/public — alta por QR, cofre, foto, tablero, colección        │
+   └─────────────────────────────────────────────────────────────────────────┘
 ```
+
+| Pieza | Repositorio | Qué hace |
+|---|---|---|
+| **ROOTKIT** | `rootkit/firmware` | Mide, evalúa su planta y pone una cara. Sin la red sigue funcionando. |
+| **Nube** | `root-lab/server` | Vincula aparatos con cuentas, guarda lecturas, abre cofres, identifica plantas con IA, manda notificaciones. |
+| **App** | `root-lab/public` | Lo que ve el usuario. Se instala desde el QR, sin tienda. |
 
 ## La idea que ordena todo: la variedad es física, la cara es digital
 
-Lo único que se diseña en pixeles es **la cara**. Lo que cambia entre un
-modelo y otro es la **carcasa impresa**: su cresta, su pelo, su visera. La
-carcasa es el personaje; la cara le hace juego.
+El personaje es la **carcasa impresa en 3D**: su cresta, su pelo, su visera.
+Lo único que se dibuja es la cara, y la cara le hace juego. Es mejor reparto
+de esfuerzo que animar cuerpos: una carcasa nueva cuesta filamento y unas
+horas de modelado; un cuerpo animado, semanas.
 
-Es mejor reparto de esfuerzo que el anterior. Imprimir una carcasa nueva
-cuesta filamento y unas horas de modelado; dibujar y animar un cuerpo nuevo
-cuesta semanas. Y una cara sola en 128×128 tiene muchos más pixeles por rasgo
-que un cuerpo entero, así que se expresa mejor, no peor.
+La pantalla muestra **dos cosas en toda su vida**: el QR del primer encendido
+y los ojos. Todo lo que es número, tarea o configuración vive en la app. Una
+pantalla llena de barras compite con el objeto; una cara lo completa.
 
 ### El ánimo dice qué siente; la persona dice cómo lo muestra
 
 ```
-  core/mood.c     estado de la planta   ->  QUÉ siente
-  art/look.c      expresión semántica   ->  ojo entrecerrado, boca abajo
-  core/persona.c  carácter de la carcasa->  CÓMO se dibuja eso
-  art/face.c      los cruza y dibuja
+core/mood.c     QUÉ siente      sed, frío, poca luz...   (11 ánimos)
+core/persona.c  CÓMO lo muestra ojos, cejas, boca, paleta (6 personajes)
+art/face.c      los cruza y dibuja
 ```
 
-| | Cresta | Kawaii | Visor | Ciclope | Hongo |
-|---|---|---|---|---|---|
-| **sed** | ceño apretado, dientes | ojos llorosos, lágrima | la onda se quiebra en picos | la pupila se contrae | los párpados caen más |
+Seis personajes por once ánimos son sesenta y seis caras, más parpadeo,
+mirada y respiración, y salen del mismo código porque la cara es procedural.
+Un personaje nuevo es una fila de `persona.c`.
 
-Seis modelos por once ánimos son **sesenta y seis caras**, y salen todas del
-mismo código porque la cara es procedural y no sprites. Agregar un modelo es
-agregar una fila a `rk_persona_table`; agregar un ánimo es agregar una fila a
-`LOOKS`. Ninguna de las dos tablas conoce a la otra.
+### Ilustración, no pixel art
 
-### Por qué procedural y no sprites
+Las caras son ilustración plana del tipo Duolingo: formas redondas, colores
+planos, sin contorno, **bordes suavizados**. El suavizado se calcula en punto
+fijo en `gfx/aa.c` porque el C3 no tiene FPU. Ver [firmware.md](firmware.md).
 
-A este tamaño no es una concesión sino una ventaja. Un ojo ocupa unos 35 px de
-ancho: suficiente para que una curva calculada se vea deliberada. Y se gana lo
-que un flipbook no da —la pupila mira a cualquier lado, el párpado cierra a
-cualquier altura, el parpadeo cae cuando tiene que caer.
+## El flujo
 
-Dibujar sesenta y seis caras a mano sería un mes de trabajo y un archivo de
-datos enorme, y agregar un modelo costaría once caras más.
+```
+ 1  encender              la pantalla muestra el QR y abre la red ROOTKIT-XXXX
+ 2  escanear el QR        abre la app en /v/<código>
+ 3  instalar              "agregar a inicio": en iPhone es lo que habilita avisos
+ 4  activar avisos        Web Push
+ 5  wifi                  el teléfono se conecta a ROOTKIT-XXXX y le pasa la red
+ 6  vincular              la nube ve a la maceta con el mismo código: es tuya
+                          la maceta pasa del QR a unos ojos dormidos
+ 7  abrir el cofre        la app muestra quién es; la maceta abre los ojos
+ 8  nombre
+ 9  foto                  la IA identifica la especie y fija los umbrales
+10  la cara               la maceta cruza sensores con especie y pone cara;
+                          la app muestra tareas y avisa lo que haga falta
+```
 
-## La rareza es física
+**Desvincular** (desde la app, o manteniendo el botón 10 s en la maceta)
+vuelve al paso 1 con un código nuevo.
 
-Ya no sale de la dificultad de la planta: sale de qué carcasa te tocó en la
-caja. Eso mantiene el producto fuera del terreno regulado de las cajas de
-botín por una razón más sólida que antes: **no hay compra aleatoria dentro de
-un software, hay un juguete en una caja** — que es exactamente lo que hacen
-los Smiski y los Sonny Angel desde hace años.
+Por qué este orden, paso por paso: `root-lab/docs/flujo.md`.
 
-Lo que se gana cuidando la planta ya no es el personaje sino cómo se ve: los
-días sanos desbloquean capas cosméticas sobre la cara (brillos a los 30 días,
-aura a los 90, corona a los 180). El modelo te toca por azar; **el aura se
-gana y no se compra**.
+## Quién decide qué
 
-## El aparato dibuja una cara; la app tiene el tablero
+| Decisión | Dónde | Por qué ahí |
+|---|---|---|
+| Qué cara poner | **el aparato** (`core/mood.c`) | Una maceta que necesita la red para saber si tiene sed se queda muda justo cuando importa |
+| Qué pantalla mostrar | **el aparato** (`core/enlace.c`) | Mismo motivo |
+| Con qué umbrales | **la nube** (la especie) | Sale de la foto y del catálogo curado; se cambia desde la app |
+| Qué personaje es | **fábrica**, o **el cofre** si no hay | La carcasa ya es un personaje: el cofre la revela |
+| Los días sanos | **la nube** | Ve el día entero aunque el aparato duerma |
+| Qué hay que hacer hoy | **la app** (`lib/tareas.mjs`) | Es presentación: verbos y números para una persona |
+| Cuándo avisar | **la nube** (`server/avisos.mjs`) | Tiene que poder avisar con la app cerrada |
 
-La pantalla del aparato antes mostraba nombre, wifi, batería, una frase, tres
-medidores y una tira selectora. Todo eso se mudó a la app.
-
-El aparato está en la maceta, se mira de reojo al pasar y desde un metro:
-contesta una sola pregunta —¿cómo está mi planta?— y la contesta con una cara.
-Los números los va a buscar alguien que ya decidió preocuparse, y esa persona
-tiene el teléfono en la mano.
-
-Quedan dos elementos además de la cara, y los dos aparecen sólo cuando hacen
-falta:
-
-- un **pictograma** en la esquina si hay algo que pedir (gota, sol, copo). La
-  cara dice que algo anda mal; el pictograma dice qué, sin idioma.
-- un **aviso de batería** cuando la celda está por terminarse. Es lo único que
-  la app no puede resolver sola, porque para cambiarla hay que ir.
-
-## Cada aparato evalúa su propia maceta
-
-> Corre `core/mood.c` con los umbrales de su especie, que le llegaron en la
-> trama de configuración, y muestra el ánimo **sin preguntarle a nadie**.
-
-Un aparato que necesita la red para saber qué cara poner se queda mudo justo
-cuando más importa. Y quien recibe la telemetría **no recalcula**: copia el
-ánimo del paquete. Si lo recalculara, su histéresis acumulada y su conteo de
-muestras oscuras serían distintos, y el usuario vería una cara en la maceta y
-otra en el teléfono sin forma de saber cuál le miente. Hay un test en la suite
-"kit y enlace" que manda una telemetría cuyos números gritarían `THIRSTY` y
-cuyo campo de ánimo dice `HAPPY`, y verifica que se respeta el ánimo.
+La cara del teléfono es **la misma** que la de la maceta: la app carga el
+firmware compilado a WebAssembly (`make wasm`) y dibuja con él. No hay una
+segunda implementación que se pueda desincronizar.
 
 ## Capas del firmware
 
 ```
-firmware/
-  core/    C99 puro. Sin ESP-IDF, sin punto flotante.
-           telemetría, especies, ánimos, vínculo, modelos y el kit.
-  net/     Protocolo binario y el pegamento con el roster. Sin dependencias.
-  nodo/    Suelo, batería y muestreo adaptativo. Sin dependencias.
-  gfx/     Framebuffer RGB565, elipses, arcos, trazos y tipografía.
-  art/     La tabla de expresiones y el rig procedural de caras.
-  ui/      La pantalla y el primer encendido. Funciones puras.
-  sim/     Host SDL de escritorio. La única capa que sabe de un sistema
-           operativo, y la única que no va al dispositivo.
+ esp32/     main · pantalla · sensores_hw · almacen · portal · red · energia
+ ─────────────────────────────────────────────────────────── (sólo hardware)
+ ui/        cara · despertar · qr
+ art/       look · face
+ gfx/       fb · aa · font
+ net/       json · nube
+ nodo/      sensores · soil · power · sampler · historial
+ core/      mood · species · persona · vinculo · enlace · codigo · sha256
 ```
 
-La dirección de las dependencias es hacia adentro: `ui` usa `gfx` y `core`,
-nunca al revés. Nada de `core`, `net` ni `nodo` incluye una cabecera de sistema
-más allá de `stdint`, `stdbool`, `stddef` y `string`.
-
-**Una excepción declarada:** `ui/cara.c` incluye `nodo/power.h` para dibujar el
-aviso de batería. Podría reimplementar la curva de descarga, pero tener una
-sola curva importa más que un diagrama de capas prolijo.
-
-### Dónde vive cada cosa, y por qué ahí
-
-| Pieza | Archivo | Por qué |
-|---|---|---|
-| Qué expresión pide cada ánimo | `art/look.c` | La mitad semántica: independiente del modelo. |
-| El carácter de cada carcasa | `core/persona.c` | Una fila por modelo. Es donde arte ajusta números sin tocar lógica. |
-| El rig que los cruza | `art/face.c` | Seis familias de ojos, cuatro de cejas, cinco de bocas. |
-| Los tamaños del panel | `gfx/panel.c` | Ninguna otra parte tiene constantes de pantalla a mano. |
-| El vínculo y las etapas | `core/vinculo.c` | Sobrevivió intacto al cambio de producto. |
-| Ida y vuelta por radio | `net/link.c` | La capa que el ESP32 llama desde sus callbacks. |
+Todo lo que está debajo de la línea es C99 portable y se prueba en el
+escritorio: 1085 comprobaciones, incluida la regresión visual de las 66
+caras.
 
 ## Decisiones que conviene no revisitar sin leer esto
 
-### Renderer propio en vez de LVGL
+**Renderer propio en vez de LVGL.** La cara es procedural: elipses y
+semiplanos calculados, no widgets. Un framebuffer RGB565 plano es lo que
+espera el panel, y el mismo código dibuja en la placa, en el simulador y en el
+navegador.
 
-La cara es procedural: elipses, arcos y trazos calculados. LVGL trae un motor
-de widgets que acá no se usaría nunca, y un buffer RGB565 plano es exactamente
-lo que espera `esp_lcd_panel_draw_bitmap()`. El renderer propio son unas 400
-líneas en `gfx/`, y el mismo código corre en el simulador, en los tests y en la
-placa.
+**Nube en vez de red local.** Las notificaciones tienen que llegar con la app
+cerrada, y una página HTTPS no puede hablarle a una IP de la casa. La maceta
+evalúa sola; la nube sólo es necesaria para ver y para avisar.
 
-### Resolución nativa, sin lienzo lógico
+**JSON en vez de binario.** El protocolo binario existía para ESP-NOW, donde
+cada byte costaba aire. Con HTTPS el costo lo pone el apretón de manos TLS, no
+el tamaño del cuerpo. Ver [decisiones.md](decisiones.md).
 
-128×128 son 32 KB: entran holgados en los 400 KB de SRAM de un ESP32-C3, con
-lugar de sobra para un segundo buffer y mandar por DMA mientras se dibuja el
-siguiente. Se dibuja directo y desaparece una capa de conversión de
-coordenadas.
+**Portal cautivo en vez de Bluetooth.** Web Bluetooth no existe en iPhone.
 
-Los rasgos se miden en **centésimas del ancho del panel**, no en pixeles, así
-que la misma tabla de modelos sirve para cualquier panel futuro sin tocar un
-número.
-
-### El bus manda, no la CPU
-
-`make bench` mide las dos cosas. Rasterizar una cara cuesta centésimas de
-milisegundo en un x86 y quizá unas décimas en el C3. Empujar 32.768 bytes por
-SPI a 40 MHz son **6,25 ms**, o sea 160 fps de techo. Sobra: el margen está en
-bajar el reloj para ahorrar, no en subirlo.
-
-### Binario en vez de JSON
-
-Una trama de telemetría son 26 bytes; el mismo contenido en JSON son unos 190.
-Cada byte es tiempo de radio encendida, y la radio es cerca de la mitad del
-presupuesto energético.
-
-La configuración son 32 bytes y lleva los umbrales de la especie más el índice
-de la carcasa. No pesa: viaja una sola vez al emparejar y cada vez que cambia
-la especie o el modelo.
+**PWA en vez de app nativa.** Se instala desde el QR, sin tienda, y se
+actualiza sola.
 
 ## Presupuesto energético
 
-Salido de `make test`, no de una planilla: las cifras se recalculan en cada
-corrida y el test falla si alguien cambia un parámetro sin querer.
-
-| Perfil | µAh/día | Autonomía (18650 2200 mAh, −20%) | Durmiendo |
-|---|---:|---:|---:|
-| Ingenuo — LED puesto, DHCP, transmite siempre | 15.206 | **115 días** | 47% |
-| Fijo — optimizado, cada 15 min | 3.672 | **479 días** | 26% |
-| Adaptativo — mide seguido, emite poco | 1.900 | **926 días** | 50% |
-
-Estas cifras son **sin pantalla**. La TFT de 1,44" con la retroiluminación al
-máximo pide unos 32 mA; encendida dos minutos por día eso son 1.067.000 nAh
-diarios sobre los 1.900.000 del perfil adaptativo, y la autonomía cae a unos
-**595 días**. Sigue siendo año y medio, y es el número que hay que confirmar
-con un multímetro apenas lleguen las placas.
-
-## Lo que falta para el primer prototipo
-
-- Capa HAL del ESP32: drivers de ADC, I2C, SPI y Wi-Fi bajo las interfaces que
-  el núcleo ya define.
-- Transporte real detrás de `net/link.h`.
-- Servidor HTTP que implemente `hub/API.md`.
-- Persistencia en NVS: calibración, planta, carcasa, vínculo y colección.
-- **Las seis carcasas.** Ver [carcasas.md](carcasas.md), que tiene el
-  envolvente, las tolerancias y el brief de cada modelo.
+Ver [hardware.md](hardware.md#cuánto-dura). A batería: ~5 meses el modelo de
+2,2" con una 18650, ~2 meses el mini con una LiPo de 1000 mAh, a verificar
+con medición en la Fase 2 del [roadmap](roadmap.md).
