@@ -54,10 +54,11 @@ typedef struct {
     char                  nombre[18];   /* como la bautizó el usuario     */
     uint8_t               id[6];        /* derivado de la MAC             */
     const rk_species_t   *sp;
-    /* Qué carcasa lleva puesta. Sale de la caja ciega y la carga el usuario
-     * en la app, no de la planta: la especie decide los umbrales, la carcasa
-     * decide la cara. */
+    /* Qué Rooti es: la figura impresa, grabada en fábrica. La especie
+     * decide los umbrales; el Rooti decide la cara. */
     const rk_persona_t   *persona;
+    /* La piel que salió del cofre (rk_rareza_t): elige la paleta. */
+    uint8_t               rareza;
     rk_bond_t             bond;
     rk_telemetry_t        tel;
     rk_mood_state_t       mst;
@@ -75,7 +76,7 @@ void rk_roster_init(rk_roster_t *r);
 
 /* Da de alta un nodo. Devuelve su índice, o -1 si no hay lugar o falta el
  * nombre. La especie puede ser NULL hasta que la identificación por foto
- * termine, y la persona hasta que el usuario diga qué carcasa le tocó. */
+ * termine. La piel arranca en la común hasta que se abra el cofre. */
 int  rk_roster_add(rk_roster_t *r, const char *nombre,
                    const rk_species_t *sp, const rk_persona_t *persona);
 

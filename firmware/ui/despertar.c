@@ -45,7 +45,8 @@ bool rk_despertar_termino(uint32_t t_ms)
     return t_ms >= RK_DESP_FIN_MS;
 }
 
-void rk_despertar_draw(rk_fb_t *fb, const rk_persona_t *p, uint32_t t_ms)
+void rk_despertar_draw(rk_fb_t *fb, const rk_persona_t *p, uint8_t rareza,
+                       uint32_t t_ms)
 {
     if (fb == NULL || fb->px == NULL) {
         return;
@@ -57,7 +58,8 @@ void rk_despertar_draw(rk_fb_t *fb, const rk_persona_t *p, uint32_t t_ms)
     if (t_ms < RK_DESP_NEGRO_MS) {
         /* Un latido lento de la piel sobre negro: algo está por despertar. */
         int pulso = rk_sin8((uint8_t)(t_ms * 256u / RK_DESP_NEGRO_MS - 64u)) + 127;
-        rk_fb_clear(fb, rk_mix(RK_RGB(0, 0, 0), p->fondo, (uint8_t)(pulso / 6)));
+        rk_fb_clear(fb, rk_mix(RK_RGB(0, 0, 0), rk_persona_piel(p, rareza)->fondo,
+                               (uint8_t)(pulso / 6)));
         return;
     }
 
@@ -67,7 +69,7 @@ void rk_despertar_draw(rk_fb_t *fb, const rk_persona_t *p, uint32_t t_ms)
         rk_mood_t m = RK_MOOD_HAPPY;
         uint8_t cierre = rk_despertar_cierre(t_ms);
 
-        rk_face_draw_cierre(fb, p, m, RK_SEV_OK, 0u, cierre, t_ms);
+        rk_face_draw_cierre(fb, p, rareza, m, RK_SEV_OK, 0u, cierre, t_ms);
 
         if (t_ms < RK_DESP_PIEL_MS) {
             /* La piel entra desde negro: se oscurece el cuadro entero. */

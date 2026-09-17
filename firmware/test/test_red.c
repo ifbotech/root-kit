@@ -10,6 +10,7 @@
 #include "../net/json.h"
 #include "../net/nube.h"
 #include "../core/mood.h"
+#include "../core/persona.h"
 
 static void test_json_escritura(void)
 {
@@ -125,7 +126,7 @@ static void test_armar_sync(void)
     yo.fw = "0.5.0";
     yo.placa = "c3-supermini";
     yo.pantalla = "st7735-128";
-    yo.persona = "kawaii";
+    yo.persona = "brote";
     yo.codigo = "K7Q2M9XA";
     yo.estado = "SIN_VINCULO";
     yo.epoca = 3u;
@@ -194,8 +195,8 @@ static void test_armar_sync(void)
 static void test_parsear(void)
 {
     static const char *BUENA =
-        "{\"ok\":true,\"vinculado\":true,\"revelado\":true,\"persona\":\"cresta\","
-        "\"nombre\":\"Rulo\",\"especie\":{\"id\":\"monstera\",\"nombre\":\"Monstera deliciosa\","
+        "{\"ok\":true,\"vinculado\":true,\"revelado\":true,\"persona\":\"pinchito\","
+        "\"rareza\":\"epico\",\"nombre\":\"Rulo\",\"especie\":{\"id\":\"monstera\",\"nombre\":\"Monstera deliciosa\","
         "\"suelo_min\":25,\"suelo_max\":60,\"temp_min\":180,\"temp_max\":300,"
         "\"hr_min\":50,\"lux_min\":1000,\"lux_max\":15000,\"dificultad\":45},"
         "\"intervalo_s\":900,\"aceptadas\":12,\"hora\":1758040000,"
@@ -205,7 +206,8 @@ static void test_parsear(void)
 
     CHECK_TRUE("una respuesta buena se entiende", rk_nube_parsear(BUENA, &r));
     CHECK_TRUE("vinculado y revelado", r.vinculado && r.revelado);
-    CHECK_STR("persona", "cresta", r.persona);
+    CHECK_STR("persona", "pinchito", r.persona);
+    CHECK_TRUE("con la piel que salio del cofre", r.hay_rareza && r.rareza == RK_RAREZA_EPICA);
     CHECK_STR("nombre", "Rulo", r.nombre);
     CHECK_TRUE("con especie", r.hay_especie);
     sp = &r.especie.sp;
@@ -248,7 +250,13 @@ static void test_parsear(void)
                && !r.hay_calibracion);
     CHECK_TRUE("sin campos, todo en falso",
                rk_nube_parsear("{\"ok\":true}", &r) && !r.vinculado && !r.revelado &&
-               r.persona[0] == '\0' && r.intervalo_s == 0u);
+               r.persona[0] == '\0' && !r.hay_rareza && r.intervalo_s == 0u);
+    CHECK_TRUE("una rareza desconocida no cambia la piel",
+               rk_nube_parsear("{\"ok\":true,\"revelado\":true,\"rareza\":\"legendaria\"}", &r)
+               && !r.hay_rareza);
+    CHECK_TRUE("la rara llega como rara",
+               rk_nube_parsear("{\"ok\":true,\"rareza\":\"raro\"}", &r)
+               && r.hay_rareza && r.rareza == RK_RAREZA_RARA);
 }
 
 void suite_red(void)

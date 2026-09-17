@@ -26,6 +26,7 @@ bool almacen_cargar(rk_almacen_t *a, const char *nube_por_defecto,
     }
 
     g_nvs.getString("persona", a->persona, sizeof a->persona);
+    a->rareza = g_nvs.getUChar("rareza", 0);
     g_nvs.getBytes("enlace", &a->enlace, sizeof a->enlace);
     g_nvs.getString("ssid", a->ssid, sizeof a->ssid);
     g_nvs.getString("clave", a->clave, sizeof a->clave);
@@ -86,6 +87,7 @@ void almacen_guardar_nube(const rk_almacen_t *a)
 void almacen_guardar_config(const rk_almacen_t *a)
 {
     g_nvs.putString("persona", a->persona);
+    g_nvs.putUChar("rareza", a->rareza);
     if (a->hay_especie) {
         g_nvs.putBytes("especie", &a->especie, sizeof a->especie);
     } else {

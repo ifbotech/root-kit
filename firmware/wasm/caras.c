@@ -147,11 +147,20 @@ const char *rk_wasm_persona_id(int i)
     return p != NULL ? p->id : "";
 }
 
-EXPORTA("persona_color")
-int rk_wasm_persona_color(int i)
+/* Un color de una piel, en RGB565: campo 0 fondo, 1 ojos, 2 piel, 3 rubor. */
+EXPORTA("piel_color")
+int rk_wasm_piel_color(int i, int rareza, int campo)
 {
-    const rk_persona_t *p = rk_persona_at(i);
-    return p != NULL ? (int)p->fondo : 0;
+    const rk_piel_t *pl = rk_persona_piel(rk_persona_at(i), rareza);
+    if (pl == NULL) {
+        return 0;
+    }
+    switch (campo) {
+    case 1:  return (int)pl->ojos;
+    case 2:  return (int)pl->piel;
+    case 3:  return (int)pl->rubor;
+    default: return (int)pl->fondo;
+    }
 }
 
 EXPORTA("animos")
@@ -166,35 +175,42 @@ const char *rk_wasm_animo_id(int m)
     return rk_mood_name((rk_mood_t)m);
 }
 
-/* La cara de un modelo en un ánimo, con los adornos de una etapa. */
+static uint8_t rareza_de(int r)
+{
+    return (uint8_t)(r < 0 || r >= (int)RK_RAREZA_COUNT ? 0 : r);
+}
+
+/* La cara de un Rooti con una piel, en un ánimo, con los adornos de una
+ * etapa. */
 EXPORTA("cara")
-void rk_wasm_cara(int persona, int mood, int etapa, uint32_t t_ms)
+void rk_wasm_cara(int persona, int rareza, int mood, int etapa, uint32_t t_ms)
 {
     if (g_fb.px == NULL) {
         return;
     }
-    rk_face_draw(&g_fb, rk_persona_at(persona), (rk_mood_t)mood, RK_SEV_OK,
-                 rk_face_adornos_etapa(etapa), t_ms);
+    rk_face_draw(&g_fb, rk_persona_at(persona), rareza_de(rareza), (rk_mood_t)mood,
+                 RK_SEV_OK, rk_face_adornos_etapa(etapa), t_ms);
     a_rgba();
 }
 
+/* Antes del cofre: el Rooti dormido, en grises. */
 EXPORTA("dormida")
-void rk_wasm_dormida(uint32_t t_ms)
+void rk_wasm_dormida(int persona, uint32_t t_ms)
 {
     if (g_fb.px == NULL) {
         return;
     }
-    rk_cara_dormida(&g_fb, t_ms);
+    rk_cara_dormida(&g_fb, rk_persona_at(persona), t_ms);
     a_rgba();
 }
 
 EXPORTA("despertar")
-void rk_wasm_despertar(int persona, uint32_t t_ms)
+void rk_wasm_despertar(int persona, int rareza, uint32_t t_ms)
 {
     if (g_fb.px == NULL) {
         return;
     }
-    rk_despertar_draw(&g_fb, rk_persona_at(persona), t_ms);
+    rk_despertar_draw(&g_fb, rk_persona_at(persona), rareza_de(rareza), t_ms);
     a_rgba();
 }
 
@@ -357,13 +373,14 @@ int rk_wasm_persona_indice(void)
 /* Un punto de la transición entre dos ánimos (ver ui/cara.h). `pct` ya viene
  * con su curva: usar cara_anim_pct. */
 EXPORTA("cara_mezcla")
-void rk_wasm_cara_mezcla(int persona, int desde, int hacia, int pct, int etapa,
+void rk_wasm_cara_mezcla(int persona, int rareza, int desde, int hacia, int pct, int etapa,
                          int cierre, uint32_t t_ms)
 {
     if (g_fb.px == NULL) {
         return;
     }
-    rk_face_draw_mezcla(&g_fb, rk_persona_at(persona), (rk_mood_t)desde, (rk_mood_t)hacia,
+    rk_face_draw_mezcla(&g_fb, rk_persona_at(persona), rareza_de(rareza),
+                        (rk_mood_t)desde, (rk_mood_t)hacia,
                         (uint8_t)(pct < 0 ? 0 : pct > 100 ? 100 : pct), RK_SEV_OK,
                         rk_face_adornos_etapa(etapa),
                         (uint8_t)(cierre < 0 ? 0 : cierre > 100 ? 100 : cierre), t_ms);
@@ -407,12 +424,12 @@ int rk_wasm_riego_escurre(uint32_t t_s)
 /* La cara mientras la acarician en el teléfono: `mimo_pct` 0..100 sobre la
  * cara del ánimo (ver rk_face_draw_mimo). Nunca llega a la maceta. */
 EXPORTA("cara_mimo")
-void rk_wasm_cara_mimo(int persona, int mood, int etapa, int mimo_pct, uint32_t t_ms)
+void rk_wasm_cara_mimo(int persona, int rareza, int mood, int etapa, int mimo_pct, uint32_t t_ms)
 {
     if (g_fb.px == NULL) {
         return;
     }
-    rk_face_draw_mimo(&g_fb, rk_persona_at(persona), (rk_mood_t)mood,
+    rk_face_draw_mimo(&g_fb, rk_persona_at(persona), rareza_de(rareza), (rk_mood_t)mood,
                       (uint8_t)(mimo_pct < 0 ? 0 : mimo_pct > 100 ? 100 : mimo_pct),
                       RK_SEV_OK, rk_face_adornos_etapa(etapa), t_ms);
     a_rgba();
@@ -421,7 +438,7 @@ void rk_wasm_cara_mimo(int persona, int mood, int etapa, int mimo_pct, uint32_t 
 /* La cara mirando a un vecino, con o sin preocupación (el invernadero de
  * la app; ver rk_face_draw_mirada). */
 EXPORTA("cara_mirada")
-void rk_wasm_cara_mirada(int persona, int mood, int etapa, int mira_x, int mira_y,
+void rk_wasm_cara_mirada(int persona, int rareza, int mood, int etapa, int mira_x, int mira_y,
                          int preocupado, uint32_t t_ms)
 {
     rk_face_mirada_t m;
@@ -431,7 +448,7 @@ void rk_wasm_cara_mirada(int persona, int mood, int etapa, int mira_x, int mira_
     m.mira_x = mira_x;
     m.mira_y = mira_y;
     m.preocupado = (uint8_t)(preocupado < 0 ? 0 : preocupado > 100 ? 100 : preocupado);
-    rk_face_draw_mirada(&g_fb, rk_persona_at(persona), (rk_mood_t)mood, RK_SEV_OK,
+    rk_face_draw_mirada(&g_fb, rk_persona_at(persona), rareza_de(rareza), (rk_mood_t)mood, RK_SEV_OK,
                         rk_face_adornos_etapa(etapa), &m, t_ms);
     a_rgba();
 }
@@ -439,12 +456,12 @@ void rk_wasm_cara_mirada(int persona, int mood, int etapa, int mira_x, int mira_
 /* La cara con los párpados forzados: lo que muestra la maceta mientras se
  * mantiene apretado el botón (los ojos se van cerrando antes de reiniciar). */
 EXPORTA("cara_cierre")
-void rk_wasm_cara_cierre(int persona, int mood, int etapa, int cierre, uint32_t t_ms)
+void rk_wasm_cara_cierre(int persona, int rareza, int mood, int etapa, int cierre, uint32_t t_ms)
 {
     if (g_fb.px == NULL) {
         return;
     }
-    rk_face_draw_cierre(&g_fb, rk_persona_at(persona), (rk_mood_t)mood, RK_SEV_OK,
+    rk_face_draw_cierre(&g_fb, rk_persona_at(persona), rareza_de(rareza), (rk_mood_t)mood, RK_SEV_OK,
                         rk_face_adornos_etapa(etapa), (uint8_t)(cierre < 0 ? 0 : cierre > 100 ? 100 : cierre), t_ms);
     a_rgba();
 }

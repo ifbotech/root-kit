@@ -1,6 +1,6 @@
 /* Regresión visual de la cara, por hash.
  *
- * Renderiza la pantalla completa de cada MODELO en cada ÁNIMO y compara un
+ * Renderiza la pantalla completa de cada ROOTI, en cada PIEL y cada ÁNIMO, y compara un
  * FNV-1a del framebuffer contra los valores fijados en golden.h. Es lo que
  * hace que un cambio involuntario —en el rig, en una paleta, en una
  * constante de layout— se note en el mismo commit y no tres semanas después
@@ -23,21 +23,24 @@ static void test_determinismo(void)
     /* Función pura del estado y del tiempo. Si esto falla hay estado
      * escondido, y entonces el simulador y la placa pueden divergir. */
     CHECK_HEX("el mismo estado produce el mismo cuadro",
-              rk_golden_cara(0, RK_MOOD_HAPPY, 1200u),
-              rk_golden_cara(0, RK_MOOD_HAPPY, 1200u));
+              rk_golden_cara(0, RK_RAREZA_COMUN, RK_MOOD_HAPPY, 1200u),
+              rk_golden_cara(0, RK_RAREZA_COMUN, RK_MOOD_HAPPY, 1200u));
 
     /* La mirada deriva y la respiración mueve la cara, así que otro instante
      * tiene que dar otro cuadro. Es la prueba de que el tiempo entra de
      * verdad en el render y la cara no está congelada. */
     CHECK_TRUE("otro instante da otro cuadro",
-               rk_golden_cara(0, RK_MOOD_HAPPY, 1200u) !=
-               rk_golden_cara(0, RK_MOOD_HAPPY, 4248u));
+               rk_golden_cara(0, RK_RAREZA_COMUN, RK_MOOD_HAPPY, 1200u) !=
+               rk_golden_cara(0, RK_RAREZA_COMUN, RK_MOOD_HAPPY, 4248u));
     CHECK_TRUE("otro animo da otro cuadro",
-               rk_golden_cara(0, RK_MOOD_HAPPY, 1200u) !=
-               rk_golden_cara(0, RK_MOOD_THIRSTY, 1200u));
-    CHECK_TRUE("otro modelo da otro cuadro",
-               rk_golden_cara(0, RK_MOOD_HAPPY, 1200u) !=
-               rk_golden_cara(1, RK_MOOD_HAPPY, 1200u));
+               rk_golden_cara(0, RK_RAREZA_COMUN, RK_MOOD_HAPPY, 1200u) !=
+               rk_golden_cara(0, RK_RAREZA_COMUN, RK_MOOD_THIRSTY, 1200u));
+    CHECK_TRUE("otro Rooti da otro cuadro",
+               rk_golden_cara(0, RK_RAREZA_COMUN, RK_MOOD_HAPPY, 1200u) !=
+               rk_golden_cara(1, RK_RAREZA_COMUN, RK_MOOD_HAPPY, 1200u));
+    CHECK_TRUE("otra piel da otro cuadro",
+               rk_golden_cara(0, RK_RAREZA_COMUN, RK_MOOD_HAPPY, 1200u) !=
+               rk_golden_cara(0, RK_RAREZA_EPICA, RK_MOOD_HAPPY, 1200u));
 }
 
 static void test_pantalla_sin_nodo(void)
@@ -49,8 +52,8 @@ static void test_pantalla_sin_nodo(void)
     CHECK_TRUE("sin nodo la pantalla no explota", true);
     rk_cara_draw(NULL, NULL, 0u);
     CHECK_TRUE("sin framebuffer tampoco", true);
-    rk_cara_dormida(NULL, 0u);
-    rk_despertar_draw(NULL, NULL, 0u);
+    rk_cara_dormida(NULL, NULL, 0u);
+    rk_despertar_draw(NULL, NULL, 0u, 0u);
     CHECK_TRUE("dormida y despertar sin framebuffer no explotan", true);
 }
 
@@ -64,7 +67,7 @@ static void test_bateria_sin_iconos(void)
 
     rk_fb_init(&fb, g_px, RK_MINI_W, RK_MINI_H);
 
-    rk_golden_nodo(&n, 0, RK_MOOD_HAPPY);
+    rk_golden_nodo(&n, 0, RK_RAREZA_COMUN, RK_MOOD_HAPPY);
     n.tel.batt_mv = 4100;
     rk_cara_draw(&fb, &n, 1200u);
     llena = rk_frame_hash(g_px, RK_MINI_PX);
@@ -78,14 +81,14 @@ static void test_bateria_sin_iconos(void)
     n.tel.batt_mv = 3100;               /* crítica */
     rk_cara_draw(&fb, &n, 1200u);
     critica = rk_frame_hash(g_px, RK_MINI_PX);
-    rk_golden_nodo(&n, 0, RK_MOOD_SLEEPING);
+    rk_golden_nodo(&n, 0, RK_RAREZA_COMUN, RK_MOOD_SLEEPING);
     rk_cara_draw(&fb, &n, 1200u);
     dormida = rk_frame_hash(g_px, RK_MINI_PX);
     CHECK_HEX("con la celda crítica la cara contenta se duerme", dormida, critica);
 
     /* Pero una planta con sed sigue pidiendo agua aunque no haya batería:
      * es lo último que conviene esconder. */
-    rk_golden_nodo(&n, 0, RK_MOOD_THIRSTY);
+    rk_golden_nodo(&n, 0, RK_RAREZA_COMUN, RK_MOOD_THIRSTY);
     rk_cara_draw(&fb, &n, 1200u);
     llena = rk_frame_hash(g_px, RK_MINI_PX);
     n.tel.batt_mv = 3100;
@@ -94,28 +97,35 @@ static void test_bateria_sin_iconos(void)
               llena, rk_frame_hash(g_px, RK_MINI_PX));
 }
 
-/* Dormida antes del cofre: no puede delatar al personaje. */
+/* Dormida antes del cofre: muestra al Rooti (es la figura que la persona
+ * tiene en la mano) pero no adelanta la piel, que el cofre todavía no
+ * sorteó. */
 static void test_dormida_no_delata(void)
 {
     rk_fb_t fb;
-    uint32_t a, b;
+    uint32_t a, b, otro;
     int i, n = RK_MINI_PX, color_de_piel = 0;
 
     rk_fb_init(&fb, g_px, RK_MINI_W, RK_MINI_H);
-    rk_cara_dormida(&fb, 1200u);
+    rk_cara_dormida(&fb, rk_persona_at(0), 1200u);
     a = rk_frame_hash(g_px, RK_MINI_PX);
     for (i = 0; i < n; i++) {
-        int k;
+        int k, r;
         for (k = 0; k < rk_persona_count; k++) {
-            if (g_px[i] == rk_persona_at(k)->fondo) {
-                color_de_piel++;
+            for (r = 0; r < (int)RK_RAREZA_COUNT; r++) {
+                if (g_px[i] == rk_persona_piel(rk_persona_at(k), r)->fondo) {
+                    color_de_piel++;
+                }
             }
         }
     }
-    CHECK_INT("la cara dormida no usa la piel de ningún personaje", 0, color_de_piel);
-    rk_cara_dormida(&fb, 2600u);
+    CHECK_INT("la cara dormida no usa el fondo de ninguna piel", 0, color_de_piel);
+    rk_cara_dormida(&fb, rk_persona_at(0), 2600u);
     b = rk_frame_hash(g_px, RK_MINI_PX);
     CHECK_TRUE("y respira: otro instante da otro cuadro", a != b);
+    rk_cara_dormida(&fb, rk_persona_at(3), 1200u);
+    otro = rk_frame_hash(g_px, RK_MINI_PX);
+    CHECK_TRUE("pero se ve quien es: otro Rooti dormido es otra cara", a != otro);
 }
 
 /* El despertar: negro, ojos cerrados, dos intentos, abiertos. */
@@ -144,15 +154,18 @@ static void test_despertar(void)
     CHECK_TRUE("los ojos se vuelven a cerrar una vez antes de abrirse", subidas > 0);
 
     rk_fb_init(&fb, g_px, RK_MINI_W, RK_MINI_H);
-    rk_despertar_draw(&fb, rk_persona_at(1), 850u);
+    rk_despertar_draw(&fb, rk_persona_at(1), RK_RAREZA_RARA, 850u);
     h_cerrado = rk_frame_hash(g_px, RK_MINI_PX);
-    rk_despertar_draw(&fb, rk_persona_at(1), 2400u);
+    rk_despertar_draw(&fb, rk_persona_at(1), RK_RAREZA_RARA, 2400u);
     h_abierto = rk_frame_hash(g_px, RK_MINI_PX);
     CHECK_TRUE("cerrado y abierto son cuadros distintos", h_cerrado != h_abierto);
+    rk_despertar_draw(&fb, rk_persona_at(1), RK_RAREZA_EPICA, 2400u);
+    CHECK_TRUE("se despierta con los colores de la piel que salio",
+               rk_frame_hash(g_px, RK_MINI_PX) != h_abierto);
 
-    rk_despertar_draw(&fb, rk_persona_at(1), 100u);
+    rk_despertar_draw(&fb, rk_persona_at(1), RK_RAREZA_RARA, 100u);
     CHECK_TRUE("en el negro no hay piel todavía",
-               g_px[RK_MINI_PX / 2] != rk_persona_at(1)->fondo);
+               g_px[RK_MINI_PX / 2] != rk_persona_piel(rk_persona_at(1), RK_RAREZA_RARA)->fondo);
 }
 
 /* Un cuadro de la transición entre dos ánimos, por hash. */
@@ -161,7 +174,7 @@ static uint32_t hash_mezcla(int persona, rk_mood_t desde, rk_mood_t hacia,
 {
     rk_fb_t fb;
     rk_fb_init(&fb, g_px, RK_MINI_W, RK_MINI_H);
-    rk_face_draw_mezcla(&fb, rk_persona_at(persona), desde, hacia, pct,
+    rk_face_draw_mezcla(&fb, rk_persona_at(persona), RK_RAREZA_COMUN, desde, hacia, pct,
                         RK_SEV_OK, 0u, 0u, t_ms);
     return rk_frame_hash(g_px, RK_MINI_PX);
 }
@@ -170,7 +183,7 @@ static uint32_t hash_cara(int persona, rk_mood_t mood, uint32_t t_ms)
 {
     rk_fb_t fb;
     rk_fb_init(&fb, g_px, RK_MINI_W, RK_MINI_H);
-    rk_face_draw(&fb, rk_persona_at(persona), mood, RK_SEV_OK, 0u, t_ms);
+    rk_face_draw(&fb, rk_persona_at(persona), RK_RAREZA_COMUN, mood, RK_SEV_OK, 0u, t_ms);
     return rk_frame_hash(g_px, RK_MINI_PX);
 }
 
@@ -267,27 +280,27 @@ static void test_transicion(void)
         rk_node_t n;
         rk_fb_t fb;
         uint32_t hx;
-        rk_golden_nodo(&n, 0, RK_MOOD_HAPPY);
+        rk_golden_nodo(&n, 0, RK_RAREZA_COMUN, RK_MOOD_HAPPY);
         rk_fb_init(&fb, g_px, RK_MINI_W, RK_MINI_H);
         memset(&an, 0, sizeof an);
         rk_cara_draw_anim(&fb, &n, &an, 0u, 5000u);
         h_a = rk_frame_hash(g_px, RK_MINI_PX);
-        CHECK_HEX("sin transicion es la cara de siempre", rk_golden_cara(0, RK_MOOD_HAPPY, 5000u), h_a);
+        CHECK_HEX("sin transicion es la cara de siempre", rk_golden_cara(0, RK_RAREZA_COMUN, RK_MOOD_HAPPY, 5000u), h_a);
         n.verdict.mood = RK_MOOD_THIRSTY;
         rk_cara_draw_anim(&fb, &n, &an, 0u, 5100u);
         hx = rk_frame_hash(g_px, RK_MINI_PX);
         rk_cara_draw_anim(&fb, &n, &an, 0u, 5100u + 100u);
         h_m = rk_frame_hash(g_px, RK_MINI_PX);
-        h_b = rk_golden_cara(0, RK_MOOD_THIRSTY, 5100u + 100u);
+        h_b = rk_golden_cara(0, RK_RAREZA_COMUN, RK_MOOD_THIRSTY, 5100u + 100u);
         CHECK_HEX("al cambiar el animo arranca desde la cara anterior",
-                  rk_golden_cara(0, RK_MOOD_HAPPY, 5100u), hx);
+                  rk_golden_cara(0, RK_RAREZA_COMUN, RK_MOOD_HAPPY, 5100u), hx);
         CHECK_TRUE("a los 100 ms no es ninguna de las dos", h_m != h_b && h_m != hash_cara(0, RK_MOOD_HAPPY, 5200u));
         rk_cara_draw_anim(&fb, &n, &an, 0u, 5100u + RK_CARA_TRANSICION_MS);
-        CHECK_HEX("al terminar es la cara nueva", rk_golden_cara(0, RK_MOOD_THIRSTY, 5100u + RK_CARA_TRANSICION_MS),
+        CHECK_HEX("al terminar es la cara nueva", rk_golden_cara(0, RK_RAREZA_COMUN, RK_MOOD_THIRSTY, 5100u + RK_CARA_TRANSICION_MS),
                   rk_frame_hash(g_px, RK_MINI_PX));
         rk_cara_draw_anim(NULL, &n, &an, 0u, 0u);
         rk_cara_draw_anim(&fb, NULL, &an, 0u, 0u);
-        rk_cara_anim_draw(&fb, NULL, NULL, RK_SEV_OK, 0u, 0u, 0u);
+        rk_cara_anim_draw(&fb, NULL, RK_RAREZA_COMUN, NULL, RK_SEV_OK, 0u, 0u, 0u);
         CHECK_TRUE("NULL no explota", true);
     }
 }
@@ -296,7 +309,7 @@ static uint32_t hash_mimo(int persona, rk_mood_t mood, uint8_t pct, uint32_t t_m
 {
     rk_fb_t fb;
     rk_fb_init(&fb, g_px, RK_MINI_W, RK_MINI_H);
-    rk_face_draw_mimo(&fb, rk_persona_at(persona), mood, pct, RK_SEV_OK, 0u, t_ms);
+    rk_face_draw_mimo(&fb, rk_persona_at(persona), RK_RAREZA_COMUN, mood, pct, RK_SEV_OK, 0u, t_ms);
     return rk_frame_hash(g_px, RK_MINI_PX);
 }
 
@@ -329,7 +342,7 @@ static void test_mimo(void)
     CHECK_TRUE("ronronea", h100 != hb);
     CHECK_TRUE("sobre contento cierra los ojos", h100 != hash_cara(0, RK_MOOD_HAPPY, 1200u));
     CHECK_HEX("mas de 100 satura", h100, hash_mimo(0, RK_MOOD_HAPPY, 250u, 1200u));
-    rk_face_draw_mimo(NULL, NULL, RK_MOOD_HAPPY, 100u, RK_SEV_OK, 0u, 0u);
+    rk_face_draw_mimo(NULL, NULL, 0u, RK_MOOD_HAPPY, 100u, RK_SEV_OK, 0u, 0u);
     CHECK_TRUE("NULL no explota", true);
 }
 
@@ -341,7 +354,7 @@ static uint32_t hash_mirada(int persona, rk_mood_t mood, int mx, int my, int pre
     m.mira_y = my;
     m.preocupado = (uint8_t)preocupado;
     rk_fb_init(&fb, g_px, RK_MINI_W, RK_MINI_H);
-    rk_face_draw_mirada(&fb, rk_persona_at(persona), mood, RK_SEV_OK, 0u, &m, t_ms);
+    rk_face_draw_mirada(&fb, rk_persona_at(persona), RK_RAREZA_COMUN, mood, RK_SEV_OK, 0u, &m, t_ms);
     return rk_frame_hash(g_px, RK_MINI_PX);
 }
 
@@ -374,7 +387,7 @@ static void test_mirada(void)
               hash_mirada(0, RK_MOOD_HAPPY, 0, 0, 250, 1200u));
     CHECK_TRUE("mirar a la izquierda y a la derecha es distinto",
                hash_mirada(1, RK_MOOD_HAPPY, -80, 0, 0, 1200u) != hash_mirada(1, RK_MOOD_HAPPY, 80, 0, 0, 1200u));
-    rk_face_draw_mirada(NULL, NULL, RK_MOOD_HAPPY, RK_SEV_OK, 0u, NULL, 0u);
+    rk_face_draw_mirada(NULL, NULL, 0u, RK_MOOD_HAPPY, RK_SEV_OK, 0u, NULL, 0u);
     CHECK_TRUE("NULL no explota", true);
 }
 
@@ -383,14 +396,15 @@ static void test_golden(void)
     int i;
     char lbl[96];
 
-    CHECK_INT("la tabla cubre todos los modelos y animos",
-              rk_persona_count * RK_MOOD_COUNT, RK_GOLDEN_COUNT);
+    CHECK_INT("la tabla cubre todos los Rooties, pieles y animos",
+              rk_persona_count * (int)RK_RAREZA_COUNT * RK_MOOD_COUNT, RK_GOLDEN_COUNT);
 
     for (i = 0; i < RK_GOLDEN_COUNT; i++) {
-        uint32_t got = rk_golden_cara(RK_GOLDEN[i].persona,
+        uint32_t got = rk_golden_cara(RK_GOLDEN[i].persona, RK_GOLDEN[i].rareza,
                                       RK_GOLDEN[i].mood, RK_GOLDEN[i].t_ms);
-        snprintf(lbl, sizeof lbl, "referencia %s / %s",
+        snprintf(lbl, sizeof lbl, "referencia %s / %s / %s",
                  rk_persona_at(RK_GOLDEN[i].persona)->nombre,
+                 rk_rareza_nombre((rk_rareza_t)RK_GOLDEN[i].rareza),
                  rk_mood_name(RK_GOLDEN[i].mood));
         CHECK_HEX(lbl, RK_GOLDEN[i].hash, got);
     }

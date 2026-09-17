@@ -7,7 +7,7 @@
  *
  * El aparato manda quién es, en qué estado está y las lecturas que tiene
  * pendientes. La nube contesta todo lo que el aparato necesita saber: si
- * está vinculado, si el cofre se abrió, qué personaje es, cómo se llama la
+ * está vinculado, si el cofre se abrió, qué Rooti es y qué piel le tocó, cómo se llama la
  * planta, los umbrales de la especie y cada cuánto volver a preguntar.
  *
  * Un pedido y no cinco endpoints porque cada conexión TLS cuesta casi un
@@ -77,6 +77,9 @@ typedef struct {
     bool     vinculado;
     bool     revelado;
     char     persona[16];
+    /* La piel que salió del cofre. Sólo viene con el cofre abierto. */
+    bool     hay_rareza;
+    uint8_t  rareza;         /* rk_rareza_t                               */
     char     nombre[24];
     bool     hay_especie;
     rk_especie_guardada_t especie;

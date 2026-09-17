@@ -1,8 +1,9 @@
 # ROOTKIT — entrada única al proyecto.
 #
 #   make test       las pruebas del firmware (no necesitan placa)
-#   make sim        los ocho Rooties en una ventana, en vivo
-#   make sheet      los 8 Rooties x 11 animos
+#   make sim        los cinco Rooties en una ventana, en vivo
+#   make sheet      los 5 Rooties x 11 animos
+#   make pieles     las 3 pieles de cada Rooti (comun, rara, epica)
 #   make etapas     las 5 etapas de crecimiento, por personaje
 #   make despertar  los ojos se abren, por personaje
 #   make transicion el cambio de animo, cuadro a cuadro
@@ -17,19 +18,20 @@
 #
 # La app, la nube y el emulador viven en github.com/ifbotech/root-lab.
 
-.PHONY: all test sim sheet etapas despertar pantallas capturas wasm placa bench golden verify clean
+.PHONY: all test sim sheet pieles etapas despertar pantallas capturas wasm placa bench golden verify clean
 
 all: test
 
 test:
 	@$(MAKE) -C firmware --no-print-directory test
 
-sim sheet etapas despertar pantallas wasm bench golden:
+sim sheet pieles etapas despertar pantallas wasm bench golden:
 	@$(MAKE) -C firmware --no-print-directory $@
 
 capturas:
-	@$(MAKE) -C firmware --no-print-directory sheet etapas despertar transicion pantallas
+	@$(MAKE) -C firmware --no-print-directory sheet pieles etapas despertar transicion pantallas
 	@python3 tools/bmp2png.py firmware/build/sheet.bmp tools/preview/sheet.png
+	@python3 tools/bmp2png.py firmware/build/pieles.bmp tools/preview/pieles.png
 	@python3 tools/bmp2png.py firmware/build/etapas.bmp tools/preview/etapas.png
 	@python3 tools/bmp2png.py firmware/build/despertar.bmp tools/preview/despertar.png
 	@python3 tools/bmp2png.py firmware/build/transicion.bmp tools/preview/transicion.png

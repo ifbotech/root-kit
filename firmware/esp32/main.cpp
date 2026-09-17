@@ -123,6 +123,7 @@ static void aplicar_persona(void)
 {
     const rk_persona_t *p = rk_persona_find(A.persona);
     N.persona = p != NULL ? p : rk_persona_at(0);
+    N.rareza = A.rareza < RK_RAREZA_COUNT ? A.rareza : RK_RAREZA_COMUN;
 }
 
 static void aplicar_especie(void)
@@ -256,6 +257,13 @@ static void procesar_respuesta(uint32_t ahora)
     if (R.vinculado) {
         if (R.persona[0] != '\0' && strcmp(R.persona, A.persona) != 0) {
             strncpy(A.persona, R.persona, sizeof A.persona - 1);
+            aplicar_persona();
+            cambio = true;
+        }
+        /* La piel que salió del cofre: desde este momento la pantalla se
+         * pinta con su paleta. */
+        if (R.revelado && R.hay_rareza && R.rareza != A.rareza) {
+            A.rareza = R.rareza;
             aplicar_persona();
             cambio = true;
         }
@@ -398,11 +406,14 @@ static void persistir(void)
         E.sucio = false;
         A.enlace = E.nvs;
         almacen_guardar_enlace(&A);
-        /* Desvinculado: la planta y el nombre eran del dueño anterior. La
-         * persona no, que es la carcasa. */
-        if (!E.nvs.vinculado && (A.hay_especie || A.nombre[0] != '\0')) {
+        /* Desvinculado: la planta, el nombre y la piel eran del dueño
+         * anterior (el próximo abre su propio cofre). La persona no, que es
+         * la figura. */
+        if (!E.nvs.vinculado && (A.hay_especie || A.nombre[0] != '\0' || A.rareza != 0u)) {
             A.hay_especie = false;
             A.nombre[0] = '\0';
+            A.rareza = 0u;
+            aplicar_persona();
             rk_bond_init(&A.vinculo);
             N.bond = A.vinculo;
             aplicar_especie();
@@ -458,10 +469,10 @@ static void dibujar(uint32_t ahora, uint32_t apretado_ms)
         break;
     }
     case RK_PANT_DORMIDA:
-        rk_cara_dormida(fb, ahora);
+        rk_cara_dormida(fb, N.persona, ahora);
         break;
     case RK_PANT_DESPERTAR:
-        rk_despertar_draw(fb, N.persona, rk_enlace_en_estado_ms(&E, ahora));
+        rk_despertar_draw(fb, N.persona, N.rareza, rk_enlace_en_estado_ms(&E, ahora));
         break;
     case RK_PANT_CARA:
     default: {
@@ -520,9 +531,9 @@ void setup(void)
 
     g_t_medir = 0u;
     g_t_actividad = energia_causa() == RK_DESPERTAR_TIMER ? (uint32_t)(0u - PANTALLA_OCIOSA_MS) : millis();
-    Serial.printf("\nROOTKIT %s  %s  %s  id %s  persona %s  estado %s\n", RK_FW_VERSION,
+    Serial.printf("\nROOTKIT %s  %s  %s  id %s  persona %s (%s)  estado %s\n", RK_FW_VERSION,
                   RK_PLACA_NOMBRE, RK_PANTALLA_NOMBRE, g_id, N.persona->id,
-                  rk_enlace_nombre(E.estado));
+                  rk_rareza_id((rk_rareza_t)N.rareza), rk_enlace_nombre(E.estado));
 }
 
 void loop(void)

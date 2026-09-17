@@ -1,6 +1,7 @@
 #include "nube.h"
 #include "json.h"
 #include "../core/mood.h"
+#include "../core/persona.h"
 #include <string.h>
 
 size_t rk_nube_armar_sync(char *buf, size_t cap, const rk_nube_yo_t *yo,
@@ -121,6 +122,18 @@ bool rk_nube_parsear(const char *json, rk_nube_resp_t *r)
     rk_json_bool(json, "vinculado", &r->vinculado);
     rk_json_bool(json, "revelado", &r->revelado);
     rk_json_texto(json, "persona", r->persona, sizeof r->persona);
+    {
+        /* Una rareza que el firmware no conoce se ignora: la maceta sigue
+         * con la piel que tenía, en vez de inventar una. */
+        char rar[12];
+        if (rk_json_texto(json, "rareza", rar, sizeof rar)) {
+            int k = rk_rareza_parse(rar);
+            if (k >= 0) {
+                r->rareza = (uint8_t)k;
+                r->hay_rareza = true;
+            }
+        }
+    }
     rk_json_texto(json, "nombre", r->nombre, sizeof r->nombre);
 
     if (rk_json_hay(json, "especie")) {

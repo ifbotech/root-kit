@@ -1,8 +1,9 @@
 # ROOTKIT — build del firmware, los tests y el simulador de escritorio.
 #
 #   make test     corre todas las suites (no necesita SDL ni hardware)
-#   make sim      los seis modelos en una ventana, en vivo
-#   make sheet    los 8 Rooties x 11 animos  -> build/sheet.bmp
+#   make sim      los cinco Rooties en una ventana, en vivo
+#   make sheet    los 5 Rooties x 11 animos  -> build/sheet.bmp
+#   make pieles   los 5 Rooties x 3 pieles   -> build/pieles.bmp
 #   make etapas   las 5 etapas de crecimiento -> build/etapas.bmp
 #   make despertar los ojos se abren          -> build/despertar.bmp
 #   make transicion el cambio de animo, cuadro a cuadro -> build/transicion.bmp
@@ -43,7 +44,7 @@ ifneq ($(strip $(SDL_LIBS)),)
   SDL_DEF = -DRK_WITH_SDL
 endif
 
-.PHONY: all test sim sheet etapas despertar transicion pantallas wasm bench golden clean
+.PHONY: all test sim sheet pieles etapas despertar transicion pantallas wasm bench golden clean
 
 all: test
 
@@ -78,6 +79,9 @@ $(BUILD)/rootkit_sim: $(LIB) sim/main.c $(HEADERS)
 
 sheet: $(BUILD)/rootkit_sim
 	@./$(BUILD)/rootkit_sim --sheet $(BUILD)/sheet.bmp
+
+pieles: $(BUILD)/rootkit_sim
+	@./$(BUILD)/rootkit_sim --pieles $(BUILD)/pieles.bmp
 
 etapas: $(BUILD)/rootkit_sim
 	@./$(BUILD)/rootkit_sim --etapas $(BUILD)/etapas.bmp

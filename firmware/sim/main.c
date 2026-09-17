@@ -1,9 +1,10 @@
 /* main.c — simulador de escritorio del ROOTKIT.
  *
- *   ./build/rootkit_sim               los ocho modelos en vivo, lado a lado
- *   ./build/rootkit_sim --sheet F     8 modelos x 11 animos
+ *   ./build/rootkit_sim               los cinco Rooties en vivo, lado a lado
+ *   ./build/rootkit_sim --sheet F     5 Rooties x 11 animos, con la piel comun
+ *   ./build/rootkit_sim --pieles F    5 Rooties x 3 pieles, contentos y con sed
  *   ./build/rootkit_sim --etapas F    las 5 etapas de crecimiento
- *   ./build/rootkit_sim --despertar F los ojos se abren, por modelo
+ *   ./build/rootkit_sim --despertar F los ojos se abren, por Rooti
  *   ./build/rootkit_sim --transicion F de contento a sediento, cuadro a cuadro
  *   ./build/rootkit_sim --shot F [M] [T]  un cuadro suelto
  *   ./build/rootkit_sim --pantallas F QR, dormida, despertar y cara, en los dos paneles
@@ -13,10 +14,10 @@
  * Todos los modos de captura menos el interactivo funcionan sin SDL: sirven
  * para revisar el arte en cualquier lado y para dejar capturas en el repo.
  *
- * LA VENTANA MUESTRA LOS SEIS MODELOS A LA VEZ
+ * LA VENTANA MUESTRA LOS CINCO ROOTIES A LA VEZ
  *
- * Es lo unico que permite juzgar lo que hay que juzgar: si los ocho se leen
- * como el MISMO producto y como SEIS personajes distintos al mismo tiempo.
+ * Es lo unico que permite juzgar lo que hay que juzgar: si los cinco se leen
+ * como el MISMO producto y como CINCO personajes distintos al mismo tiempo.
  * Con una cara por vez las dos cosas son imposibles de evaluar, porque el
  * parecido y la diferencia solo existen en comparacion.
  */
@@ -108,8 +109,8 @@ static env_t          g_env[RK_MAX_NODES];
 static rk_cara_anim_t g_anim[RK_MAX_NODES];   /* la transición de cada cara */
 static rk_mood_t   g_force = RK_MOOD_COUNT;   /* COUNT = no forzar */
 
-/* Un nodo por modelo: la ventana muestra los ocho a la vez, cada uno con su
- * planta y su vinculo de distinta edad. */
+/* Un nodo por Rooti: la ventana muestra los cinco a la vez, cada uno con su
+ * planta, una piel distinta y su vinculo de distinta edad. */
 static void world_init(void)
 {
     static const struct {
@@ -137,6 +138,7 @@ static void world_init(void)
         if (k < 0) {
             continue;
         }
+        g_kit.nodes[k].rareza = (uint8_t)(i % RK_RAREZA_COUNT);
         for (d = 0; d < SEED[i].dias; d++) {
             rk_bond_dia(&g_kit.nodes[k].bond, true);
         }
@@ -246,7 +248,7 @@ static int hoja(const char *path, int n, int cols, int w, int h,
     return 0;
 }
 
-/* --- 8 modelos x 11 animos: la lamina que decide si el rig funciona ------ */
+/* --- 5 Rooties x 11 animos: la lamina que decide si el rig funciona ------ */
 static void cel_sheet(rk_color_t *px, int i, uint32_t t_ms)
 {
     rk_fb_t fb;
@@ -257,7 +259,7 @@ static void cel_sheet(rk_color_t *px, int i, uint32_t t_ms)
                         ? RK_SEV_OK : RK_SEV_WATCH;
 
     rk_fb_init(&fb, px, RK_MINI_W, RK_MINI_H);
-    rk_face_draw(&fb, rk_persona_at(persona), (rk_mood_t)mood, sev, 0u, t_ms);
+    rk_face_draw(&fb, rk_persona_at(persona), RK_RAREZA_COMUN, (rk_mood_t)mood, sev, 0u, t_ms);
 }
 
 static const char *et_sheet(int i)
@@ -267,7 +269,40 @@ static const char *et_sheet(int i)
            : rk_mood_name((rk_mood_t)(i % RK_MOOD_COUNT));
 }
 
-/* --- las cinco etapas, por modelo ---------------------------------------- */
+/* --- las tres pieles de cada Rooti ------------------------------------------
+ * Por fila un Rooti; por columna, contento y con sed en cada piel. Es la
+ * lamina para revisar que las quince paletas se lean. */
+#define PIELES_COLS (RK_RAREZA_COUNT * 2)
+
+static void cel_pieles(rk_color_t *px, int i, uint32_t t_ms)
+{
+    rk_fb_t fb;
+    int persona = i / PIELES_COLS;
+    int col = i % PIELES_COLS;
+    rk_mood_t m = (col % 2 == 0) ? RK_MOOD_HAPPY : RK_MOOD_THIRSTY;
+
+    rk_fb_init(&fb, px, RK_MINI_W, RK_MINI_H);
+    rk_face_draw(&fb, rk_persona_at(persona), (uint8_t)(col / 2), m,
+                 m == RK_MOOD_HAPPY ? RK_SEV_OK : RK_SEV_URGENT, 0u, t_ms);
+}
+
+static const char *et_pieles(int i)
+{
+    static char lbl[32];
+    int col = i % PIELES_COLS;
+    if (col == 0) {
+        snprintf(lbl, sizeof lbl, "%s COMUN", rk_persona_at(i / PIELES_COLS)->nombre);
+        return lbl;
+    }
+    return (col % 2 == 0) ? rk_rareza_nombre((rk_rareza_t)(col / 2)) : "SED";
+}
+
+static rk_color_t bd_pieles(int i)
+{
+    return rk_rareza_color((rk_rareza_t)((i % PIELES_COLS) / 2));
+}
+
+/* --- las cinco etapas, por Rooti ------------------------------------------ */
 static void cel_etapas(rk_color_t *px, int i, uint32_t t_ms)
 {
     rk_fb_t fb;
@@ -275,7 +310,7 @@ static void cel_etapas(rk_color_t *px, int i, uint32_t t_ms)
     int etapa   = i % RK_ETAPA_COUNT;
 
     rk_fb_init(&fb, px, RK_MINI_W, RK_MINI_H);
-    rk_face_draw(&fb, rk_persona_at(persona), RK_MOOD_HAPPY, RK_SEV_OK,
+    rk_face_draw(&fb, rk_persona_at(persona), RK_RAREZA_COMUN, RK_MOOD_HAPPY, RK_SEV_OK,
                  rk_face_adornos_etapa(etapa), t_ms);
 }
 
@@ -303,7 +338,8 @@ static void cel_transicion(rk_color_t *px, int i, uint32_t t_ms)
     rk_cara_anim_iniciar(&a, RK_MOOD_HAPPY, 1200u);
     rk_cara_anim_animo(&a, RK_MOOD_THIRSTY, 1200u);
     rk_fb_init(&fb, px, RK_MINI_W, RK_MINI_H);
-    rk_cara_anim_draw(&fb, rk_persona_at(persona), &a, RK_SEV_URGENT, 0u, 0u, 1200u + pasado);
+    rk_cara_anim_draw(&fb, rk_persona_at(persona), RK_RAREZA_COMUN, &a, RK_SEV_URGENT, 0u, 0u,
+                      1200u + pasado);
 }
 
 static const char *et_transicion(int i)
@@ -317,6 +353,7 @@ static const char *et_transicion(int i)
 }
 
 /* --- el despertar --------------------------------------------------------- */
+/* Cada Rooti se despierta con una piel distinta, para ver las tres. */
 static const uint32_t MOM[6] = { 250u, 800u, 1150u, 1400u, 1700u, 2400u };
 
 static void cel_despertar(rk_color_t *px, int i, uint32_t t_ms)
@@ -324,7 +361,7 @@ static void cel_despertar(rk_color_t *px, int i, uint32_t t_ms)
     rk_fb_t fb;
     (void)t_ms;
     rk_fb_init(&fb, px, RK_MINI_W, RK_MINI_H);
-    rk_despertar_draw(&fb, rk_persona_at(i / 6), MOM[i % 6]);
+    rk_despertar_draw(&fb, rk_persona_at(i / 6), (uint8_t)((i / 6) % RK_RAREZA_COUNT), MOM[i % 6]);
 }
 
 static const char *et_despertar(int i)
@@ -334,7 +371,7 @@ static const char *et_despertar(int i)
 
 static rk_color_t bd_despertar(int i)
 {
-    return rk_rarity_color(rk_persona_at(i / 6)->rareza);
+    return rk_rareza_color((rk_rareza_t)((i / 6) % RK_RAREZA_COUNT));
 }
 
 /* --- un cuadro suelto ----------------------------------------------------- */
@@ -401,7 +438,7 @@ static int do_pantallas(const char *path)
         if (i < 3) {
             rk_qr_draw(&fb, &q, (rk_qr_estado_t)i, 300u);
         } else {
-            rk_cara_dormida(&fb, 1200u);
+            rk_cara_dormida(&fb, n->persona, 1200u);
         }
         pegar(&big, chico, RK_MINI_W, RK_MINI_H, ox, PAD + 12);
         rk_text(&big, ox, PAD, ET[i], RK_RGB(227, 165, 74), 1);
@@ -412,8 +449,8 @@ static int do_pantallas(const char *path)
         rk_fb_init(&fb, grande, RK_PRIME_W, RK_PRIME_H);
         switch (i) {
         case 0:  rk_qr_draw(&fb, &q, RK_QR_EN_LINEA, 300u); break;
-        case 1:  rk_cara_dormida(&fb, 1200u); break;
-        case 2:  rk_despertar_draw(&fb, n->persona, 1150u); break;
+        case 1:  rk_cara_dormida(&fb, n->persona, 1200u); break;
+        case 2:  rk_despertar_draw(&fb, n->persona, n->rareza, 1150u); break;
         default: rk_cara_draw(&fb, n, 1200u); break;
         }
         pegar(&big, grande, RK_PRIME_W, RK_PRIME_H, ox, oy);
@@ -431,15 +468,15 @@ static int do_pantallas(const char *path)
 }
 
 /* --- caras sueltas para la app ---------------------------------------------
- * Una imagen por modelo y ánimo, más la cara dormida. La app las usa donde
- * no corre el renderer en WebAssembly: íconos de notificación, la tarjeta
- * para compartir y la primera pintada antes de que cargue el módulo. */
+ * Una imagen por Rooti, piel y ánimo, más cada Rooti dormido. La app las usa
+ * donde no corre el renderer en WebAssembly: íconos de notificación y la
+ * primera pintada antes de que cargue el módulo. */
 static int do_sprites(const char *dir, int lado)
 {
     rk_color_t *px;
     rk_fb_t fb;
     char path[512];
-    int p, m;
+    int p, m, r;
 
     if (lado < 32 || lado > 512) {
         fprintf(stderr, "lado fuera de rango: %d\n", lado);
@@ -451,23 +488,26 @@ static int do_sprites(const char *dir, int lado)
     }
     rk_fb_init(&fb, px, lado, lado);
     for (p = 0; p < rk_persona_count; p++) {
-        for (m = 0; m < RK_MOOD_COUNT; m++) {
-            /* Un instante sin parpadeo ni gesto de alegría: la foto carnet. */
-            rk_face_draw(&fb, rk_persona_at(p), (rk_mood_t)m, RK_SEV_OK,
-                         rk_face_adornos_etapa(RK_ETAPA_JOVEN), 1200u);
-            snprintf(path, sizeof path, "%s/%s-%s.bmp", dir, rk_persona_at(p)->id,
-                     rk_mood_name((rk_mood_t)m));
-            if (save_bmp(path, px, lado, lado) != 0) {
-                fprintf(stderr, "no pude escribir %s\n", path);
-                free(px);
-                return 1;
+        for (r = 0; r < (int)RK_RAREZA_COUNT; r++) {
+            for (m = 0; m < RK_MOOD_COUNT; m++) {
+                /* Un instante sin parpadeo ni gesto de alegría: la foto carnet. */
+                rk_face_draw(&fb, rk_persona_at(p), (uint8_t)r, (rk_mood_t)m, RK_SEV_OK,
+                             0u, 1200u);
+                snprintf(path, sizeof path, "%s/%s-%s-%s.bmp", dir, rk_persona_at(p)->id,
+                         rk_rareza_id((rk_rareza_t)r), rk_mood_name((rk_mood_t)m));
+                if (save_bmp(path, px, lado, lado) != 0) {
+                    fprintf(stderr, "no pude escribir %s\n", path);
+                    free(px);
+                    return 1;
+                }
             }
         }
+        rk_cara_dormida(&fb, rk_persona_at(p), 1200u);
+        snprintf(path, sizeof path, "%s/%s-dormido.bmp", dir, rk_persona_at(p)->id);
+        save_bmp(path, px, lado, lado);
     }
-    rk_cara_dormida(&fb, 1200u);
-    snprintf(path, sizeof path, "%s/incognito.bmp", dir);
-    save_bmp(path, px, lado, lado);
-    printf("%d caras de %dx%d -> %s\n", rk_persona_count * RK_MOOD_COUNT + 1, lado, lado, dir);
+    printf("%d caras de %dx%d -> %s\n",
+           rk_persona_count * ((int)RK_RAREZA_COUNT * RK_MOOD_COUNT + 1), lado, lado, dir);
     free(px);
     return 0;
 }
@@ -501,12 +541,12 @@ static int do_bench(void)
         const rk_persona_t *p = rk_persona_at(k);
 
         for (i = 0; i < 100; i++) {
-            rk_face_draw(&fb, p, RK_MOOD_HAPPY, RK_SEV_OK, 0u,
+            rk_face_draw(&fb, p, RK_RAREZA_EPICA, RK_MOOD_HAPPY, RK_SEV_OK, 0u,
                          (uint32_t)i * 37u);
         }
         t0 = ahora_ms();
         for (i = 0; i < BENCH_N; i++) {
-            rk_face_draw(&fb, p, RK_MOOD_HAPPY, RK_SEV_OK, 0u,
+            rk_face_draw(&fb, p, RK_RAREZA_EPICA, RK_MOOD_HAPPY, RK_SEV_OK, 0u,
                          (uint32_t)i * 37u);
         }
         ms = (ahora_ms() - t0) / BENCH_N;
@@ -540,7 +580,7 @@ static int do_bench(void)
 
     t0 = ahora_ms();
     for (i = 0; i < BENCH_N; i++) {
-        rk_despertar_draw(&fb, rk_persona_at(5), (uint32_t)(i * 3u) % RK_DESP_FIN_MS);
+        rk_despertar_draw(&fb, rk_persona_at(4), RK_RAREZA_EPICA, (uint32_t)(i * 3u) % RK_DESP_FIN_MS);
     }
     printf("%-26s %11.4f\n", "un cuadro del despertar",
            (ahora_ms() - t0) / BENCH_N);
@@ -582,7 +622,7 @@ static int run_window(void)
         return 1;
     }
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
-    win = SDL_CreateWindow("ROOTKIT / los ocho Rooties",
+    win = SDL_CreateWindow("ROOTKIT / los cinco Rooties",
                            SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                            LW * SIM_ESC, LH * SIM_ESC, SDL_WINDOW_SHOWN);
     ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED);
@@ -598,7 +638,7 @@ static int run_window(void)
     world_init();
     t0 = SDL_GetTicks();
 
-    puts("teclas: 1-6 seleccionar | W regar | M ciclar animo | R soltar animo");
+    puts("teclas: 1-5 seleccionar | W regar | M ciclar animo | R soltar animo | P piel");
     puts("        G primer encendido del seleccionado | +/- velocidad");
     puts("        S captura | ESC salir");
 
@@ -613,9 +653,11 @@ static int run_window(void)
                 SDL_Keycode k = ev.key.keysym.sym;
                 if (k == SDLK_ESCAPE || k == SDLK_q) {
                     running = 0;
-                } else if (k >= SDLK_1 && k <= SDLK_6) {
+                } else if (k >= SDLK_1 && k <= SDLK_5) {
                     int nn = k - SDLK_1;
                     if (nn < g_kit.count) { sel = nn; }
+                } else if (k == SDLK_p) {
+                    g_kit.nodes[sel].rareza = (uint8_t)((g_kit.nodes[sel].rareza + 1u) % RK_RAREZA_COUNT);
                 } else if (k == SDLK_w) {
                     g_env[sel].soil_x10 += 320;
                     if (g_env[sel].soil_x10 > 1000) {
@@ -652,7 +694,7 @@ static int run_window(void)
             int oy = GAP + (i / COLS) * (RK_MINI_H + GAP + 12);
 
             if (rev && i == sel && !rk_despertar_termino(t_ms - rev_t0)) {
-                rk_despertar_draw(&fb, g_kit.nodes[i].persona, t_ms - rev_t0);
+                rk_despertar_draw(&fb, g_kit.nodes[i].persona, g_kit.nodes[i].rareza, t_ms - rev_t0);
             } else {
                 if (i == sel) { rev = 0; }
                 rk_cara_draw_anim(&fb, &g_kit.nodes[i], &g_anim[i], 0u, t_ms);
@@ -692,6 +734,10 @@ int main(int argc, char **argv)
     if (argc >= 3 && strcmp(argv[1], "--sheet") == 0) {
         return hoja(argv[2], rk_persona_count * RK_MOOD_COUNT, RK_MOOD_COUNT,
                     RK_MINI_W, RK_MINI_H, cel_sheet, et_sheet, NULL);
+    }
+    if (argc >= 3 && strcmp(argv[1], "--pieles") == 0) {
+        return hoja(argv[2], rk_persona_count * PIELES_COLS, PIELES_COLS,
+                    RK_MINI_W, RK_MINI_H, cel_pieles, et_pieles, bd_pieles);
     }
     if (argc >= 3 && strcmp(argv[1], "--etapas") == 0) {
         return hoja(argv[2], rk_persona_count * RK_ETAPA_COUNT,

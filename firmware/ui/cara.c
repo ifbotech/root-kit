@@ -3,19 +3,10 @@
 #include "../nodo/power.h"
 #include <stddef.h>
 
-/* Un personaje sin personaje: ojos redondos, sin cejas ni boca, en grises
- * tibios. Es lo que se ve entre el vínculo y el cofre. */
-const rk_persona_t rk_persona_incognita = {
-    "incognito", "?", "", "Todavía no sabe quién es.",
-    RK_RAR_COMUN,
-    RK_OJOS_REDONDOS, 15, 15, 21, 0,
-    RK_CEJA_NINGUNA, 0, 0,
-    RK_BOCA_NINGUNA, 0,
-    0u,
-    RK_ACC_NINGUNO,
-    RK_RGB( 38,  40,  46), RK_RGB( 30,  32,  38),
-    RK_RGB(150, 154, 166), RK_RGB(210, 214, 222),
-    RK_RGB(120, 124, 136), RK_RGB(210, 214, 222)
+/* Grises tibios sobre un fondo oscuro: ninguna piel de la tabla se parece.
+ * Es lo que se ve entre el vínculo y el cofre. */
+const rk_piel_t rk_piel_dormida = {
+    "Dormida", RK_HEX(0x2B2F36), RK_HEX(0x9CA3AE), RK_HEX(0x5D636C), RK_HEX(0x4A4F57), 0u
 };
 
 rk_mood_t rk_cara_animo_de(const rk_node_t *n)
@@ -37,8 +28,8 @@ rk_mood_t rk_cara_animo_de(const rk_node_t *n)
     return mood;
 }
 
-/* Lo que el crecimiento desbloqueó: el modelo te tocó en el cofre, pero el
- * aura y la corona se ganan cuidando la planta. */
+/* Lo que el crecimiento desbloqueó: la piel salió del cofre, pero el aura y
+ * la corona también se ganan cuidando la planta. */
 static uint8_t adornos_de(const rk_node_t *n)
 {
     return rk_face_adornos_etapa((int)rk_stage_from_bond(&n->bond));
@@ -50,19 +41,19 @@ void rk_cara_draw(rk_fb_t *fb, const rk_node_t *n, uint32_t t_ms)
         return;
     }
     if (n == NULL) {
-        rk_face_draw(fb, NULL, RK_MOOD_UNKNOWN, RK_SEV_OK, 0u, t_ms);
+        rk_face_draw(fb, NULL, RK_RAREZA_COMUN, RK_MOOD_UNKNOWN, RK_SEV_OK, 0u, t_ms);
         return;
     }
-    rk_face_draw(fb, n->persona, rk_cara_animo_de(n), n->verdict.severity,
+    rk_face_draw(fb, n->persona, n->rareza, rk_cara_animo_de(n), n->verdict.severity,
                  adornos_de(n), t_ms);
 }
 
-void rk_cara_dormida(rk_fb_t *fb, uint32_t t_ms)
+void rk_cara_dormida(rk_fb_t *fb, const rk_persona_t *p, uint32_t t_ms)
 {
     if (fb == NULL) {
         return;
     }
-    rk_face_draw(fb, &rk_persona_incognita, RK_MOOD_SLEEPING, RK_SEV_OK, 0u, t_ms);
+    rk_face_draw_con_piel(fb, p, &rk_piel_dormida, RK_MOOD_SLEEPING, RK_SEV_OK, 0u, t_ms);
 }
 
 /* ------------------------------------------------------- la transición --- */
@@ -118,18 +109,18 @@ bool rk_cara_anim_en_curso(const rk_cara_anim_t *a, uint32_t t_ms)
     return rk_cara_anim_pct(a, t_ms) < 100u;
 }
 
-void rk_cara_anim_draw(rk_fb_t *fb, const rk_persona_t *p, const rk_cara_anim_t *a,
-                       rk_severity_t sev, uint8_t adornos_extra, uint8_t cierre,
-                       uint32_t t_ms)
+void rk_cara_anim_draw(rk_fb_t *fb, const rk_persona_t *p, uint8_t rareza,
+                       const rk_cara_anim_t *a, rk_severity_t sev,
+                       uint8_t adornos_extra, uint8_t cierre, uint32_t t_ms)
 {
     if (fb == NULL) {
         return;
     }
     if (a == NULL || !a->iniciada) {
-        rk_face_draw_cierre(fb, p, RK_MOOD_UNKNOWN, sev, adornos_extra, cierre, t_ms);
+        rk_face_draw_cierre(fb, p, rareza, RK_MOOD_UNKNOWN, sev, adornos_extra, cierre, t_ms);
         return;
     }
-    rk_face_draw_mezcla(fb, p, (rk_mood_t)a->desde, (rk_mood_t)a->hacia,
+    rk_face_draw_mezcla(fb, p, rareza, (rk_mood_t)a->desde, (rk_mood_t)a->hacia,
                         rk_cara_anim_pct(a, t_ms), sev, adornos_extra, cierre, t_ms);
 }
 
@@ -140,9 +131,10 @@ void rk_cara_draw_anim(rk_fb_t *fb, const rk_node_t *n, rk_cara_anim_t *a,
         return;
     }
     if (n == NULL) {
-        rk_face_draw_cierre(fb, NULL, RK_MOOD_UNKNOWN, RK_SEV_OK, 0u, cierre, t_ms);
+        rk_face_draw_cierre(fb, NULL, RK_RAREZA_COMUN, RK_MOOD_UNKNOWN, RK_SEV_OK, 0u, cierre, t_ms);
         return;
     }
     rk_cara_anim_animo(a, rk_cara_animo_de(n), t_ms);
-    rk_cara_anim_draw(fb, n->persona, a, n->verdict.severity, adornos_de(n), cierre, t_ms);
+    rk_cara_anim_draw(fb, n->persona, n->rareza, a, n->verdict.severity, adornos_de(n),
+                      cierre, t_ms);
 }

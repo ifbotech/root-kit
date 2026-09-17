@@ -12,15 +12,11 @@
  * 240 es casi 2. Sirve para grosores que tienen que escalar con la cara. */
 #define PX(c, n)     ((int32_t)((int64_t)(c)->u * 16 * (n) / 128))
 
-/* Alto de los ojos y de la boca respecto del centro, en centésimas de U. */
-#define OJOS_DY   (-6)
-#define BOCA_DY   (25)
-
+#define COL_BLANCO  RK_RGB(255, 255, 255)
 #define COL_LENGUA  RK_RGB(255, 112, 142)
-#define COL_GOTA    RK_RGB(120, 204, 255)
-#define COL_ORO     RK_RGB(255, 200,  60)
-#define COL_CURITA  RK_RGB(242, 196, 150)
-#define COL_GASA    RK_RGB(214, 160, 116)
+#define COL_GOTA    RK_RGB(100, 190, 250)
+#define COL_ORO     RK_RGB(255, 196,  48)
+#define COL_ORO_OSC RK_RGB(206, 140,  18)
 
 typedef struct {
     rk_fb_t            *fb;
@@ -28,21 +24,32 @@ typedef struct {
     int32_t  u;             /* lado de la cara en pixeles                  */
     int32_t  cx, cy;        /* centro de la cara, Q4                       */
     int32_t  oy;            /* altura de los ojos, Q4                      */
+    int32_t  by;            /* altura de la boca, Q4                       */
     uint32_t t;
-    rk_color_t bg, sombra, trazo, blanco, iris, acento;
+    /* Los colores de este cuadro, ya derivados de la piel y tratados con
+     * el tinte y la penumbra del ánimo. */
+    rk_color_t bg;          /* el fondo, y los párpados                    */
+    rk_color_t trazo;       /* ojos, boca, cejas                           */
+    rk_color_t blanco;      /* brillos, dientito, el blanco del susto      */
+    rk_color_t iris;        /* la media luna clara de abajo del ojo        */
+    rk_color_t rubor;       /* mejillas                                    */
+    rk_color_t acento;      /* destellos, aura, luces                      */
+    rk_color_t lengua;
+    rk_color_t pecas;
 } cara_t;
 
 /* La expresión concreta de un cuadro: lo que el ánimo pidió, pasado por la
- * familia de ojos del modelo y por el parpadeo del instante.
+ * familia de ojos del personaje y por el parpadeo del instante.
  *
  * En dos partes: la geometría (rk_face_geom_t), que se puede interpolar
  * entre dos ánimos, y lo discreto, que no. */
 typedef struct {
     rk_face_geom_t g;
     int  cerrado;     /* 0 abierto, 1 cerrado contento (^), 2 dormido (u)  */
+    int  guino;       /* -1 o 1: ese ojo se abre aunque estén en ^ ^       */
     bool cruz;
     bool espiral;
-    int  boca;        /* rk_boca_t: el estilo; la curva va en g.boca_curva */
+    int  boca;        /* rk_boca_t: la del ánimo; la curva va en g         */
     bool gota;
     bool zzz;
     bool burbujas;
@@ -97,12 +104,47 @@ static rk_color_t tratar(rk_color_t base, const rk_look_t *lk)
     return c;
 }
 
-rk_color_t rk_face_fondo(const rk_persona_t *p, rk_mood_t mood)
+/* Los colores de un cuadro salen de los cuatro de la piel. Los derivados
+ * (la media luna del ojo, los destellos, la lengua) se mezclan en vez de
+ * escribirse, así una piel nueva sólo tiene que elegir cuatro colores. */
+static void pintura(cara_t *c, const rk_piel_t *pl, const rk_look_t *lk)
+{
+    rk_color_t fondo = tratar(pl->fondo, lk);
+    rk_color_t ojos  = tratar(pl->ojos, lk);
+    rk_color_t piel  = tratar(pl->piel, lk);
+    rk_color_t rubor = tratar(pl->rubor, lk);
+
+    c->bg     = fondo;
+    c->trazo  = ojos;
+    c->blanco = rk_mix(tratar(COL_BLANCO, lk), fondo, 20);
+    c->iris   = rk_mix(ojos, piel, 105);
+    c->rubor  = rubor;
+    c->acento = rk_mix(rubor, ojos, 70);
+    c->lengua = rk_mix(tratar(COL_LENGUA, lk), rubor, 80);
+    c->pecas  = rk_mix(rubor, ojos, 120);
+}
+
+/* dst = a mezclado hacia b en `t` (0 = a, 255 = b), color por color. */
+static void fundir(cara_t *dst, const cara_t *a, const cara_t *b, uint8_t t)
+{
+    cara_t r = *dst;
+    r.bg     = rk_mix(a->bg,     b->bg,     t);
+    r.trazo  = rk_mix(a->trazo,  b->trazo,  t);
+    r.blanco = rk_mix(a->blanco, b->blanco, t);
+    r.iris   = rk_mix(a->iris,   b->iris,   t);
+    r.rubor  = rk_mix(a->rubor,  b->rubor,  t);
+    r.acento = rk_mix(a->acento, b->acento, t);
+    r.lengua = rk_mix(a->lengua, b->lengua, t);
+    r.pecas  = rk_mix(a->pecas,  b->pecas,  t);
+    *dst = r;
+}
+
+rk_color_t rk_face_fondo(const rk_persona_t *p, uint8_t rareza, rk_mood_t mood)
 {
     if (p == NULL) {
         p = rk_persona_at(0);
     }
-    return tratar(p->fondo, rk_look(mood));
+    return tratar(rk_persona_piel(p, rareza)->fondo, rk_look(mood));
 }
 
 /* ---------------------------------------------------------- expresión --- */
@@ -124,11 +166,11 @@ static expr_t expresion(const rk_persona_t *p, rk_mood_t mood,
     switch ((rk_ojo_t)lk->ojo) {
     case RK_OJO_BLINK:  e.cerrado = 2;                          break;
     case RK_OJO_HAPPY:  e.cerrado = 1;                          break;
-    case RK_OJO_WIDE:   e.g.abre = 112; e.g.pupila = 62;            break;
-    case RK_OJO_SLEEPY: e.g.tapa_sup = 44; e.g.tapa_ang = -10;      break;
+    case RK_OJO_WIDE:   e.g.abre = 112; e.g.pupila = 62;        break;
+    case RK_OJO_SLEEPY: e.g.tapa_sup = 44; e.g.tapa_ang = -10;  break;
     case RK_OJO_DEAD:   e.cruz = true;                          break;
     case RK_OJO_DIZZY:  e.espiral = true;                       break;
-    case RK_OJO_GLITCH: e.g.tapa_sup = 30; e.g.pupila = 80;         break;
+    case RK_OJO_GLITCH: e.g.tapa_sup = 30; e.g.pupila = 80;     break;
     default:                                                    break;
     }
 
@@ -165,31 +207,36 @@ static expr_t expresion(const rk_persona_t *p, rk_mood_t mood,
         break;
     }
 
-    /* 3. La familia de ojos del modelo le pone su carácter encima. */
+    /* 3. La familia de ojos del personaje le pone su carácter encima. */
     switch (p->familia) {
-    case RK_OJOS_FIEROS:
-        /* El cresta está enojado aunque esté contento: el párpado cortado
-         * hacia la nariz no se va nunca, sólo se acentúa. */
+    case RK_OJOS_MEDIALUNA:
+        /* Musgo: los párpados nunca suben del todo. Relajado es media luna;
+         * con sueño o con frío, bajan todavía más. */
         if (e.cerrado == 0 && !e.cruz && !e.espiral) {
-            if (e.g.tapa_sup < 30) { e.g.tapa_sup = 30; }
-            e.g.tapa_ang = p->ojo_inclina;
+            int k = e.g.tapa_sup > 0 ? e.g.tapa_sup + 18 : 46;
+            e.g.tapa_sup = k > 64 ? 64 : (k < 46 ? 46 : k);
+            /* Con los dos párpados a la vez no queda ojo: el de abajo cede. */
+            if (e.g.tapa_sup + e.g.tapa_inf > 72) {
+                e.g.tapa_inf = 72 - e.g.tapa_sup;
+            }
         }
         break;
-    case RK_OJOS_PESADOS:
-        if (e.cerrado == 0 && !e.cruz && !e.espiral) {
-            e.g.tapa_sup = e.g.tapa_sup + 42 > 72 ? 72 : e.g.tapa_sup + 42;
+    case RK_OJOS_ARCO:
+        /* Pinchito: contento, los ojos quedan en ^ ^. Cada 5,2 s guiña: un
+         * ojo se abre 900 ms, y la vez siguiente el otro. */
+        if (mood == RK_MOOD_HAPPY && cierre == 0u) {
+            uint32_t f = t % 10400u;
+            e.cerrado = 1;
+            if (f % 5200u >= 4000u && f % 5200u < 4900u) {
+                e.guino = f < 5200u ? -1 : 1;
+            }
         }
-        break;
-    case RK_OJOS_RASGADOS:
-        e.g.pupila = e.g.pupila * 118 / 100;
         break;
     default:
         break;
     }
 
-    /* 4. El parpadeo, suave: el párpado baja y sube en 180 ms. Con
-     * antialiasing se puede animar la altura de a fracciones de pixel, y eso
-     * es lo que hace que parezca un parpadeo y no un cambio de cuadro. */
+    /* 4. El parpadeo, suave: el párpado baja y sube en 180 ms. */
     if (lk->blinks && e.cerrado == 0 && !e.cruz) {
         uint32_t f = t % 3400u;
         if (f < 180u) {
@@ -218,14 +265,13 @@ static expr_t expresion(const rk_persona_t *p, rk_mood_t mood,
     return e;
 }
 
-/* La expresión del mimo: contento, con los ojos en ^ ^ y las cejas altas.
- * Parte de la cara de contento del mismo modelo, así que conserva lo que la
- * familia de ojos y la boca de cada uno le ponen. */
+/* La expresión del mimo: contento, con los ojos en ^ ^ y las cejas altas. */
 static expr_t expresion_mimo(const rk_persona_t *p, uint32_t t)
 {
     expr_t e = expresion(p, RK_MOOD_HAPPY, rk_look(RK_MOOD_HAPPY), t, 0u);
 
     e.cerrado = 1;
+    e.guino = 0;
     e.cruz = false;
     e.espiral = false;
     e.g.tapa_sup = 0;
@@ -233,18 +279,14 @@ static expr_t expresion_mimo(const rk_persona_t *p, uint32_t t)
     e.g.ceja_dy = 6;
     e.g.ceja_ang = 6;
     e.g.boca_curva = 100;
-    if (e.boca != RK_BOCA_SMILE) {
-        e.boca = RK_BOCA_SMILE;
-    }
+    e.boca = RK_BOCA_SMILE;
     return e;
 }
 
 /* Un punto intermedio entre dos expresiones. La geometría se interpola; lo
- * discreto (ojos en cruz, lengua afuera, el estilo de boca) lo pone el que
- * domina, y si difiere, el ojo parpadea justo cuando cambia: el párpado baja
- * hasta cerrarse a mitad de camino y vuelve a abrir. Es lo que hace un
- * animador para esconder un corte, y lo que hace una cara de verdad cuando
- * cambia de idea. */
+ * discreto lo pone el que domina, y si difiere, el ojo parpadea justo cuando
+ * cambia: el párpado baja hasta cerrarse a mitad de camino y vuelve a abrir.
+ * Es lo que hace un animador para esconder un corte. */
 static expr_t mezclar(const expr_t *a, const expr_t *b, uint8_t t_pct)
 {
     int t = t_pct > 100u ? 100 : (int)t_pct;
@@ -292,6 +334,13 @@ static void circulo(cara_t *c, int32_t x, int32_t y, int32_t r, rk_color_t col,
     pintar(c, &f, 1, col, alfa);
 }
 
+static void elipse(cara_t *c, int32_t x, int32_t y, int32_t rx, int32_t ry,
+                   rk_color_t col, uint8_t alfa)
+{
+    rk_forma_t f = rk_elipse_q4(x, y, rx, ry);
+    pintar(c, &f, 1, col, alfa);
+}
+
 /* Arco grueso con puntas redondas. `abajo` = sonrisa (u), si no, ceño (n). */
 static void arco(cara_t *c, int32_t x, int32_t y, int32_t r, int32_t grosor,
                  bool abajo, rk_color_t col)
@@ -299,16 +348,14 @@ static void arco(cara_t *c, int32_t x, int32_t y, int32_t r, int32_t grosor,
     rk_aa_arco(c->fb, x, y, r, grosor, abajo, col);
 }
 
-/* Lágrima: un círculo y un triángulo cuyos lados son tangentes a él. Las
- * tangentes desde un punto a distancia 2r salen a 30 grados, así que tocan el
- * círculo en (±0,866r, -0,5r): con esos vértices la unión no tiene quiebre. */
+/* Lágrima: un círculo y un triángulo cuyos lados son tangentes a él. */
 static void gota(cara_t *c, int32_t x, int32_t y, int32_t r, rk_color_t col)
 {
     rk_aa_triangulo(c->fb, x, y - r * 2,
                     x - r * 866 / 1000, y - r / 2,
                     x + r * 866 / 1000, y - r / 2, col, 255);
     circulo(c, x, y, r, col, 255);
-    circulo(c, x - r / 3, y - r / 5, r / 3, RK_RGB(255, 255, 255), 190);
+    circulo(c, x - r / 3, y - r / 5, r / 3, COL_BLANCO, 200);
 }
 
 /* Destello de cuatro puntas: un rombo alto y uno ancho, cruzados. */
@@ -319,35 +366,78 @@ static void destello(cara_t *c, int32_t x, int32_t y, int32_t l, rk_color_t col,
     rk_aa_rombo(c->fb, x, y, l, l / 4, col, alfa);
 }
 
+/* ------------------------------------------------------------ brillos --- */
+/* Los brillos del ojo, recortados contra él. Son la mitad de la ternura: un
+ * óvalo oscuro sin brillo es un agujero; con dos puntos blancos, un ojo
+ * húmedo que te mira. `lado` es -1 para el ojo izquierdo y +1 para el
+ * derecho. */
+static void brillos(cara_t *c, int32_t ex, int32_t ey, int32_t rx, int32_t ry,
+                    int lado, int x0, int y0, int x1, int y1)
+{
+    const rk_persona_t *p = c->p;
+    int32_t m = rx < ry ? rx : ry;
+    /* En media luna la mitad de arriba está tapada: los brillos bajan. */
+    int32_t baja = p->familia == RK_OJOS_MEDIALUNA ? ry * 44 / 100 : 0;
+    rk_forma_t f[2];
+
+    f[1] = rk_elipse_q4(ex, ey, rx, ry);
+    switch (p->brillo) {
+    case RK_BRILLO_CACHORRO: {
+        /* Espejados: el grande hacia afuera en los dos ojos, el chico hacia
+         * adentro, y un destellito arriba. Es la mirada de cachorro. */
+        int32_t s = lado < 0 ? -1 : 1;
+        f[0] = rk_circulo_q4(ex + s * rx * 30 / 100, ey - ry * 32 / 100 + baja, m * 34 / 100);
+        pintar_en(c, f, 2, c->blanco, x0, y0, x1, y1);
+        f[0] = rk_circulo_q4(ex - s * rx * 30 / 100, ey + ry * 30 / 100 + baja / 2, m * 15 / 100);
+        pintar_en(c, f, 2, c->blanco, x0, y0, x1, y1);
+        destello(c, ex - s * rx * 24 / 100, ey - ry * 26 / 100 + baja, m * 26 / 100,
+                 c->blanco, 235);
+        break;
+    }
+    case RK_BRILLO_DOBLE:
+        /* Dos puntos de luz grandes, como los ojos de Pokémon Café. */
+        f[0] = rk_circulo_q4(ex - rx * 28 / 100, ey - ry * 30 / 100 + baja, m * 32 / 100);
+        pintar_en(c, f, 2, c->blanco, x0, y0, x1, y1);
+        f[0] = rk_circulo_q4(ex + rx * 24 / 100, ey - ry * 6 / 100 + baja, m * 21 / 100);
+        pintar_en(c, f, 2, c->blanco, x0, y0, x1, y1);
+        f[0] = rk_circulo_q4(ex - rx * 6 / 100, ey + ry * 40 / 100, m * 9 / 100);
+        pintar_en(c, f, 2, c->blanco, x0, y0, x1, y1);
+        break;
+    default:
+        f[0] = rk_elipse_q4(ex - rx * 30 / 100, ey - ry * 30 / 100 + baja,
+                            m * 30 / 100, m * 34 / 100);
+        pintar_en(c, f, 2, c->blanco, x0, y0, x1, y1);
+        f[0] = rk_circulo_q4(ex + rx * 32 / 100, ey + ry * 30 / 100 + baja / 3, m * 13 / 100);
+        pintar_en(c, f, 2, c->blanco, x0, y0, x1, y1);
+        break;
+    }
+}
+
 /* ---------------------------------------------------------------- ojo --- */
-/* Un ojo completo: blanco, iris, pupila, brillos y párpados.
- *
- * El orden importa. Primero el blanco; después pupila y brillos recortados
- * contra el blanco, para que la mirada pueda moverse sin que la pupila se
- * salga del ojo; al final los párpados, pintados del color del fondo encima
- * de todo lo anterior. `lado` es -1 para el ojo izquierdo, +1 para el
- * derecho, 0 para el ojo único. */
+/* Un ojo completo. El orden importa: primero el ojo, después la media luna y
+ * los brillos recortados contra él, al final los párpados, pintados del
+ * color del fondo encima de todo lo anterior. */
 static void ojo(cara_t *c, const expr_t *e, int32_t ex, int32_t ey,
                 int32_t rx, int32_t ry, int lado)
 {
-    const rk_persona_t *p = c->p;
     int32_t ryv = ry * e->g.abre / 100;
     int32_t grosor = PX(c, 7);
-    int x0 = (int)((ex - rx) / 16) - 2, x1 = (int)((ex + rx) / 16) + 3;
-    int y0 = (int)((ey - ryv) / 16) - 2, y1 = (int)((ey + ryv) / 16) + 3;
+    int cerrado = e->cerrado;
+    int x0, y0, x1, y1;
     rk_forma_t f[3];
 
+    /* El guiño de Pinchito: con los dos en ^, uno se abre. */
+    if (cerrado == 1 && e->guino == lado) {
+        cerrado = 0;
+    }
+
     /* --- cerrado: una curva y nada más ---------------------------------- */
-    /* El ojo único es tan grande que un arco de su ancho se lee como boca:
-     * cerrado, se achica. */
-    if (e->cerrado == 1) {                 /* contento: ^ */
-        arco(c, ex, ey + ry / 3, lado == 0 ? rx * 55 / 100 : rx * 3 / 4, grosor,
-             false, c->trazo);
+    if (cerrado == 1) {                    /* contento: ^ */
+        arco(c, ex, ey + ry / 3, rx * 3 / 4, grosor, false, c->trazo);
         return;
     }
-    if (e->cerrado == 2) {                 /* dormido: u */
-        arco(c, ex, ey - ry / 5, lado == 0 ? rx * 55 / 100 : rx * 3 / 4, grosor,
-             true, c->trazo);
+    if (cerrado == 2) {                    /* dormido: u */
+        arco(c, ex, ey - ry / 5, rx * 3 / 4, grosor, true, c->trazo);
         return;
     }
     if (e->cruz) {
@@ -360,62 +450,63 @@ static void ojo(cara_t *c, const expr_t *e, int32_t ex, int32_t ey,
         ryv = PX(c, 3);
     }
 
-    /* --- el blanco ------------------------------------------------------ */
-    if (p->adornos & RK_ADORNO_ESTATICA) {
-        /* El secreto: el ojo se desdobla en cian y magenta, como una imagen
-         * mal sintonizada. Es la única cara que no termina de enfocar. */
-        int32_t off = PX(c, 2) + (int32_t)(rk_sin8((uint8_t)(c->t / 9u)) * PX(c, 1) / 127);
-        f[0] = rk_elipse_q4(ex - off, ey, rx, ryv);
-        pintar(c, f, 1, c->iris, 190);
-        f[0] = rk_elipse_q4(ex + off, ey, rx, ryv);
-        pintar(c, f, 1, c->acento, 190);
-    }
-    f[0] = rk_elipse_q4(ex, ey, rx, ryv);
-    pintar(c, f, 1, c->blanco, 255);
+    /* Sin blanco no hay pupila que mover: la mirada corre el ojo entero, un
+     * poco. Alcanza para que se note hacia dónde mira. */
+    ex += rx * e->g.mira_x / 700;
+    ey += ryv * e->g.mira_y / 700;
+    x0 = (int)((ex - rx) / 16) - 2;
+    x1 = (int)((ex + rx) / 16) + 3;
+    y0 = (int)((ey - ryv) / 16) - 2;
+    y1 = (int)((ey + ryv) / 16) + 3;
 
-    if (e->espiral) {
-        int32_t k;
-        for (k = rx * 2 / 3; k > PX(c, 3); k -= PX(c, 7)) {
-            f[0] = rk_anillo_q4(ex, ey, k, PX(c, 3));
-            f[1] = rk_elipse_q4(ex, ey, rx, ryv);
+    if (e->espiral || e->g.pupila < 100) {
+        /* --- el susto: aparece el blanco -------------------------------- */
+        /* Un aro del color de los ojos y adentro claro. La pupila se achica
+         * con `pupila`: en 100 cubre todo y el ojo vuelve a ser oscuro. */
+        int32_t irx = rx - PX(c, 3), iry = ryv - PX(c, 3);
+        f[0] = rk_elipse_q4(ex, ey, rx, ryv);
+        pintar(c, f, 1, c->trazo, 255);
+        f[0] = rk_elipse_q4(ex, ey, irx, iry);
+        pintar(c, f, 1, c->blanco, 255);
+        f[1] = f[0];
+        if (e->espiral) {
+            int32_t k;
+            for (k = rx * 2 / 3; k > PX(c, 3); k -= PX(c, 7)) {
+                f[0] = rk_anillo_q4(ex, ey, k, PX(c, 3));
+                pintar_en(c, f, 2, c->trazo, x0, y0, x1, y1);
+            }
+        } else {
+            int fp = (e->g.pupila - 40) * 100 / 60;
+            int32_t prx, pry, px, py;
+            if (fp < 20) {
+                fp = 20;
+            }
+            prx = irx * fp / 100;
+            pry = iry * fp / 100;
+            px = ex + (irx - prx) * e->g.mira_x / 140;
+            py = ey + (iry - pry) * e->g.mira_y / 140;
+            f[0] = rk_elipse_q4(px, py, prx, pry);
             pintar_en(c, f, 2, c->trazo, x0, y0, x1, y1);
+            f[0] = rk_circulo_q4(px - prx * 34 / 100, py - pry * 34 / 100,
+                                 (prx < pry ? prx : pry) * 34 / 100);
+            pintar_en(c, f, 2, c->blanco, x0, y0, x1, y1);
         }
     } else {
-        int32_t pr = (rx < ry ? rx : ry) * 56 / 100 * e->g.pupila / 100;
-        int32_t px = ex + (rx - pr) * e->g.mira_x / 140;
-        int32_t py = ey + (ryv - pr) * e->g.mira_y / 140;
-
-        /* Iris de color: sólo el cíclope, cuyo único ojo es tan grande que
-         * una pupila negra sola se vería vacía. */
-        if (lado == 0) {
-            f[0] = rk_circulo_q4(px, py, pr * 145 / 100);
-            f[1] = rk_elipse_q4(ex, ey, rx, ryv);
-            pintar_en(c, f, 2, c->iris, x0, y0, x1, y1);
-        }
-        f[0] = rk_circulo_q4(px, py, pr);
-        f[1] = rk_elipse_q4(ex, ey, rx, ryv);
-        pintar_en(c, f, 2, c->trazo, x0, y0, x1, y1);
-
-        /* Dos brillos, siempre en el mismo lugar respecto de la pupila: el
-         * grande arriba a la izquierda, el chico abajo a la derecha. Es el
-         * detalle que hace que un círculo oscuro sea un ojo húmedo y vivo. */
-        f[0] = rk_circulo_q4(px - pr * 36 / 100, py - pr * 38 / 100, pr * 36 / 100);
-        pintar_en(c, f, 2, c->blanco, x0, y0, x1, y1);
-        f[0] = rk_circulo_q4(px + pr * 36 / 100, py + pr * 34 / 100, pr * 15 / 100);
-        pintar_en(c, f, 2, c->blanco, x0, y0, x1, y1);
-
-        if (p->familia == RK_OJOS_RASGADOS) {
-            destello(c, px + pr * 10 / 100, py - pr * 5 / 100, pr * 22 / 100,
-                     c->blanco, 220);
-        }
+        /* --- el ojo de siempre: oscuro, con media luna y brillos -------- */
+        f[0] = rk_elipse_q4(ex, ey, rx, ryv);
+        pintar(c, f, 1, c->trazo, 255);
+        f[0] = rk_elipse_q4(ex, ey + ryv * 62 / 100, rx * 80 / 100, ryv * 52 / 100);
+        f[1] = rk_elipse_q4(ex, ey, rx - PX(c, 3), ryv - PX(c, 3));
+        pintar_en(c, f, 2, c->iris, x0, y0, x1, y1);
+        brillos(c, ex, ey, rx, ryv, lado, x0, y0, x1, y1);
     }
 
-    /* --- los párpados, del color de la piel ---------------------------- */
+    /* --- los párpados, del color del fondo ------------------------------ */
     if (e->g.tapa_sup > 0) {
         /* Recta que baja desde el borde de arriba del ojo. La inclinación se
          * espeja según el lado para que "positivo" siempre signifique que la
-         * punta de adentro baja: eso se lee como enojo en los dos ojos. */
-        int ang = (lado == 0) ? 0 : e->g.tapa_ang * -lado;
+         * punta de adentro baja. */
+        int ang = e->g.tapa_ang * -lado;
         int32_t ly = ey - ryv + (2 * ryv) * e->g.tapa_sup / 100;
         f[0] = rk_semiplano_arriba_q4(ex, ly, ang);
         f[1] = rk_elipse_q4(ex, ey, rx + PX(c, 2), ryv + PX(c, 2));
@@ -429,56 +520,37 @@ static void ojo(cara_t *c, const expr_t *e, int32_t ex, int32_t ey,
     }
 }
 
-/* --------------------------------------------------------------- visor --- */
-/* El visor no tiene ojos: tiene una franja oscura con dos luces, y la forma
- * de esas luces es toda la expresión. */
-static void visor(cara_t *c, const expr_t *e)
+/* ----------------------------------------------------------- mejillas --- */
+static void mejillas(cara_t *c, int32_t ex_izq, int32_t ex_der, int32_t rx,
+                     int32_t ry)
 {
-    int32_t bw = PQ(c, c->p->ojo_rx);
-    int32_t bh = PQ(c, c->p->ojo_ry);
-    int32_t y = c->oy;
     int lado;
 
-    capsula(c, c->cx - bw + bh, y, c->cx + bw - bh, y, bh, c->trazo);
-
     for (lado = -1; lado <= 1; lado += 2) {
-        int32_t x = c->cx + lado * bw * 46 / 100;
-        int32_t r = bh * 30 / 100;
-        int32_t alto = bh * 45 / 100;
-        rk_color_t glow = c->iris;
+        int32_t ex = lado < 0 ? ex_izq : ex_der;
+        int32_t x = ex + lado * rx * 40 / 100;
+        int32_t y = c->oy + ry + PQ(c, 6);
 
-        if (e->cruz) {
-            capsula(c, x - r, y - r, x + r, y + r, r / 3, glow);
-            capsula(c, x + r, y - r, x - r, y + r, r / 3, glow);
-            continue;
-        }
-        if (e->cerrado == 1) {
-            arco(c, x, y + r / 2, r, r * 2 / 3, false, glow);
-            continue;
-        }
-        if (e->cerrado == 2) {
-            capsula(c, x - r, y, x + r, y, r / 3, glow);
-            continue;
-        }
-        if (e->espiral) {
-            rk_forma_t f = rk_anillo_q4(x, y, r, r / 2);
-            pintar(c, &f, 1, glow, 255);
-            continue;
-        }
-        /* Luz vertical con núcleo claro. El párpado la achata desde arriba. */
-        alto = alto * e->g.abre / 100;
-        alto -= alto * e->g.tapa_sup / 100;
-        if (e->g.tapa_sup >= 60) {
-            capsula(c, x - r, y, x + r, y, r / 3, glow);
-            continue;
-        }
-        {
-            int32_t dy = (e->g.mira_y * bh) / 400;
-            int32_t dx = (e->g.mira_x * bh) / 400;
-            int32_t rr = r * e->g.pupila / 100;
-            capsula(c, x + dx, y + dy - alto, x + dx, y + dy + alto, rr, glow);
-            capsula(c, x + dx, y + dy - alto / 2, x + dx, y + dy + alto / 2,
-                    rr / 2, c->blanco);
+        switch (c->p->mejilla) {
+        case RK_MEJILLA_HORIZONTAL:
+            elipse(c, x, y + PQ(c, 1), PQ(c, 9), PQ(c, 3), c->rubor, 205);
+            break;
+        case RK_MEJILLA_BRILLO:
+            elipse(c, x, y, PQ(c, 7), PQ(c, 5), c->rubor, 225);
+            circulo(c, x - lado * PQ(c, 3), y - PQ(c, 2), PX(c, 3), c->blanco, 235);
+            break;
+        case RK_MEJILLA_PECAS:
+            elipse(c, x, y, PQ(c, 7), PQ(c, 4), c->rubor, 110);
+            circulo(c, x - lado * PQ(c, 3), y - PQ(c, 1), PX(c, 2), c->pecas, 255);
+            circulo(c, x + lado * PQ(c, 1), y - PQ(c, 2), PX(c, 2), c->pecas, 255);
+            circulo(c, x - lado * PQ(c, 1), y + PQ(c, 2), PX(c, 2), c->pecas, 255);
+            break;
+        case RK_MEJILLA_SUAVE:
+            elipse(c, x, y, PQ(c, 6), PQ(c, 4), c->rubor, 175);
+            break;
+        default:
+            circulo(c, x, y, PQ(c, 6), c->rubor, 215);
+            break;
         }
     }
 }
@@ -489,67 +561,48 @@ static void cejas(cara_t *c, const expr_t *e, int32_t ex_izq, int32_t ex_der,
 {
     const rk_persona_t *p = c->p;
     int32_t alto = PQ(c, p->ceja_alto + e->g.ceja_dy);
-    int32_t hl = PQ(c, p->ojo_rx) * 72 / 100;
-    int32_t r = (p->ceja == RK_CEJA_GRUESA) ? PX(c, 6)
-              : (p->ceja == RK_CEJA_DESPEINADA) ? PX(c, 5) : PX(c, 4);
     int ang = p->ceja_angulo + e->g.ceja_ang;
+    bool flotante = p->ceja == RK_CEJA_FLOTANTE;
+    int32_t hl = PQ(c, p->ojo_rx) * (flotante ? 30 : 58) / 100;
+    int32_t r = flotante ? PX(c, 6) : PX(c, 3);
     int lado;
 
     if (p->ceja == RK_CEJA_NINGUNA || e->cerrado != 0) {
         return;
     }
     for (lado = -1; lado <= 1; lado += 2) {
-        int32_t ex = (p->familia == RK_OJOS_UNICO) ? c->cx
-                   : (lado < 0 ? ex_izq : ex_der);
+        int32_t ex = lado < 0 ? ex_izq : ex_der;
         int32_t by = c->oy - ry - alto;
         /* Negativo baja la punta de adentro (enojo); positivo la sube
          * (preocupación). */
         int32_t k = (int32_t)((int64_t)hl * ang / 40);
         int32_t xin = ex - lado * hl, xout = ex + lado * hl;
-
-        if (p->familia == RK_OJOS_UNICO) {
-            /* Una sola ceja, larga, arriba del único ojo. */
-            if (lado > 0) {
-                break;
-            }
-            hl = PQ(c, p->ojo_rx) * 80 / 100;
-            capsula(c, c->cx - hl, by - k / 2, c->cx + hl, by - k / 2, r, c->trazo);
-            break;
-        }
-        if (p->ceja == RK_CEJA_DESPEINADA) {
-            /* El mechón: tres cápsulas cortas en abanico. Desplazamientos
-             * fijos, no aleatorios, para que no titile entre cuadros. */
-            int j;
-            for (j = -1; j <= 1; j++) {
-                int32_t bx = ex + lado * j * hl * 55 / 100;
-                int32_t yin = by - k * j / 2 + (j == 0 ? -PX(c, 2) : 0);
-                capsula(c, bx - lado * hl / 3, yin + k / 2,
-                           bx + lado * hl / 3, yin - k / 2, r, c->trazo);
-            }
-        } else {
-            capsula(c, xin, by - k, xout, by + k, r, c->trazo);
-        }
+        capsula(c, xin, by - k, xout, by + k, r, c->trazo);
     }
 }
 
 /* --------------------------------------------------------------- boca --- */
-/* Una boca curva por los extremos (cx +- w, ye) con flecha proporcional a la
- * curva: hacia abajo si sonríe, hacia arriba si hace mueca. A |curva| = 100
- * es exactamente el arco de rk_aa_arco de radio w (la mitad de un círculo);
- * a curvas más chicas, un arco de círculo más grande por los mismos
- * extremos, que es lo que hace continua la transición entre sonrisa, boca
- * recta y mueca. */
+/* Una boca curva por los extremos (cx +- w, ye), con flecha proporcional a
+ * la curva: hacia abajo si sonríe, hacia arriba si hace mueca. Es un arco de
+ * círculo por los mismos extremos cuyo radio crece a medida que la curva se
+ * acerca a cero, y eso hace continua la transición entre sonrisa, boca recta
+ * y mueca. La flecha llega a tres cuartos del ancho: una sonrisa suave. */
 static void boca_curva(cara_t *c, int32_t w, int32_t y, int32_t gr, int curva)
 {
     int32_t mag = curva < 0 ? -curva : curva;
-    int32_t s = w * mag / 100;                       /* la flecha           */
-    int32_t ye = y - (w / 2) * curva / 100;          /* altura de las puntas */
-    int64_t R = ((int64_t)w * w + (int64_t)s * s) / (2 * s);
-    int32_t yc = curva > 0 ? ye - (int32_t)(R - s) : ye + (int32_t)(R - s);
-    int32_t medio = gr / 2;
-    int32_t top = curva > 0 ? ye - gr : ye - s - gr;
-    int32_t bot = curva > 0 ? ye + s + gr : ye + gr;
+    int32_t s = w * mag * 75 / 10000;                /* la flecha           */
+    int32_t ye, yc, top, bot;
+    int64_t R;
     rk_forma_t f[2];
+
+    if (s < 1) {
+        s = 1;
+    }
+    ye = curva > 0 ? y - s / 2 : y + s / 2;          /* altura de las puntas */
+    R = ((int64_t)w * w + (int64_t)s * s) / (2 * s);
+    yc = curva > 0 ? ye - (int32_t)(R - s) : ye + (int32_t)(R - s);
+    top = curva > 0 ? ye - gr : ye - s - gr;
+    bot = curva > 0 ? ye + s + gr : ye + gr;
 
     f[0] = rk_anillo_q4(c->cx, yc, (int32_t)R, gr);
     f[1] = curva > 0 ? rk_semiplano_abajo_q4(c->cx, ye, 0)
@@ -557,21 +610,17 @@ static void boca_curva(cara_t *c, int32_t w, int32_t y, int32_t gr, int curva)
     rk_aa_pintar(c->fb, f, 2, c->trazo, 255,
                  (int)((c->cx - w - gr) / 16) - 2, (int)(top / 16) - 2,
                  (int)((c->cx + w + gr) / 16) + 3, (int)(bot / 16) + 3);
-    rk_aa_circulo(c->fb, c->cx - w, ye, medio, c->trazo);
-    rk_aa_circulo(c->fb, c->cx + w, ye, medio, c->trazo);
+    rk_aa_circulo(c->fb, c->cx - w, ye, gr / 2, c->trazo);
+    rk_aa_circulo(c->fb, c->cx + w, ye, gr / 2, c->trazo);
 }
 
 static void boca(cara_t *c, const expr_t *e)
 {
     const rk_persona_t *p = c->p;
     int32_t w = PQ(c, p->boca_ancho);
-    int32_t y = c->cy + PQ(c, BOCA_DY);
+    int32_t y = c->by;
     int32_t gr = PX(c, 6);
-    rk_forma_t f[2];
-
-    if (p->boca == RK_BOCA_NINGUNA) {
-        return;
-    }
+    rk_forma_t f[2], d[3];
 
     switch ((rk_boca_t)e->boca) {
     case RK_BOCA_OPEN:
@@ -582,16 +631,15 @@ static void boca(cara_t *c, const expr_t *e)
         pintar(c, f, 1, c->trazo, 255);
         f[1] = f[0];
         f[0] = rk_elipse_q4(c->cx, y + w * 5 / 10, w * 55 / 100, w * 4 / 10);
-        pintar(c, f, 2, COL_LENGUA, 255);
+        pintar(c, f, 2, c->lengua, 255);
         if (e->boca == RK_BOCA_PANT) {
-            /* La lengua afuera, cayendo por debajo del labio. */
             f[0] = rk_elipse_q4(c->cx, y + w * 7 / 10, w * 32 / 100, w * 38 / 100);
-            pintar(c, f, 1, COL_LENGUA, 255);
+            pintar(c, f, 1, c->lengua, 255);
         }
-        break;
+        return;
 
     case RK_BOCA_WAVY: {
-        /* Zigzag de cuatro tramos: temblor o asco, según con qué ojos venga. */
+        /* Zigzag de cuatro tramos: temblor o asco, según los ojos. */
         int32_t paso = w / 2;
         int32_t alto = w / 4;
         int k;
@@ -601,54 +649,49 @@ static void boca(cara_t *c, const expr_t *e)
             int32_t yb = (k % 2 == 0) ? y - alto : y;
             capsula(c, xa, ya, xa + paso, yb, gr / 2, c->trazo);
         }
+        return;
+    }
+
+    default:
         break;
     }
 
-    default: {
-        /* Sonrisa, recta y mueca son UNA curva, de 100 a -100. Las bocas con
-         * forma propia (la de gato, la dentada) valen a partir de media
-         * sonrisa; por debajo, la curva genérica; cerca de cero, la recta. */
+    /* Sonrisa, recta y mueca son UNA curva, de 100 a -100. Las bocas con
+     * forma propia valen a partir de media sonrisa; por debajo, la curva
+     * genérica; cerca de cero, la recta. */
+    {
         int curva = e->g.boca_curva;
         if (curva >= 50 && p->boca == RK_BOCA_GATO) {
             arco(c, c->cx - w / 2, y - w / 3, w / 2, gr, true, c->trazo);
             arco(c, c->cx + w / 2, y - w / 3, w / 2, gr, true, c->trazo);
-        } else if (curva >= 50 && p->boca == RK_BOCA_DIENTES) {
-            /* Sonrisa grande en D, con una franja de dientes arriba: la
-             * mitad de abajo de una elipse, y adentro la parte alta en
-             * blanco. */
-            int32_t my = y - w / 3;
-            f[0] = rk_elipse_q4(c->cx, my, w, w * 85 / 100);
+        } else if (curva >= 50 && p->boca == RK_BOCA_D) {
+            /* ":D": la mitad de abajo de una elipse, con la lengua. */
+            int32_t my = y - w * 30 / 100;
+            f[0] = rk_elipse_q4(c->cx, my, w, w * 90 / 100);
             f[1] = rk_semiplano_abajo_q4(c->cx, my, 0);
             pintar(c, f, 2, c->trazo, 255);
-            {
-                rk_forma_t d[3];
-                d[0] = f[0];
-                d[1] = f[1];
-                d[2] = rk_semiplano_arriba_q4(c->cx, my + w * 30 / 100, 0);
-                pintar(c, d, 3, c->blanco, 255);
-                d[2] = rk_elipse_q4(c->cx, my + w * 80 / 100, w * 55 / 100, w * 30 / 100);
-                pintar(c, d, 3, COL_LENGUA, 255);
-            }
+            d[0] = f[0];
+            d[1] = f[1];
+            d[2] = rk_elipse_q4(c->cx, my + w * 88 / 100, w * 56 / 100, w * 36 / 100);
+            pintar(c, d, 3, c->lengua, 255);
+        } else if (curva >= 50 && p->boca == RK_BOCA_DIENTECITO) {
+            /* Una sonrisa abierta chica con un dientito que cuelga de
+             * arriba, apenas corrido del centro. */
+            int32_t my = y - w * 22 / 100;
+            f[0] = rk_elipse_q4(c->cx, my, w * 80 / 100, w * 72 / 100);
+            f[1] = rk_semiplano_abajo_q4(c->cx, my, 0);
+            pintar(c, f, 2, c->trazo, 255);
+            d[0] = f[0];
+            d[1] = f[1];
+            d[2] = rk_elipse_q4(c->cx, my + w * 64 / 100, w * 42 / 100, w * 24 / 100);
+            pintar(c, d, 3, c->lengua, 255);
+            d[2] = rk_elipse_q4(c->cx + w * 22 / 100, my, w * 17 / 100, w * 32 / 100);
+            pintar(c, d, 3, c->blanco, 255);
         } else if (curva > -12 && curva < 12) {
-            if (p->boca == RK_BOCA_CHICA) {
-                circulo(c, c->cx, y, w / 2, c->trazo, 255);
-            } else {
-                capsula(c, c->cx - w * 2 / 3, y, c->cx + w * 2 / 3, y, gr / 2, c->trazo);
-            }
+            capsula(c, c->cx - w * 2 / 3, y, c->cx + w * 2 / 3, y, gr / 2, c->trazo);
         } else {
             boca_curva(c, w, y, gr, curva);
         }
-        break;
-    }
-    }
-
-    if ((p->adornos & RK_ADORNO_COLMILLO) && e->boca != RK_BOCA_FROWN
-        && e->boca != RK_BOCA_SMILE) {
-        /* El colmillo: un triangulito blanco que asoma bajo la comisura. En
-         * la sonrisa grande no hace falta: ya se ven los dientes. */
-        int32_t fx = c->cx + w * 45 / 100;
-        rk_aa_triangulo(c->fb, fx - w / 6, y, fx + w / 6, y, fx, y + w * 40 / 100,
-                        c->blanco, 255);
     }
 }
 
@@ -656,15 +699,16 @@ static void boca(cara_t *c, const expr_t *e)
 static void adornos(cara_t *c, const expr_t *e, uint8_t set, int32_t ex_izq,
                     int32_t ex_der, int32_t ry)
 {
-    int32_t u16 = (int32_t)c->u * 16;
     int i;
 
-    if (set & RK_ADORNO_RUBOR) {
-        int32_t by = c->oy + ry + PQ(c, 6);
-        rk_forma_t f = rk_elipse_q4(ex_izq - PQ(c, 3), by, PQ(c, 9), PQ(c, 5));
-        pintar(c, &f, 1, c->sombra, 200);
-        f = rk_elipse_q4(ex_der + PQ(c, 3), by, PQ(c, 9), PQ(c, 5));
-        pintar(c, &f, 1, c->sombra, 200);
+    (void)ex_izq;
+    if (set & RK_ADORNO_AURA) {
+        /* Un anillo que respira en el borde de la pantalla. Suave a
+         * propósito: es un premio, no una alarma. */
+        int32_t r = (int32_t)c->u * 8 - PX(c, 5)
+                  + (int32_t)rk_sin8((uint8_t)(c->t / 12u)) * PX(c, 2) / 127;
+        rk_forma_t f = rk_anillo_q4(c->cx, c->cy, r, PX(c, 4));
+        pintar(c, &f, 1, c->acento, 105);
     }
     if (set & RK_ADORNO_BRILLOS) {
         for (i = 0; i < 3; i++) {
@@ -673,44 +717,30 @@ static void adornos(cara_t *c, const expr_t *e, uint8_t set, int32_t ex_izq,
             int32_t x = c->cx + (int32_t)rk_sin8((uint8_t)(i * 85 + 30)) * r / 127;
             int32_t y = c->cy + (int32_t)rk_sin8((uint8_t)(i * 85 + 94)) * r / 127;
             int32_t l = PQ(c, 4) + (rk_sin8(ph) > 0 ? PX(c, 2) : 0);
-            destello(c, x, y, l, c->acento, 230);
+            destello(c, x, y, l, c->acento, 235);
         }
     }
-    if (set & RK_ADORNO_ESPORAS) {
-        for (i = 0; i < 7; i++) {
+    if (set & RK_ADORNO_LUCES) {
+        /* Luces que suben despacio, con núcleo claro: bioluminiscencia. */
+        int32_t alto = (int32_t)c->fb->h * 16;
+        for (i = 0; i < 6; i++) {
             uint16_t h = rk_hash((uint16_t)(i * 733 + 5));
-            int32_t x = (int32_t)(h % (uint16_t)c->u) * 16;
-            int32_t sube = (int32_t)((c->t / 22u + (h >> 4)) % 256u);
-            int32_t y = u16 - sube * u16 / 256 + (c->cy - u16 / 2);
-            circulo(c, x, y, PX(c, 2) + PX(c, i % 2), c->acento, 170);
+            int32_t x = (int32_t)(h % (uint16_t)c->fb->w) * 16;
+            int32_t sube = (int32_t)((c->t / 24u + (h >> 4)) % 256u);
+            int32_t y = alto - sube * alto / 256;
+            int32_t r = PX(c, 3) + PX(c, i % 2);
+            circulo(c, x, y, r, c->acento, 170);
+            circulo(c, x, y, r / 2, c->blanco, 220);
         }
-    }
-    if (set & RK_ADORNO_SCANLINE) {
-        int32_t y = (int32_t)((c->t / 14u) % (uint32_t)c->fb->h);
-        rk_hline(c->fb, 0, y, c->fb->w, rk_mix(c->bg, c->iris, 40));
-    }
-    if (set & RK_ADORNO_ESTATICA) {
-        for (i = 0; i < 4; i++) {
-            uint16_t h = rk_hash((uint16_t)(i * 911 + c->t / 110u));
-            int y = (int)(h % (uint16_t)c->fb->h);
-            rk_fill_rect(c->fb, 0, y, c->fb->w, 1 + (int)((h >> 5) % 2u),
-                         rk_mix(c->bg, (i & 1) ? c->iris : c->acento, 36));
-        }
-    }
-    if (set & RK_ADORNO_AURA) {
-        /* Un anillo que respira en el borde de la pantalla, del color de
-         * acento. Suave a propósito: es un premio, no una alarma. */
-        int32_t r = u16 / 2 - PX(c, 5) + (int32_t)rk_sin8((uint8_t)(c->t / 12u)) * PX(c, 2) / 127;
-        rk_forma_t f = rk_anillo_q4(c->cx, c->cy, r, PX(c, 5));
-        pintar(c, &f, 1, c->acento, 110);
     }
     if (set & RK_ADORNO_CORONA) {
-        /* Tres puntas y una base. Es el premio de los 180 días sanos, así que
-         * va arriba de todo y en oro: tiene que verse desde la otra punta de
-         * la habitación. */
-        int32_t y = c->oy - ry - PQ(c, 20);
+        /* Tres puntas y una base, en oro con una línea más oscura para que se
+         * lea sobre los fondos claros. */
+        int32_t y = c->oy - ry - PQ(c, 15);
         int32_t w = PQ(c, 7);
         int k;
+        capsula(c, c->cx - w * 19 / 10, y + PX(c, 2), c->cx + w * 19 / 10, y + PX(c, 2),
+                PX(c, 5), COL_ORO_OSC);
         for (k = -1; k <= 1; k++) {
             int32_t x = c->cx + k * w * 13 / 10;
             int32_t h = (k == 0) ? PQ(c, 9) : PQ(c, 7);
@@ -755,62 +785,13 @@ static void adornos(cara_t *c, const expr_t *e, uint8_t set, int32_t ex_izq,
             int32_t sube = (int32_t)((c->t / 9u + (h >> 5)) % 256u);
             int32_t y = (int32_t)c->fb->h * 16 - sube * c->fb->h * 16 / 256;
             rk_forma_t f = rk_anillo_q4(x, y, PQ(c, 3) + PX(c, i % 3), PX(c, 2));
-            pintar(c, &f, 1, c->blanco, 170);
+            pintar(c, &f, 1, c->iris, 190);
         }
-    }
-}
-
-/* ---------------------------------------------------------- accesorios --- */
-/* Van después de ojos, cejas y boca, y antes de los adornos: los anteojos
- * tienen que quedar encima de los párpados y los destellos encima de todo. */
-static void accesorio(cara_t *c, const rk_persona_t *p, int32_t ex_izq,
-                      int32_t ex_der, int32_t rx, int32_t ry)
-{
-    switch (p->accesorio) {
-    case RK_ACC_LENTES: {
-        /* Dos aros alrededor de los ojos y un puente. El aro es más grande
-         * que el ojo para no taparle el párpado: la expresión la siguen
-         * haciendo los ojos. Sólo para modelos de dos ojos. */
-        int32_t r = (rx > ry ? rx : ry) + PQ(c, 4);
-        int32_t g = PX(c, 4);
-        int32_t brillo = r * 6 / 10;
-        rk_forma_t f;
-
-        if (p->familia == RK_OJOS_VISOR || p->familia == RK_OJOS_UNICO) {
-            return;
-        }
-        f = rk_anillo_q4(ex_izq, c->oy, r, g);
-        pintar(c, &f, 1, c->trazo, 255);
-        f = rk_anillo_q4(ex_der, c->oy, r, g);
-        pintar(c, &f, 1, c->trazo, 255);
-        capsula(c, ex_izq + r, c->oy - PQ(c, 2), ex_der - r, c->oy - PQ(c, 2), g / 2, c->trazo);
-        capsula(c, ex_izq - r - PQ(c, 3), c->oy - PQ(c, 3), ex_izq - r, c->oy - PQ(c, 2), g / 2, c->trazo);
-        capsula(c, ex_der + r, c->oy - PQ(c, 2), ex_der + r + PQ(c, 3), c->oy - PQ(c, 3), g / 2, c->trazo);
-        /* Un reflejo en cada vidrio, arriba a la derecha. */
-        f = rk_capsula_q4(ex_izq + brillo / 3, c->oy - brillo, ex_izq + brillo, c->oy - brillo / 3, PX(c, 2));
-        pintar(c, &f, 1, c->blanco, 120);
-        f = rk_capsula_q4(ex_der + brillo / 3, c->oy - brillo, ex_der + brillo, c->oy - brillo / 3, PX(c, 2));
-        pintar(c, &f, 1, c->blanco, 120);
-        break;
-    }
-    case RK_ACC_CURITA: {
-        /* Una curita cruzada en el cachete derecho, con su gasa al medio. */
-        int32_t x = ex_der + PQ(c, 10);
-        int32_t y = c->oy + ry + PQ(c, 6);
-        capsula(c, x - PQ(c, 8), y + PQ(c, 3), x + PQ(c, 8), y - PQ(c, 3), PQ(c, 3), COL_CURITA);
-        capsula(c, x - PQ(c, 2), y + PQ(c, 1), x + PQ(c, 2), y - PQ(c, 1), PQ(c, 2), COL_GASA);
-        circulo(c, x - PQ(c, 5), y + PQ(c, 2), PX(c, 2), COL_GASA, 255);
-        circulo(c, x + PQ(c, 5), y - PQ(c, 2), PX(c, 2), COL_GASA, 255);
-        break;
-    }
-    default:
-        break;
     }
 }
 
 /* ---------------------------------------------------------------- cara --- */
-/* La respiración mueve la cara entera, de a fracciones de pixel. Con
- * antialiasing eso se ve como un vaivén suave; sin él, como un salto. */
+/* La respiración mueve la cara entera, de a fracciones de pixel. */
 static int32_t respiracion(const cara_t *c, const rk_look_t *lk, uint32_t t)
 {
     return lk->bob_amp
@@ -818,33 +799,35 @@ static int32_t respiracion(const cara_t *c, const rk_look_t *lk, uint32_t t)
         : 0;
 }
 
-/* `desde` y `hacia` son el mismo ánimo salvo durante una transición; `t_pct`
- * dice en qué punto de ella estamos. Con desde == hacia o t_pct == 100 el
- * camino es exactamente el de una cara sola. */
 static int acotar(int v, int lo, int hi)
 {
     return v < lo ? lo : v > hi ? hi : v;
 }
 
-static void dibujar(rk_fb_t *fb, const rk_persona_t *p, rk_mood_t desde,
-                    rk_mood_t hacia, uint8_t t_pct, rk_severity_t sev,
+/* `desde` y `hacia` son el mismo ánimo salvo durante una transición; `t_pct`
+ * dice en qué punto de ella estamos. Con desde == hacia, sin mimo y sin
+ * mirada, el camino es exactamente el de una cara sola. */
+static void dibujar(rk_fb_t *fb, const rk_persona_t *p, const rk_piel_t *piel,
+                    rk_mood_t desde, rk_mood_t hacia, uint8_t t_pct,
                     uint8_t adornos_extra, uint8_t cierre, uint8_t mimo_pct,
                     const rk_face_mirada_t *mirada, uint32_t t)
 {
     const rk_look_t *lk = rk_look(hacia);
     const rk_look_t *lka = rk_look(desde);
     bool mezcla = desde != hacia && t_pct < 100u;
-    uint8_t t255 = (uint8_t)((uint32_t)t_pct * 255u / 100u);
     expr_t e;
     cara_t c;
     int32_t rx, ry, dx, bob, temblor;
+    uint8_t set;
 
-    (void)sev;
-    if (fb == NULL || fb->px == NULL) {
+    if (fb == NULL || fb->px == NULL || fb->w <= 0 || fb->h <= 0) {
         return;
     }
     if (p == NULL) {
         p = rk_persona_at(0);
+    }
+    if (piel == NULL) {
+        piel = rk_persona_piel(p, RK_RAREZA_COMUN);
     }
     if (mezcla && t_pct == 0u) {
         /* El principio es exactamente el ánimo de origen. */
@@ -853,36 +836,24 @@ static void dibujar(rk_fb_t *fb, const rk_persona_t *p, rk_mood_t desde,
         hacia = desde;
     }
 
+    memset(&c, 0, sizeof c);
     c.fb = fb;
     c.p = p;
     c.t = t;
     c.u = fb->w < fb->h ? fb->w : fb->h;
-    c.bg     = tratar(p->fondo, lk);
-    c.sombra = tratar(p->sombra, lk);
-    c.trazo  = tratar(p->trazo, lk);
-    c.blanco = tratar(p->blanco, lk);
-    c.iris   = tratar(p->iris, lk);
-    c.acento = tratar(p->acento, lk);
+    pintura(&c, piel, lk);
     if (mezcla) {
         /* Tinte y penumbra se funden entre los dos ánimos. */
-        c.bg     = rk_mix(tratar(p->fondo, lka),  c.bg,     t255);
-        c.sombra = rk_mix(tratar(p->sombra, lka), c.sombra, t255);
-        c.trazo  = rk_mix(tratar(p->trazo, lka),  c.trazo,  t255);
-        c.blanco = rk_mix(tratar(p->blanco, lka), c.blanco, t255);
-        c.iris   = rk_mix(tratar(p->iris, lka),   c.iris,   t255);
-        c.acento = rk_mix(tratar(p->acento, lka), c.acento, t255);
+        cara_t ca = c;
+        pintura(&ca, piel, lka);
+        fundir(&c, &ca, &c, (uint8_t)((uint32_t)t_pct * 255u / 100u));
     }
     if (mimo_pct > 0u) {
         /* El mimo trae los colores de contento: la penumbra de una cara
          * triste se levanta mientras la acarician. */
-        const rk_look_t *lkm = rk_look(RK_MOOD_HAPPY);
-        uint8_t m255 = (uint8_t)((uint32_t)mimo_pct * 255u / 100u);
-        c.bg     = rk_mix(c.bg,     tratar(p->fondo, lkm),  m255);
-        c.sombra = rk_mix(c.sombra, tratar(p->sombra, lkm), m255);
-        c.trazo  = rk_mix(c.trazo,  tratar(p->trazo, lkm),  m255);
-        c.blanco = rk_mix(c.blanco, tratar(p->blanco, lkm), m255);
-        c.iris   = rk_mix(c.iris,   tratar(p->iris, lkm),   m255);
-        c.acento = rk_mix(c.acento, tratar(p->acento, lkm), m255);
+        cara_t cm = c;
+        pintura(&cm, piel, rk_look(RK_MOOD_HAPPY));
+        fundir(&c, &c, &cm, (uint8_t)((uint32_t)mimo_pct * 255u / 100u));
     }
 
     rk_fb_clear(fb, c.bg);
@@ -906,7 +877,12 @@ static void dibujar(rk_fb_t *fb, const rk_persona_t *p, rk_mood_t desde,
 
     c.cx = (int32_t)fb->w * 8 + temblor;
     c.cy = (int32_t)fb->h * 8 + bob;
-    c.oy = c.cy + PQ(&c, OJOS_DY);
+    if (mirada != NULL) {
+        /* Mirar al costado gira un poco la cara entera. */
+        c.cx += mirada->mira_x * PX(&c, 3) / 100;
+    }
+    c.oy = c.cy + PQ(&c, p->ojo_dy);
+    c.by = c.cy + PQ(&c, p->boca_dy);
 
     if (mezcla) {
         expr_t ea = expresion(p, desde, lka, t, cierre);
@@ -920,15 +896,14 @@ static void dibujar(rk_fb_t *fb, const rk_persona_t *p, rk_mood_t desde,
         e = mezclar(&e, &em, mimo_pct);
     }
     if (mirada != NULL) {
-        /* La mirada dirigida se suma a la del ánimo (que ya deriva sola). */
         if (e.cerrado == 0 && !e.cruz && !e.espiral) {
             e.g.mira_x = acotar(e.g.mira_x + mirada->mira_x, -100, 100);
             e.g.mira_y = acotar(e.g.mira_y + mirada->mira_y, -100, 100);
         }
         if (mirada->preocupado > 0u) {
             int k = mirada->preocupado > 100u ? 100 : (int)mirada->preocupado;
-            /* Cejas altas por el lado de adentro: preocupación. Y la sonrisa
-             * se afloja: no se puede sonreír mirando a un vecino con sed. */
+            /* Cejas altas por el lado de adentro, y la sonrisa se afloja: no
+             * se puede sonreír mirando a un vecino con sed. */
             e.g.ceja_dy += 5 * k / 100;
             e.g.ceja_ang += 14 * k / 100;
             if (e.g.boca_curva > 0) {
@@ -940,84 +915,93 @@ static void dibujar(rk_fb_t *fb, const rk_persona_t *p, rk_mood_t desde,
     rx = PQ(&c, p->ojo_rx);
     ry = PQ(&c, p->ojo_ry);
     dx = PQ(&c, p->ojo_dx);
+    set = (uint8_t)(adornos_extra | piel->adornos);
 
     /* El aura va detrás de todo. */
-    if ((uint8_t)(p->adornos | adornos_extra) & RK_ADORNO_AURA) {
+    if (set & RK_ADORNO_AURA) {
         adornos(&c, &e, RK_ADORNO_AURA, c.cx - dx, c.cx + dx, ry);
     }
-
-    switch (p->familia) {
-    case RK_OJOS_VISOR:
-        visor(&c, &e);
-        break;
-    case RK_OJOS_UNICO:
-        ojo(&c, &e, c.cx, c.oy, rx, ry, 0);
-        break;
-    default:
-        ojo(&c, &e, c.cx - dx, c.oy, rx, ry, -1);
-        ojo(&c, &e, c.cx + dx, c.oy, rx, ry, +1);
-        break;
-    }
-
+    ojo(&c, &e, c.cx - dx, c.oy, rx, ry, -1);
+    ojo(&c, &e, c.cx + dx, c.oy, rx, ry, +1);
+    mejillas(&c, c.cx - dx, c.cx + dx, rx, ry);
     cejas(&c, &e, c.cx - dx, c.cx + dx, ry);
     boca(&c, &e);
-    accesorio(&c, p, c.cx - dx, c.cx + dx, rx, ry);
-    adornos(&c, &e,
-            (uint8_t)((p->adornos | adornos_extra) & (uint8_t)~RK_ADORNO_AURA),
-            c.cx - dx, c.cx + dx, ry);
+    adornos(&c, &e, (uint8_t)(set & (uint8_t)~RK_ADORNO_AURA), c.cx - dx, c.cx + dx, ry);
 }
 
-void rk_face_draw(rk_fb_t *fb, const rk_persona_t *p, rk_mood_t mood,
-                  rk_severity_t sev, uint8_t adornos_extra, uint32_t t_ms)
+static const rk_piel_t *piel_de(const rk_persona_t *p, uint8_t rareza)
 {
-    dibujar(fb, p, mood, mood, 100u, sev, adornos_extra, 0u, 0u, NULL, t_ms);
+    return rk_persona_piel(p != NULL ? p : rk_persona_at(0), rareza);
 }
 
-void rk_face_draw_cierre(rk_fb_t *fb, const rk_persona_t *p, rk_mood_t mood,
-                         rk_severity_t sev, uint8_t adornos_extra,
-                         uint8_t cierre, uint32_t t_ms)
+void rk_face_draw(rk_fb_t *fb, const rk_persona_t *p, uint8_t rareza,
+                  rk_mood_t mood, rk_severity_t sev, uint8_t adornos_extra,
+                  uint32_t t_ms)
 {
-    dibujar(fb, p, mood, mood, 100u, sev, adornos_extra,
+    (void)sev;
+    dibujar(fb, p, piel_de(p, rareza), mood, mood, 100u, adornos_extra, 0u, 0u,
+            NULL, t_ms);
+}
+
+void rk_face_draw_cierre(rk_fb_t *fb, const rk_persona_t *p, uint8_t rareza,
+                         rk_mood_t mood, rk_severity_t sev,
+                         uint8_t adornos_extra, uint8_t cierre, uint32_t t_ms)
+{
+    (void)sev;
+    dibujar(fb, p, piel_de(p, rareza), mood, mood, 100u, adornos_extra,
             cierre > 100u ? 100u : cierre, 0u, NULL, t_ms);
 }
 
-void rk_face_draw_mezcla(rk_fb_t *fb, const rk_persona_t *p,
+void rk_face_draw_mezcla(rk_fb_t *fb, const rk_persona_t *p, uint8_t rareza,
                          rk_mood_t desde, rk_mood_t hacia, uint8_t t_pct,
                          rk_severity_t sev, uint8_t adornos_extra,
                          uint8_t cierre, uint32_t t_ms)
 {
-    dibujar(fb, p, desde, hacia, t_pct > 100u ? 100u : t_pct, sev, adornos_extra,
-            cierre > 100u ? 100u : cierre, 0u, NULL, t_ms);
+    (void)sev;
+    dibujar(fb, p, piel_de(p, rareza), desde, hacia, t_pct > 100u ? 100u : t_pct,
+            adornos_extra, cierre > 100u ? 100u : cierre, 0u, NULL, t_ms);
 }
 
-void rk_face_draw_mimo(rk_fb_t *fb, const rk_persona_t *p,
+void rk_face_draw_mimo(rk_fb_t *fb, const rk_persona_t *p, uint8_t rareza,
                        rk_mood_t mood, uint8_t mimo_pct,
                        rk_severity_t sev, uint8_t adornos_extra,
                        uint32_t t_ms)
 {
-    dibujar(fb, p, mood, mood, 100u, sev, adornos_extra, 0u,
+    (void)sev;
+    dibujar(fb, p, piel_de(p, rareza), mood, mood, 100u, adornos_extra, 0u,
             mimo_pct > 100u ? 100u : mimo_pct, NULL, t_ms);
 }
 
-void rk_face_draw_mirada(rk_fb_t *fb, const rk_persona_t *p,
+void rk_face_draw_mirada(rk_fb_t *fb, const rk_persona_t *p, uint8_t rareza,
                          rk_mood_t mood, rk_severity_t sev,
                          uint8_t adornos_extra, const rk_face_mirada_t *m,
                          uint32_t t_ms)
 {
     rk_face_mirada_t mm;
+
     if (m == NULL) {
-        rk_face_draw(fb, p, mood, sev, adornos_extra, t_ms);
+        rk_face_draw(fb, p, rareza, mood, sev, adornos_extra, t_ms);
         return;
     }
     mm.mira_x = acotar(m->mira_x, -100, 100);
     mm.mira_y = acotar(m->mira_y, -100, 100);
     mm.preocupado = m->preocupado > 100u ? 100u : m->preocupado;
-    dibujar(fb, p, mood, mood, 100u, sev, adornos_extra, 0u, 0u, &mm, t_ms);
+    dibujar(fb, p, piel_de(p, rareza), mood, mood, 100u, adornos_extra, 0u, 0u,
+            &mm, t_ms);
+}
+
+void rk_face_draw_con_piel(rk_fb_t *fb, const rk_persona_t *p,
+                           const rk_piel_t *piel, rk_mood_t mood,
+                           rk_severity_t sev, uint8_t adornos_extra,
+                           uint32_t t_ms)
+{
+    (void)sev;
+    dibujar(fb, p, piel, mood, mood, 100u, adornos_extra, 0u, 0u, NULL, t_ms);
 }
 
 uint8_t rk_face_adornos_etapa(int etapa)
 {
-    /* El modelo te toca por azar; cómo se ve se gana cuidando la planta. */
+    /* La piel te toca en el cofre; esto se gana cuidando la planta. */
     if (etapa >= 4) { return RK_ADORNO_AURA | RK_ADORNO_CORONA; }
     if (etapa >= 3) { return RK_ADORNO_AURA; }
     if (etapa >= 2) { return RK_ADORNO_BRILLOS; }

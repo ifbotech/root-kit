@@ -1,53 +1,39 @@
-/* persona.h — los modelos del ROOTKIT: una carcasa impresa y su cara.
+/* persona.h — los Rooties: cinco personajes botánicos y sus tres pieles.
  *
- * EL CAMBIO DE PRODUCTO QUE ESTE ARCHIVO REPRESENTA
+ * LA FIGURA ES EL PERSONAJE; EL COFRE ES LA PIEL
  *
- * Antes la variedad era digital: doce simbiontes, cada uno un cuerpo pixel
- * art distinto, y el que te tocaba salía de la especie de tu planta. Era
- * caro de dibujar y —con una silueta compartida entre los doce— tampoco
- * terminaba de funcionar: doce tortugas repintadas no son doce criaturas.
+ * Cada ROOTKIT es un Rooti de verdad: una figura impresa en 3D que es su
+ * cuerpo, con la pantalla puesta donde va la cara. Qué Rooti es lo decide la
+ * figura que viene en la caja, y la fábrica lo graba en la NVS del aparato
+ * ("brote"). Nada en el software lo sortea: la persona ya lo descubrió al
+ * abrir la caja, y un cofre que le dijera otra cosa sería confuso.
  *
- * Ahora la variedad es FÍSICA. Comprás una caja ciega, te toca una carcasa
- * impresa en 3D, y esa carcasa ES el personaje: su cresta, su pelo, su
- * visera. Lo único que se diseña en pixeles es la CARA, y la cara hace
- * juego con la carcasa que te tocó.
+ * Lo que sí se sortea, una sola vez, es la PIEL: al abrir el cofre en la app
+ * sale la rareza (común 70 %, rara 25 %, épica 5 %), y con ella una de las
+ * tres paletas de ese personaje. La nube la guarda con la planta y se la
+ * manda al aparato en el sync ("rareza": "epico"); la pantalla de la maceta
+ * se pinta con esos colores desde ese momento.
  *
- * Es mejor reparto de esfuerzo. Imprimir una carcasa nueva cuesta filamento
- * y unas horas de modelado; dibujar y animar un cuerpo nuevo cuesta semanas.
- * Y una cara sola en 128x128 tiene muchos más pixeles por rasgo que un
- * cuerpo entero, así que se expresa mejor, no peor.
+ * ESTILO: OOBLETS + POKÉMON CAFÉ REMIX
  *
- * LA MECÁNICA: EL ÁNIMO DICE QUÉ SIENTE, LA PERSONA DICE CÓMO LO MUESTRA
+ * Ojos grandes y oscuros con brillos blancos, una media luna más clara abajo
+ * que les da profundidad, mejillas sonrosadas, bocas chicas y dulces. Sin
+ * contorno negro: formas planas y redondas con el borde suavizado. Fondos
+ * pastel claros, que es donde un ojo oscuro con brillo se lee mejor.
  *
- * `core/mood.c` sigue decidiendo el estado a partir de la planta, igual que
- * siempre. Lo que cambia es que ese estado ahora se dibuja a través del
- * carácter de la carcasa:
+ * LA PANTALLA PONE LA CARA; LA APP DIBUJA EL CUERPO
  *
- *   sed + CRESTA   -> ceño apretado, dientes, mirada furiosa
- *   sed + KAWAII   -> ojos llorosos, temblor, una lágrima con brillo
- *   sed + VISOR    -> la onda del visor se quiebra en picos de alerta
- *   sed + CICLOPE  -> la pupila enorme se contrae
- *   sed + HONGO    -> los párpados caen todavía más, lengua afuera
+ * El aparato sólo dibuja la cara (art/face.c). El cuerpo entero —hojas,
+ * patitas, sombrero— lo pone la figura impresa en la mesa y, en el teléfono,
+ * root-lab/public/lib/cuerpo.mjs, con los mismos colores de esta tabla.
  *
- * Ocho modelos por once ánimos son ochenta y ocho caras distintas, y salen
- * todas del mismo código porque la cara es PROCEDURAL y no sprites. Agregar
- * un modelo es agregar una fila a esta tabla.
+ * ARTE COMO DATOS
  *
- * En la app cada modelo es un ROOTI (plural: Rooties), y los que tienen
- * paleta propia pintan la app con sus colores al salir del cofre
- * (root-lab/public/lib/paletas.mjs).
- *
- * LA RAREZA AHORA ES FÍSICA
- *
- * Ya no sale de la dificultad de la planta: sale de qué carcasa te tocó en
- * la caja. Eso mantiene el producto fuera del terreno regulado de las cajas
- * de botín por una razón todavía más sólida que antes —no hay compra
- * aleatoria dentro de un software, hay un juguete en una caja, que es
- * exactamente lo que hacen los Smiski y los Sonny Angel desde hace años.
- *
- * Lo que se gana con el cuidado de la planta ya no es el personaje sino
- * cómo se ve: los días sanos desbloquean capas cosméticas sobre la cara.
- * Ver rk_persona_adornos_etapa().
+ * Cada fila es un personaje y cada número se puede ajustar sin tocar
+ * lógica: proporciones de los ojos, el tipo de brillo, la boca, las mejillas
+ * y las tres pieles. Los colores van en hexadecimal (RK_HEX), igual que los
+ * entrega la artista. root-lab lee esta misma tabla para las paletas de la
+ * app (tools/sincronizar-firmware.mjs): hay una sola fuente de verdad.
  */
 #ifndef ROOTKIT_PERSONA_H
 #define ROOTKIT_PERSONA_H
@@ -56,120 +42,130 @@
 #include <stdbool.h>
 #include "../gfx/fb.h"
 
-/* Rareza dentro de la caja ciega. Los modelos a la vista y un secreto, que
- * es la mecánica exacta que hizo coleccionables a los Smiski. */
-typedef enum {
-    RK_RAR_COMUN = 0,
-    RK_RAR_RARO,
-    RK_RAR_SECRETO,
-    RK_RAR_COUNT
-} rk_rarity_t;
+/* Un color como lo escribe una diseñadora: RK_HEX(0xE8F5E9). */
+#define RK_HEX(h) RK_RGB(((h) >> 16) & 0xFF, ((h) >> 8) & 0xFF, (h) & 0xFF)
 
-/* Familia de ojos. Decide qué función los dibuja; el ánimo decide con qué
- * forma dentro de esa familia. */
+/* La rareza de la piel, que sale del cofre. */
 typedef enum {
-    RK_OJOS_REDONDOS = 0,   /* el caso base: iris grande, muy expresivo   */
-    RK_OJOS_RASGADOS,       /* almendrados y arqueados, estilo kawaii     */
-    RK_OJOS_FIEROS,         /* angostos e inclinados, siempre enojados    */
-    RK_OJOS_VISOR,          /* una sola banda: la onda es la expresión    */
-    RK_OJOS_UNICO,          /* un ojo enorme y centrado                   */
-    RK_OJOS_PESADOS,        /* párpados caídos, permanentemente dormido   */
+    RK_RAREZA_COMUN = 0,
+    RK_RAREZA_RARA,
+    RK_RAREZA_EPICA,
+    RK_RAREZA_COUNT
+} rk_rareza_t;
+
+/* Familia de ojos: la forma de base, sobre la que actúa el ánimo. */
+typedef enum {
+    RK_OJOS_REDONDOS = 0,   /* grandes y abiertos: el caso base            */
+    RK_OJOS_MEDIALUNA,      /* párpados relajados a media altura: "u u"    */
+    RK_OJOS_ARCO,           /* contento, en arco "^ ^", y guiña            */
     RK_OJOS_COUNT
 } rk_familia_ojos_t;
 
+/* Cómo brilla el ojo. Es el detalle que lo vuelve húmedo y vivo. */
+typedef enum {
+    RK_BRILLO_SIMPLE = 0,   /* un brillo grande arriba y un punto abajo     */
+    RK_BRILLO_CACHORRO,     /* espejados entre los dos ojos, con destello   */
+    RK_BRILLO_DOBLE,        /* dos puntos de luz grandes, estilo Café       */
+    RK_BRILLO_COUNT
+} rk_brillo_t;
+
 typedef enum {
     RK_CEJA_NINGUNA = 0,
-    RK_CEJA_FINA,
-    RK_CEJA_GRUESA,
-    RK_CEJA_DESPEINADA,     /* trazos sueltos, no una línea               */
+    RK_CEJA_FINA,           /* un trazo corto y suave                       */
+    RK_CEJA_FLOTANTE,       /* dos óvalos redondeados, separados del ojo    */
     RK_CEJA_COUNT
 } rk_ceja_t;
 
+/* La boca de cada personaje cuando sonríe. Con otros ánimos manda la boca
+ * del ánimo (abierta, temblorosa, mueca). */
 typedef enum {
-    RK_BOCA_LINEA = 0,      /* un trazo: mínima, deja hablar a los ojos   */
-    RK_BOCA_GATO,           /* la "w" felina, kawaii                      */
-    RK_BOCA_DIENTES,        /* boca abierta con dentadura: agresiva       */
-    RK_BOCA_ONDA,           /* una onda: robótica, sin labios             */
-    RK_BOCA_CHICA,          /* un puntito, para caras dominadas por ojos  */
-    RK_BOCA_NINGUNA,        /* sólo ojos: la carcasa hace de boca         */
+    RK_BOCA_SUAVE = 0,      /* una sonrisa chica y blanda                   */
+    RK_BOCA_GATO,           /* ":3", la boca de gato                        */
+    RK_BOCA_DIENTECITO,     /* sonrisa abierta con un dientito asomando     */
+    RK_BOCA_D,              /* ":D", abierta y alegre, con lengua           */
     RK_BOCA_ESTILO_COUNT
 } rk_boca_estilo_t;
 
-/* Adornos. Bitmask porque se combinan y porque las etapas de crecimiento
- * agregan los suyos encima de los que la persona ya trae de fábrica. */
-#define RK_ADORNO_BRILLOS   0x01u   /* destellos flotando                 */
-#define RK_ADORNO_RUBOR     0x02u   /* dos manchas en los pómulos         */
-#define RK_ADORNO_COLMILLO  0x04u   /* un diente que asoma                */
-#define RK_ADORNO_SCANLINE  0x08u   /* barrido horizontal sobre la cara   */
-#define RK_ADORNO_ESPORAS   0x10u   /* motas que suben lentamente         */
-#define RK_ADORNO_ESTATICA  0x20u   /* ruido: sólo el modelo secreto      */
-#define RK_ADORNO_AURA      0x40u   /* resplandor: lo da el crecimiento   */
-#define RK_ADORNO_CORONA    0x80u   /* tres puntas: la última etapa       */
-
-/* Un accesorio fijo del personaje: va siempre, con cualquier ánimo, encima
- * de los ojos o de la cara. No es un adorno porque no se gana ni se combina:
- * es parte de quién es. */
 typedef enum {
-    RK_ACC_NINGUNO = 0,
-    RK_ACC_LENTES,          /* anteojos redondos: la que leyó todo        */
-    RK_ACC_CURITA,          /* una curita en el cachete: se peleó con algo */
-    RK_ACC_COUNT
-} rk_accesorio_t;
+    RK_MEJILLA_CIRCULO = 0, /* dos chapitas redondas                        */
+    RK_MEJILLA_HORIZONTAL,  /* rubor ancho y bajito                         */
+    RK_MEJILLA_BRILLO,      /* mejilla con un punto de brillo               */
+    RK_MEJILLA_PECAS,       /* rubor tenue con tres pecas                   */
+    RK_MEJILLA_SUAVE,       /* un óvalo chico y difuso                      */
+    RK_MEJILLA_COUNT
+} rk_mejilla_t;
+
+/* Adornos. Bitmask porque se combinan: los trae la piel (la rara brilla, la
+ * épica tiene corona o aura) y los suma el crecimiento del vínculo. */
+#define RK_ADORNO_BRILLOS   0x01u   /* destellos que orbitan la cara       */
+#define RK_ADORNO_AURA      0x02u   /* un anillo que respira en el borde   */
+#define RK_ADORNO_CORONA    0x04u   /* corona dorada arriba de los ojos    */
+#define RK_ADORNO_LUCES     0x08u   /* luces que suben: bioluminiscencia   */
+
+/* Una piel: los cuatro colores de la paleta y lo que trae de regalo. */
+typedef struct {
+    const char *nombre;        /* "Flor de Cerezo Dorada"                 */
+    rk_color_t  fondo;         /* toda la pantalla                        */
+    rk_color_t  ojos;          /* ojos, boca y cejas                      */
+    rk_color_t  piel;          /* el cuerpo (o la flor, o el sombrero)    */
+    rk_color_t  rubor;         /* las mejillas                            */
+    uint8_t     adornos;       /* RK_ADORNO_*                             */
+} rk_piel_t;
 
 typedef struct {
-    const char *id;            /* clave estable: "cresta"                 */
-    const char *nombre;        /* lo que muestra la app: "Cresta"         */
+    const char *id;            /* clave estable: "brote"                  */
+    const char *nombre;        /* lo que muestra la app: "Brote"          */
     const char *carcasa;       /* archivo imprimible                      */
     const char *lema;          /* una línea de personalidad               */
-    rk_rarity_t rareza;
 
+    /* Medidas en CENTÉSIMAS DEL LADO CORTO DEL PANEL: la misma tabla sirve
+     * para la pantalla de 1,44" (128x128) y para la de 2,2" (240x320). Las
+     * alturas (`_dy`) son desde el centro; negativo es más arriba. */
     uint8_t  familia;          /* rk_familia_ojos_t                       */
-    uint8_t  ojo_rx;           /* radios del ojo, en centésimas del ancho */
+    uint8_t  brillo;           /* rk_brillo_t                             */
+    uint8_t  ojo_rx;
     uint8_t  ojo_ry;
-    uint8_t  ojo_dx;           /* separación, en centésimas del ancho     */
-    int8_t   ojo_inclina;      /* inclinación del ojo, -20 a 20           */
+    uint8_t  ojo_dx;           /* separación desde el centro              */
+    int8_t   ojo_dy;
 
     uint8_t  ceja;             /* rk_ceja_t                               */
-    int8_t   ceja_angulo;      /* negativo = enojado, positivo = triste   */
-    uint8_t  ceja_alto;        /* separación del ojo, en centésimas       */
+    int8_t   ceja_angulo;      /* positivo = preocupación, negativo = ceño */
+    uint8_t  ceja_alto;        /* separación del ojo                      */
 
     uint8_t  boca;             /* rk_boca_estilo_t                        */
-    uint8_t  boca_ancho;       /* en centésimas del ancho del panel       */
+    uint8_t  boca_ancho;
+    int8_t   boca_dy;
 
-    uint8_t  adornos;          /* los de fábrica                          */
-    uint8_t  accesorio;        /* rk_accesorio_t                          */
+    uint8_t  mejilla;          /* rk_mejilla_t                            */
 
-    /* Paleta de la cara, en colores PLANOS: el estilo es ilustración sin
-     * degradés ni contornos negros, así que cada rasgo es un solo color y
-     * la forma la da el borde suavizado. Son pocos a propósito: el
-     * personaje lo pone la carcasa, y una cara con demasiados tonos compite
-     * con ella.
-     *
-     * El fondo es liso y los párpados se pintan del mismo color. Esa es la
-     * razón de que el fondo NO sea un degradé: un párpado que "tapa" el ojo
-     * sólo funciona si el color que tapa es exactamente el de alrededor. */
-    rk_color_t fondo;          /* la piel: toda la pantalla               */
-    rk_color_t sombra;         /* un tono más oscuro, para rubor y bordes */
-    rk_color_t trazo;          /* pupilas, cejas y boca                   */
-    rk_color_t blanco;         /* esclerótica                             */
-    rk_color_t iris;           /* anillo del iris o brillo del visor      */
-    rk_color_t acento;         /* brillos, lengua, aura                   */
+    /* Común, rara y épica, en ese orden. El fondo es liso a propósito: los
+     * párpados se pintan del color del fondo, y un párpado que "tapa" el
+     * ojo sólo funciona si el color que tapa es exactamente el de
+     * alrededor. */
+    rk_piel_t pieles[RK_RAREZA_COUNT];
 } rk_persona_t;
 
 extern const rk_persona_t rk_persona_table[];
 extern const int          rk_persona_count;
 
-/* Nunca devuelve NULL con un índice válido; NULL si el id no existe. */
+/* NULL si el id no existe. */
 const rk_persona_t *rk_persona_find(const char *id);
 const rk_persona_t *rk_persona_at(int idx);
 int                 rk_persona_index(const rk_persona_t *p);
 
-const char *rk_rarity_name(rk_rarity_t r);
-rk_color_t  rk_rarity_color(rk_rarity_t r);
+/* La piel de una rareza. Una rareza fuera de rango cae en la común; con
+ * `p` NULL devuelve NULL. */
+const rk_piel_t *rk_persona_piel(const rk_persona_t *p, int rareza);
+
+/* "comun", "raro", "epico": la clave del protocolo y de la base. */
+const char *rk_rareza_id(rk_rareza_t r);
+/* "COMUN", "RARA", "EPICA": para rótulos con la fuente de 5x7. */
+const char *rk_rareza_nombre(rk_rareza_t r);
+/* La rareza de una clave, o -1 si no es ninguna. */
+int         rk_rareza_parse(const char *id);
+/* El color del borde de la ficha en las láminas. */
+rk_color_t  rk_rareza_color(rk_rareza_t r);
 /* Cuántos destellos merece cada rareza en la revelación. */
-int         rk_rarity_sparkles(rk_rarity_t r);
-/* Cuántos modelos hay de cada rareza. Lo usa la app para mostrar la
- * probabilidad de la caja sin inventarla. */
-int         rk_rarity_count(rk_rarity_t r);
+int         rk_rareza_destellos(rk_rareza_t r);
 
 #endif /* ROOTKIT_PERSONA_H */

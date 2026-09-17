@@ -17,8 +17,11 @@
  * LOS ESTADOS DE LA PANTALLA
  *
  *   ui/qr.h         sin vincular: el QR y el código corto
- *   rk_cara_dormida vinculado, con el cofre todavía cerrado en la app
- *   ui/despertar.h  el cofre se abrió: los ojos se abren por primera vez
+ *   rk_cara_dormida vinculado, con el cofre todavía cerrado en la app: la
+ *                   cara del Rooti dormida, en grises (la piel todavía no
+ *                   salió)
+ *   ui/despertar.h  el cofre se abrió: los ojos se abren por primera vez,
+ *                   con los colores de la piel que tocó
  *   rk_cara_draw    de ahí en adelante, siempre
  *
  * EL CAMBIO DE ÁNIMO NO SALTA
@@ -45,13 +48,15 @@ void rk_cara_draw(rk_fb_t *fb, const rk_node_t *n, uint32_t t_ms);
  * la única pista de batería en la pantalla, y es a propósito una cara). */
 rk_mood_t rk_cara_animo_de(const rk_node_t *n);
 
-/* Vinculado pero con el cofre cerrado: unos ojos dormidos, en gris, que
- * respiran. No usa los colores del personaje porque todavía no se reveló:
- * mostrarlos en la maceta arruinaría la sorpresa del cofre. */
-void rk_cara_dormida(rk_fb_t *fb, uint32_t t_ms);
+/* Vinculado pero con el cofre cerrado: la cara del Rooti dormida, en
+ * grises, que respira. El personaje no es un secreto —es la figura que la
+ * persona tiene en la mano—, pero la piel sí: el cofre todavía no la sorteó,
+ * y pintar la maceta con cualquier paleta adelantaría el resultado. `p` NULL
+ * cae en el primer Rooti. */
+void rk_cara_dormida(rk_fb_t *fb, const rk_persona_t *p, uint32_t t_ms);
 
-/* La persona neutra con la que se dibuja la cara dormida. */
-extern const rk_persona_t rk_persona_incognita;
+/* La piel gris de la cara dormida. */
+extern const rk_piel_t rk_piel_dormida;
 
 /* ------------------------------------------------------- la transición --- */
 #define RK_CARA_TRANSICION_MS 350u
@@ -77,9 +82,9 @@ uint8_t rk_cara_anim_pct(const rk_cara_anim_t *a, uint32_t t_ms);
 bool    rk_cara_anim_en_curso(const rk_cara_anim_t *a, uint32_t t_ms);
 
 /* Dibuja el cuadro que corresponde a este instante de la transición. */
-void rk_cara_anim_draw(rk_fb_t *fb, const rk_persona_t *p, const rk_cara_anim_t *a,
-                       rk_severity_t sev, uint8_t adornos_extra, uint8_t cierre,
-                       uint32_t t_ms);
+void rk_cara_anim_draw(rk_fb_t *fb, const rk_persona_t *p, uint8_t rareza,
+                       const rk_cara_anim_t *a, rk_severity_t sev,
+                       uint8_t adornos_extra, uint8_t cierre, uint32_t t_ms);
 
 /* Como rk_cara_draw, con transición: le pasa a `a` el ánimo del nodo y dibuja
  * el cuadro. Es lo que usa la placa en régimen. */

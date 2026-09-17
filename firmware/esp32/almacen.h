@@ -4,7 +4,8 @@
  *     secreto    16 bytes de fábrica. Si no existe, se genera: es el modo
  *                "placa de desarrollo". En producción lo graba la estación
  *                de fábrica junto con la persona (ver docs/fabrica.md).
- *     persona    id del modelo de la carcasa, grabado en fábrica
+ *     persona    id del Rooti (la figura), grabado en fábrica
+ *     rareza     la piel que salió del cofre: 0 común, 1 rara, 2 épica
  *     enlace     época, wifi sí/no, vinculado, revelado
  *     wifi       ssid y clave
  *     nube       URL base del servidor (se puede cambiar desde el portal)
@@ -33,6 +34,7 @@ extern "C" {
 typedef struct {
     uint8_t  secreto[RK_SECRETO_LEN];
     char     persona[16];
+    uint8_t  rareza;
     rk_enlace_nvs_t enlace;
     char     ssid[33];
     char     clave[65];
@@ -56,7 +58,7 @@ void almacen_guardar_enlace(const rk_almacen_t *a);
 void almacen_guardar_wifi(const rk_almacen_t *a);
 void almacen_borrar_wifi(rk_almacen_t *a);
 void almacen_guardar_nube(const rk_almacen_t *a);
-void almacen_guardar_config(const rk_almacen_t *a);    /* persona, especie, cal, nombre, prefs */
+void almacen_guardar_config(const rk_almacen_t *a);    /* persona, rareza, especie, cal, nombre, prefs */
 void almacen_guardar_vinculo(const rk_almacen_t *a);
 
 bool almacen_historial_cargar(rk_historial_t *h);

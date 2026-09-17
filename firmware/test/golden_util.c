@@ -19,7 +19,7 @@ uint32_t rk_frame_hash(const rk_color_t *px, int n)
     return h;
 }
 
-void rk_golden_nodo(rk_node_t *n, int persona, rk_mood_t mood)
+void rk_golden_nodo(rk_node_t *n, int persona, int rareza, rk_mood_t mood)
 {
     int d;
 
@@ -29,6 +29,7 @@ void rk_golden_nodo(rk_node_t *n, int persona, rk_mood_t mood)
     n->id[5]   = (uint8_t)persona;
     n->sp      = rk_species_find("monstera");
     n->persona = rk_persona_at(persona);
+    n->rareza  = (uint8_t)rareza;
 
     rk_mood_state_init(&n->mst);
     rk_bond_init(&n->bond);
@@ -54,13 +55,13 @@ void rk_golden_nodo(rk_node_t *n, int persona, rk_mood_t mood)
     n->verdict.reason   = rk_mood_reason(mood);
 }
 
-uint32_t rk_golden_cara(int persona, rk_mood_t mood, uint32_t t_ms)
+uint32_t rk_golden_cara(int persona, int rareza, rk_mood_t mood, uint32_t t_ms)
 {
     rk_node_t n;
     rk_fb_t   fb;
 
     rk_fb_init(&fb, g_px, RK_MINI_W, RK_MINI_H);
-    rk_golden_nodo(&n, persona, mood);
+    rk_golden_nodo(&n, persona, rareza, mood);
     rk_cara_draw(&fb, &n, t_ms);
     return rk_frame_hash(g_px, RK_MINI_PX);
 }
