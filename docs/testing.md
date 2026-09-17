@@ -6,7 +6,7 @@ make verify      # lo que corre CI: pruebas y referencias visuales al día
 make placa       # compila el producto (c3-144) y el banco (devkit-144)
 ```
 
-ROOTLAB (la app, la nube y el emulador) tiene sus propias 451 pruebas en
+ROOTLAB (la app, la nube y el emulador) tiene sus propias 453 pruebas en
 [root-lab](https://github.com/ifbotech/root-lab) (`npm test`), incluido el
 flujo completo de punta a punta.
 
