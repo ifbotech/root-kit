@@ -90,6 +90,9 @@ Por qué este orden, paso por paso: `root-lab/docs/flujo.md`.
 | Qué Rooti es | **fábrica** (la nube asigna uno fijo si no hay) | La carcasa ya es un personaje |
 | Qué piel tiene | **el cofre**, en la nube; el aparato la guarda en NVS | Es la sorpresa, y tiene que ser la misma en la maceta y en la app |
 | Los días sanos | **la nube** | Ve el día entero aunque el aparato duerma |
+| La calibración del sensor | **la persona, desde la app**; la nube se la manda al aparato | Depende del sustrato: se hace con la maceta adelante |
+| Qué firmware corre | **la nube ofrece** (por placa y canal), **el aparato decide y verifica** | Una versión sin firma válida no se instala aunque la mande el servidor ([ota.md](ota.md)) |
+| Quién es un aparato legítimo | **la fábrica**, que lo registra antes de venderlo | Sin eso, cualquiera inventa aparatos ([fabrica.md](fabrica.md)) |
 | Qué hay que hacer hoy | **la app** (`lib/tareas.mjs`) | Es presentación: verbos y números para una persona |
 | Cuándo avisar | **la nube** (`server/avisos.mjs`) | Tiene que poder avisar con la app cerrada |
 
@@ -136,6 +139,5 @@ actualiza sola.
 
 ## Presupuesto energético
 
-Ver [hardware.md](hardware.md#cuánto-dura). A batería: ~5 meses el modelo de
-2,2" con una 18650, ~2 meses el mini con una LiPo de 1000 mAh, a verificar
-con medición en la Fase 2 del [roadmap](roadmap.md).
+Ver [hardware.md](hardware.md#cuánto-dura). A batería: unos 6 meses con una
+18650, a verificar con medición en la Fase 2 del [roadmap](roadmap.md).

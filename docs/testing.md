@@ -1,12 +1,12 @@
 # Pruebas
 
 ```bash
-make test        # 1884 comprobaciones del firmware, sin placa ni SDL
+make test        # 1990 comprobaciones del firmware, sin placa ni SDL
 make verify      # lo que corre CI: pruebas y referencias visuales al día
-make placa       # compila las cuatro variantes con PlatformIO
+make placa       # compila el producto (c3-144) y el banco (devkit-144)
 ```
 
-ROOTLAB (la app, la nube y el emulador) tiene sus propias 367 pruebas en
+ROOTLAB (la app, la nube y el emulador) tiene sus propias 426 pruebas en
 [root-lab](https://github.com/ifbotech/root-lab) (`npm test`), incluido el
 flujo completo de punta a punta.
 
@@ -20,11 +20,22 @@ flujo completo de punta a punta.
 | `graficos` | 63 | Recorte, tipografía, **antialiasing**: cobertura, bordes mezclados, triángulos en cualquier orden, alfa |
 | `cara` | 414 | Determinismo, batería sin íconos, cara dormida que no delata la piel, despertar con la piel, regresión visual de las 165 caras, la transición entre ánimos (extremos idénticos a las caras fijas, el medio distinto, el reloj con desborde), la cara de mimos (en 0 la del ánimo, en 100 otra, ronronea), la mirada dirigida y la preocupación |
 | `rooties y caras` | 1023 | La tabla de los cinco Rooties con sus tres pieles y colores, las rarezas (ids, nombres, parseo), que los 5, las 15 pieles y los 11 ánimos se distingan, el guiño, adornos por etapa y por piel, centinelas del framebuffer |
-| `pantalla del QR` | 19 | Que el QR dibujado se lea módulo por módulo en los dos paneles, también con la URL del VPS |
+| `pantalla del QR` | 19 | Que el QR dibujado se lea módulo por módulo (en 128×128 y en un lienzo más grande), también con la URL del VPS |
 | `identidad y vinculo` | 91 | SHA-256 y HMAC con vectores oficiales, código y token, el flujo completo del enlace y sus caminos feos |
-| `nube` | 78 | JSON hostil o cortado, el cuerpo del pedido, respuestas incoherentes que no se aplican |
+| `nube` | 80 | JSON hostil o cortado, el cuerpo del pedido, respuestas incoherentes que no se aplican |
+
+| `ota y fabrica` | 104 | Versiones, hex y base64; manifiestos hostiles o a medias; cuándo se baja una versión (batería, tres intentos, volver atrás) y el arranque a prueba; el cuerpo del sync con `ota` y `lote`; la línea de fábrica: secretos cortos o en cero, Rooties que no existen, lotes raros, el log que no es una orden |
 
 ## Las pruebas que valen más que su tamaño
+
+**Que un manifiesto raro nunca haga bajar algo.** Una versión que no es una
+versión, una URL que no es http, un hash corto, una firma diminuta, un tamaño
+que no entra en la partición: el manifiesto queda en cero y el resto del sync
+se aplica igual. Y una versión que ya falló tres veces no se vuelve a bajar.
+
+**Que la fábrica no le cambie la identidad a una maceta con cualquier cosa.**
+La línea del puerto serie se valida entera antes de tocar la NVS, y un
+aparato vinculado la rechaza.
 
 **Que los cinco Rooties y sus quince pieles se vean distintos.** Es la que sostiene el producto: si
 dos carcasas dan la misma cara, la caja ciega vende dos veces lo mismo y no hay

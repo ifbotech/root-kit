@@ -19,7 +19,7 @@ se pinta con esa paleta:
 Del primer encendido a la cara: el QR, los ojos dormidos mientras esperás el
 cofre, el despertar y la cara.
 
-![Las pantallas del ROOTKIT en los dos tamaños](tools/preview/pantallas.png)
+![Las pantallas del ROOTKIT: QR, dormida, despertar y cara](tools/preview/pantallas.png)
 
 Cuando abrís el cofre en la app, la maceta abre los ojos:
 
@@ -46,15 +46,18 @@ https://ifbotech.com/rootkit/emulador/).
 
 ## El hardware
 
-| | ROOTKIT | ROOTKIT mini |
-|---|---|---|
-| Placa | ESP32-C3 SuperMini | ESP32-C3 SuperMini |
-| Pantalla | TFT 2,2" 240×320 | TFT 1,44" 128×128 IPS |
-| Sensores | suelo capacitivo, AHT20, BH1750, DS18B20, toque | suelo, AHT20, BH1750, toque |
-| Energía | 18650 + USB-C | LiPo 1000 mAh + USB-C |
+| | ROOTKIT |
+|---|---|
+| Placa | ESP32-C3 SuperMini (un ESP32 DevKit en el banco de pruebas) |
+| Pantalla | TFT 1,44" 128×128 IPS, en una ventana biselada de la carcasa |
+| Sensores | suelo capacitivo (calibrable desde la app), AHT20, BH1750, toque; DS18B20 opcional |
+| Batería | 18650 con carga por USB-C: unos 6 meses |
+| Carcasa | impresa en 3D **sin soportes**: es el cuerpo del Rooti |
 
-Por qué el C3 y no el ESP32 de 30 pines, la lista completa de sensores, el
-circuito de carga y las conexiones: [docs/hardware.md](docs/hardware.md).
+Se **actualiza solo por aire**, con firmware firmado, y sale de **fábrica**
+con su identidad grabada: [docs/ota.md](docs/ota.md) y
+[docs/fabrica.md](docs/fabrica.md). Detalle de pines, consumo y lista de
+compras: [docs/hardware.md](docs/hardware.md).
 
 ## Empezar
 
@@ -63,16 +66,16 @@ make test         # 1449 comprobaciones del firmware, sin placa
 make sim          # los cinco Rooties en una ventana, en vivo
 make sheet        # 8 Rooties × 11 ánimos
 make transicion   # el cambio de ánimo, cuadro a cuadro
-make pantallas    # QR, dormida, despertar y cara en los dos paneles
+make pantallas    # QR, dormida, despertar y cara
 make wasm         # el renderer para la app (necesita clang y lld)
-make placa        # compila las cuatro variantes con PlatformIO
+make placa        # compila el producto (c3-144) y el banco (devkit-144) con PlatformIO
 ```
 
 Flashear una placa:
 
 ```bash
 cd firmware
-pio run -e c3-22 -t upload && pio device monitor
+pio run -e c3-144 -t upload && pio device monitor
 ```
 
 Para ver el flujo completo sin placa, abrí el emulador en
@@ -108,9 +111,11 @@ tools/         capturas y conversión de imágenes
 |---|---|
 | [roadmap.md](docs/roadmap.md) | **Checklist y roadmap**: qué está hecho y qué falta, por fase |
 | [arquitectura.md](docs/arquitectura.md) | Las tres piezas, el flujo y quién decide qué |
-| [hardware.md](docs/hardware.md) | Placa, pantallas, sensores, batería, carga y conexiones |
+| [hardware.md](docs/hardware.md) | Placa, pantalla, sensores, batería, carga y conexiones |
 | [firmware.md](docs/firmware.md) | Cómo está armado, cómo compilar y qué hace al encender |
 | [nube.md](docs/nube.md) | El contrato con la nube, con vectores de prueba |
+| [ota.md](docs/ota.md) | Actualizaciones por aire firmadas, y qué pasa si una versión no anda |
+| [fabrica.md](docs/fabrica.md) | La estación de fábrica: identidad, registro en la nube y etiqueta |
 | [carcasas.md](docs/carcasas.md) | Diseño e impresión de las carcasas |
 | [decisiones.md](docs/decisiones.md) | Lo que se decidió, lo que se revisó y por qué |
 | [testing.md](docs/testing.md) | Qué cubren las pruebas |

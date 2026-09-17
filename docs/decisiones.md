@@ -244,6 +244,31 @@ siempre es sobre azar pago— no aplica.
 **Nada de la palabra Tamagotchi en el marketing.** Es marca registrada de Bandai.
 El vocabulario propio — simbionte, criatura digital — es más distintivo igual.
 
+## Actualizarse y salir de fábrica
+
+**Las actualizaciones van firmadas, además de por HTTPS.** HTTPS prueba que
+el binario viene del servidor; la firma (ECDSA P-256), que lo publicó quien
+tiene la clave privada, que no está en el servidor. Tomar el servidor no
+alcanza para instalarle algo a una maceta. Cuesta 40 KB de mbedTLS que ya
+estaban en la imagen por el TLS.
+
+**Una versión nueva se confirma hablando con la nube.** No alcanza con que
+arranque: tiene que lograr un sync (wifi, TLS, JSON, todo el camino) en diez
+minutos, o el aparato vuelve solo a la anterior. Y cada versión se intenta
+tres veces como mucho.
+
+**Los aparatos siguen "la vigente de su canal", no "la mayor".** Así volver
+atrás es publicar la versión anterior, sin un mecanismo aparte.
+
+**El secreto lo genera la estación de fábrica y no queda en ningún lado más
+que en el aparato.** La nube guarda el hash del token; el programa de fábrica
+lo descarta apenas registra. No hay una planilla de secretos que cuidar.
+
+**La calibración del sensor es de la planta, no del aparato.** Depende del
+sustrato tanto como del sensor: se hace desde la app, en dos pasos, con el
+número crudo a la vista, y la nube se la manda al Rooti. La de fábrica es un
+punto de partida.
+
 ## La nube, el QR y el cofre
 
 **La pantalla muestra dos cosas: el QR y los ojos.** Ni batería, ni wifi, ni
@@ -431,6 +456,49 @@ sentido cuando el personaje pasó a ser la carcasa.
 **Lo que se conservó:** `gfx/panel.h` sigue describiendo los dos tamaños y el
 rig dibuja en cualquiera, porque los rasgos se miden en centésimas del ancho.
 Una variante grande es un cambio de configuración, no un rediseño.
+
+### El TFT de 2,2" del prototipo
+
+**Antes:** dos variantes de hardware con el mismo firmware: el ROOTKIT con
+TFT de 2,2" (ILI9341, 240×320) y el "mini" de 1,44", cada una para el C3 y
+para el DevKit: cuatro compilaciones, dos láminas de pantallas, dos juegos de
+números de consumo.
+
+**Qué lo tumbó:** las carcasas. Las cinco figuras se diseñaron alrededor del
+TFT de 1,44" que entra desde atrás en una ventana biselada; el de 2,2" no
+entra en ninguna. Era una variante sin producto, y cada cambio pagaba el
+doble de compilación y de prueba.
+
+**Lo que quedó:** un producto (`c3-144`) y un banco (`devkit-144`). El núcleo
+sigue escalando al lado corto del panel, así que volver a sumar un tamaño es
+un bloque en `esp32/placa.h` y una clase en `esp32/pantalla.cpp`.
+
+### La XP y los niveles de la app
+
+**Antes:** ROOTLAB tenía XP y siete niveles ("Jardinero de interior"), además
+de la racha, los logros, las etapas del vínculo y la mascota.
+
+**Qué los tumbó:** la XP se derivaba entera de los días sanos. Eran dos
+barras para lo mismo, y seis sistemas para decir "cuidaste bien" no se
+explican solos.
+
+**Lo que quedó:** la mascota es lo de hoy; el vínculo (días sanos → etapas →
+adornos en la cara, `core/vinculo.c`) lo de meses; la racha, la casa entera;
+los logros, los hitos. La etapa de los 7 días pasó a llamarse **retoño**:
+Brote es un Rooti.
+
+### La confianza al primer uso, abierta
+
+**Antes:** cualquier aparato que se presentaba con un id nuevo quedaba
+registrado (`ROOTLAB_TOFU=1`), también en producción.
+
+**Qué la tumbó:** la estación de fábrica ([fabrica.md](fabrica.md)). Con cada
+placa registrada de antemano por el hash de su token, dejar la puerta abierta
+ya no compraba nada.
+
+**Lo que quedó:** en producción sólo los emuladores del navegador se
+registran solos (con límite por IP y limpieza a los 30 días); las placas, por
+fábrica. En desarrollo sigue abierta.
 
 ### El nodo dejó de ser tonto
 

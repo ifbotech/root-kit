@@ -32,9 +32,11 @@ del protocolo.
 ```json
 {
   "id": "A1B2C3D4E5F6",
-  "fw": "0.5.0",
+  "fw": "0.6.0",
   "placa": "c3-supermini",
-  "pantalla": "ili9341-240x320",
+  "pantalla": "st7735-128",
+  "lote": "L2609",
+  "ota": { "version": "0.6.0", "estado": "ok" },
   "persona": "brote",
   "estado": "SIN_VINCULO",
   "epoca": 3,
@@ -55,6 +57,9 @@ del protocolo.
 | Campo | Qué es |
 |---|---|
 | `id` | MAC en hex. Identifica, no autoriza. |
+| `fw`, `placa` | qué versión corre y en qué placa: con eso la nube decide si le ofrece una actualización |
+| `lote` | el lote de fábrica, si lo tiene; la nube prefiere el que registró la fábrica |
+| `ota` | sólo si alguna vez intentó actualizarse: la versión y cómo le fue (`bajando`, `verificando`, `ok`, `fallo`). Ver [ota.md](ota.md) |
 | `persona` | el Rooti grabado en fábrica (`brote`, `musgo`, `pinchito`, `bulbo`, `champi`); vacío si no tiene |
 | `estado` | el estado de `core/enlace.c` |
 | `epoca` | sube con cada desvinculación |
@@ -91,6 +96,9 @@ pila de reloj, sin aparatos que arrancan en 1970.
   "aceptadas": 12,
   "hora": 1758040000,
   "calibracion": { "seco": 3100, "mojado": 1300 },
+  "calibrando": true,
+  "firmware": { "version": "0.6.1", "url": "https://ifbotech.com/rootkit/api/d/firmware/12",
+                "sha256": "<64 hex>", "firma": "<DER en base64>", "tamano": 1159640 },
   "brillo": 80,
   "pantalla": "toque"
 }
@@ -105,10 +113,23 @@ pila de reloj, sin aparatos que arrancan en 1970.
 | `especie` | umbrales para evaluar el ánimo; si están incompletos o son incoherentes se ignoran |
 | `vinculo` | los días sanos los cuenta la nube, que ve el día entero; decide los adornos de la cara |
 | `aceptadas` | cuántas lecturas del pedido quedaron guardadas: esas se borran del historial |
-| `calibracion` | lecturas crudas del capacitivo en seco y sumergido |
+| `calibracion` | lecturas crudas del capacitivo en seco y mojado, las que tomó la persona desde la app; inválidas (invertidas, muy juntas, fuera de rango) se ignoran |
+| `calibrando` | la app está calibrando ahora: medir y contar cada 5 s, sin dormirse. La nube lo apaga sola a los 10 minutos |
+| `firmware` | hay una versión para esta placa y este canal que no es la que corre. Un manifiesto incompleto se ignora; el aparato decide si la baja ([ota.md](ota.md)) y la verifica (hash y firma) antes de instalar |
 | `pantalla` | `toque` (se apaga a batería) o `siempre` |
 
+### El binario de una actualización
+
+`GET {base}/api/d/firmware/<id>`, con el mismo `Authorization: Bearer <token>`
+del sync. Responde `application/octet-stream` con `Content-Length` igual al
+`tamano` del manifiesto. Sin token de aparato: `401`.
+
 ## Seguridad
+
+**Quién puede presentarse.** En producción la nube sólo acepta aparatos que
+registró la estación de fábrica ([fabrica.md](fabrica.md)); los demás reciben
+`401`. En desarrollo (`ROOTLAB_TOFU=1`) acepta al primero que se presenta con
+un id.
 
 **El token.** `HMAC-SHA256(secreto, "rootkit-api")` en hex. El secreto son 16
 bytes de fábrica que nunca salen del aparato.

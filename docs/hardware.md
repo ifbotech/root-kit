@@ -1,32 +1,36 @@
 # Hardware
 
-Todo lo que va adentro de un ROOTKIT: la placa, las dos pantallas, los
-sensores, la batería y cómo se conecta. Los pines de este documento son los
+Todo lo que va adentro de un ROOTKIT: la placa, la pantalla, los sensores, la
+batería y cómo se conecta. Los pines de este documento son los
 de [`firmware/esp32/placa.h`](../firmware/esp32/placa.h); si cambian allá,
 cambian acá.
 
 ## Resumen
 
-| | ROOTKIT (maceta mediana) | ROOTKIT mini (maceta chica) |
+| | ROOTKIT (el producto) | Banco de pruebas |
 |---|---|---|
-| Placa | ESP32-C3 SuperMini | ESP32-C3 SuperMini |
-| Pantalla | TFT 2,2" 240×320 SPI (ILI9341) | TFT 1,44" 128×128 IPS (ST7735S) |
-| Sensores | suelo capacitivo, AHT20, BH1750, DS18B20, toque | suelo capacitivo, AHT20, BH1750, toque |
-| Batería | 18650, 2600–3500 mAh | LiPo plana 1000–1200 mAh |
-| Carga | USB-C con TP4056 + protección + carga compartida | ídem |
-| Firmware | `pio run -e c3-22` | `pio run -e c3-144` |
+| Placa | ESP32-C3 SuperMini | ESP32 DevKit 30 pines |
+| Pantalla | TFT 1,44" 128×128 IPS (ST7735S), área activa 25,9 × 25,9 mm | la misma |
+| Sensores | suelo capacitivo, AHT20, BH1750, toque; DS18B20 opcional | los mismos |
+| Batería | **18650** de 2600–3500 mAh, parada, abajo (baja el centro de gravedad) | USB |
+| Carga | USB-C con TP4056 + protección + carga compartida | — |
+| Firmware | `pio run -e c3-144` | `pio run -e devkit-144` |
 
-Los dos tamaños usan el **mismo firmware, los mismos personajes y la misma
-app**. Cambia sólo el panel y la celda.
+**Un solo panel.** El primer prototipo usaba un TFT de 2,2" (ILI9341,
+240×320). Se retiró: las cinco carcasas son para el de 1,44", que entra desde
+atrás en una ventana biselada a 45° ([carcasas.md](carcasas.md)), y mantener
+dos paneles duplicaba compilaciones, láminas y pruebas sin un producto
+detrás. El motor gráfico sigue escalando al lado corto del panel
+(`gfx/panel.h`), así que sumar otro tamaño algún día es agregar su bloque en
+`esp32/placa.h` y su clase en `esp32/pantalla.cpp`.
 
 ---
 
 ## ¿ESP32-C3 SuperMini o ESP32 de 30 pines?
 
-**Conviene el C3 SuperMini para el producto, en los dos tamaños.** El de 30
-pines queda como placa de banco. El firmware compila para las dos
-(`c3-22`, `c3-144`, `devkit-22`, `devkit-144`), así que la decisión no ata
-nada.
+**Conviene el C3 SuperMini para el producto.** El de 30 pines queda como
+placa de banco. El firmware compila para las dos (`c3-144`, `devkit-144`),
+así que la decisión no ata nada.
 
 La diferencia de precio es chica y el espacio sobra, así que la decisión no
 sale de ahí. Sale de la batería:
@@ -47,43 +51,29 @@ que consume 5 mA todo el tiempo, ninguna optimización de firmware salva la
 batería: habría que desoldarle el regulador y alimentarlo por 3V3 desde uno
 externo, y a esa altura es otra placa.
 
-Donde el DevKit gana es en el banco: sobran pines, tiene FPU y dos núcleos
-(el render de la cara de 240×320 le cuesta la mitad), y para probar sensores
-nuevos es más cómodo. Para desarrollar enchufado a USB, perfecto.
+Donde el DevKit gana es en el banco: sobran pines, tiene FPU y dos núcleos, y
+para probar sensores nuevos es más cómodo. Para desarrollar enchufado a USB, perfecto.
 
 **Lo que el C3 pide a cambio:**
 
 - Sólo GPIO0–GPIO5 despiertan del deep sleep: el sensor de toque va ahí.
 - GPIO2, GPIO8 y GPIO9 son de arranque. El mapa de pines los usa para cosas
   que están en alto al encender (ver la tabla de conexiones).
-- El render de la cara en 240×320 es más lento que en el ESP32. Se estima
-  entre 10 y 15 cuadros por segundo, que alcanza para ojos que parpadean y
-  respiran; se mide en la Fase 1 del [roadmap](roadmap.md).
+- No tiene FPU: por eso todo el motor gráfico es de punto fijo. En 128×128
+  la cara se dibuja holgada a 30 cuadros por segundo (`make bench`); se
+  confirma en la placa en la Fase 1 del [roadmap](roadmap.md).
 - Algunas SuperMini traen un LED rojo de encendido siempre prendido (1–3 mA).
   En la placa del producto se desuelda o se le corta la pista.
 
 ---
 
-## Pantallas
+## La pantalla
 
 La pantalla del ROOTKIT muestra **dos cosas en toda su vida: el QR y los
-ojos**. Nada de números ni íconos. Por eso las dos sirven igual: la cara es
-vectorial y se escala al lado corto del panel.
+ojos**. Nada de números ni íconos. La cara es vectorial y se escala al lado
+corto del panel.
 
-### TFT 2,2" 240×320 SPI (ILI9341) — el prototipo actual
-
-- Controlador ILI9341. Es el módulo rojo con zócalo SD.
-- Lógica a 3,3 V. Si el módulo trae el puente `J1`, cerrarlo para
-  alimentarlo con 3,3 V (sin el puente espera 5 V en VCC).
-- Luz de fondo: 40–80 mA a pleno. **No va directo a un GPIO**: va a través de
-  un MOSFET N (AO3400) o un transistor (S8050) con el GPIO a la compuerta,
-  para poder regularla por PWM sin quemar el pin.
-- El firmware dibuja un cuadrado de 240×240 en el centro y pinta lisas las
-  franjas de 40 px de arriba y abajo. Ahorra un cuarto de memoria y de tiempo,
-  y la cara no pierde nada. La ventana de la carcasa puede tapar esas
-  franjas.
-
-### TFT 1,44" 128×128 IPS (ST7735S) — la versión mini
+### TFT 1,44" 128×128 IPS (ST7735S)
 
 - Controlador ST7735S, memoria de 132×162.
 - Casi todos los lotes necesitan un corrimiento: por defecto
@@ -91,7 +81,10 @@ vectorial y se escala al lado corto del panel.
   azul cambiados o con los colores invertidos, se corrige en
   `platformio.ini` con `RK_TFT_OFS_X/Y`, `RK_TFT_BGR` y `RK_TFT_INVERT`, sin
   tocar código.
-- Luz de fondo: 15–30 mA. También por transistor.
+- Luz de fondo: 15–30 mA. **No va directo a un GPIO**: va a través de un
+  MOSFET N (AO3400) o un transistor (S8050) con el GPIO a la compuerta, para
+  regularla por PWM sin quemar el pin.
+- El framebuffer ocupa 32 KB: en un C3 con el wifi prendido sobra lugar.
 
 ---
 
@@ -156,11 +149,12 @@ gasta nada.
 
 ### La celda
 
-- **ROOTKIT (2,2"):** una **18650** de 2600–3500 mAh, de marca (Samsung,
-  LG, Molicel, Sony). Las "9900 mAh" de sitios de ofertas tienen 800 mAh y
-  a veces arena.
-- **Mini (1,44"):** **LiPo plana** de 1000–1200 mAh (103450 o 603450) con su
-  plaquita de protección.
+- Una **18650** de 2600–3500 mAh, de marca (Samsung, LG, Molicel, Sony). Las
+  "9900 mAh" de sitios de ofertas tienen 800 mAh y a veces arena. Va
+  **parada, abajo**: es la pieza más pesada y hace de lastre
+  ([carcasas.md](carcasas.md)).
+- Si algún día hay una carcasa más chica: **LiPo plana** de 1000–1200 mAh
+  (103450 o 603450) con su plaquita de protección. El firmware no cambia.
 
 ### El circuito
 
@@ -219,17 +213,21 @@ aparato apagado en la caja.
 Estimaciones a verificar con un medidor en la Fase 1. Los costos de
 medición y transmisión salen del modelo de `nodo/power.c`.
 
-| Consumo por día | ROOTKIT 2,2" | Mini 1,44" |
-|---|---:|---:|
-| Deep sleep (~0,15 mA con panel dormido) | 3,6 mAh | 3,6 mAh |
-| Mediciones adaptativas (cada 2–30 min) | 1,5 mAh | 1,5 mAh |
-| ~30 envíos a la nube (wifi + TLS) | 2,3 mAh | 2,3 mAh |
-| Pantalla al tocar: 20 veces × 20 s | 8,9 mAh | 5,6 mAh |
-| **Total** | **~16 mAh** | **~13 mAh** |
-| **Con la celda** | **~5 meses** (18650 3000 mAh, 20 % de margen) | **~2 meses** (LiPo 1000 mAh) |
+| Consumo por día | ROOTKIT (1,44" + 18650) |
+|---|---:|
+| Deep sleep (~0,15 mA con panel dormido) | 3,6 mAh |
+| Mediciones adaptativas (cada 2–30 min) | 1,5 mAh |
+| ~30 envíos a la nube (wifi + TLS) | 2,3 mAh |
+| Pantalla al tocar: 20 veces × 20 s | 5,6 mAh |
+| **Total** | **~13 mAh** |
+| **Con una 18650 de 3000 mAh (20 % de margen)** | **~6 meses** |
 
-**Pantalla siempre encendida** a batería: el 2,2" dura un día; el mini, uno
-o dos. Enchufado, sin límite. La app lo explica al activar la opción.
+Una actualización por aire (bajar ~1,2 MB por wifi y escribir la flash)
+cuesta unos 3 mAh: a batería sólo se hace con la celda arriba de 3,7 V
+([ota.md](ota.md)).
+
+**Pantalla siempre encendida** a batería: unos cuatro días. Enchufado, sin
+límite. La app lo explica al activar la opción.
 
 ---
 
@@ -342,14 +340,14 @@ Por unidad. Los precios de pantalla son los de la cotización actual.
 | Cant. | Pieza | Nota |
 |---:|---|---|
 | 1 | ESP32-C3 SuperMini | o un ESP32 DevKit para el banco |
-| 1 | TFT 2,2" 240×320 SPI ILI9341 | $19.000 — o TFT 1,44" 128×128 IPS ST7735, $9.000 |
+| 1 | TFT 1,44" 128×128 IPS ST7735S | $9.000 |
 | 1 | Sensor capacitivo de suelo v2.0 | con TLC555 |
 | 1 | AHT20 | o AHT20+BMP280 |
 | 1 | BH1750 (GY-302) | |
-| 1 | DS18B20 sumergible con cable | opcional en el mini |
+| 1 | DS18B20 sumergible con cable | opcional |
 | 1 | TTP223 | |
 | 1 | Módulo TP4056 USB-C con protección (6 pines) | |
-| 1 | 18650 de marca + portapila | o LiPo 1000 mAh para el mini |
+| 1 | 18650 de marca + portapila | |
 | 1 | AO3401 (P-MOSFET SOT-23) | carga compartida |
 | 1 | AO3401 (P-MOSFET) | alimentación de sensores |
 | 1 | AO3400 (N-MOSFET) | luz de fondo |

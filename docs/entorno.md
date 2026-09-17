@@ -92,7 +92,7 @@ crecimiento sin tener que esperar seis meses.
 make sheet       # los 6 modelos x 11 ánimos
 make etapas      # las 5 etapas de crecimiento, por modelo
 make despertar   # los ojos se abren, por modelo
-make pantallas   # QR, dormida, despertar y cara en los dos paneles
+make pantallas   # QR, dormida, despertar y cara
 make bench       # costo de rasterizado y cota del bus
 ```
 

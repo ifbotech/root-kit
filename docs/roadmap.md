@@ -64,7 +64,7 @@ la pantalla (sólo el QR y los ojos):
 ### Firmware
 
 - [x] Caras en ilustración plana tipo Duolingo, con bordes suavizados en
-      punto fijo (`gfx/aa.c`), para los dos paneles
+      punto fijo (`gfx/aa.c`)
 - [x] **Cinco Rooties botánicos** (Brote, Musgo, Pinchito, Bulbo, Champi) ×
       once ánimos, estilo libro de cuentos, con parpadeo, mirada, guiño y
       respiración
@@ -89,7 +89,14 @@ la pantalla (sólo el QR y los ojos):
       ZeroSSL (`esp32/certificados.h`); sin `setInsecure()`
 - [x] Sincroniza por defecto con el VPS (`https://ifbotech.com/rootkit`)
 - [x] Deep sleep con despertar por toque o por reloj
-- [x] Compila para C3 SuperMini y ESP32 DevKit, con 1,44" y 2,2"
+- [x] Compila para C3 SuperMini (el producto) y ESP32 DevKit (el banco), con
+      el TFT de 1,44". El de 2,2" del primer prototipo se retiró
+- [x] **Actualizaciones por aire firmadas** (ECDSA P-256), con vuelta atrás
+      si la versión nueva no logra hablar con la nube ([ota.md](ota.md)); falta
+      probarlas en placa (Fase 1)
+- [x] **Protocolo de fábrica** por el puerto serie y `tools/fabrica.py`
+      ([fabrica.md](fabrica.md))
+- [x] **Modo calibración**: con la app calibrando, mide y cuenta cada 5 s
 - [x] 1884 comprobaciones en el escritorio, regresión visual de las 165 caras
 - [x] El renderer compilado a WebAssembly para la app y el emulador
 
@@ -160,18 +167,22 @@ la pantalla (sólo el QR y los ojos):
 - [ ] Revisar que el email de prueba de ROOTLAB llegó a la bandeja de
       entrada y no a spam
 
-## Fase 1 — Prototipo en el banco (2,2" + C3 SuperMini)
+## Fase 1 — Prototipo en el banco (1,44" + C3 SuperMini)
 
 Objetivo: el flujo completo con placa real, enchufada a USB.
 
 - [ ] Comprar lo de la [lista de compras](hardware.md#lista-de-compras-del-prototipo)
 - [ ] Armar en protoboard siguiendo [las conexiones](hardware.md#conexiones)
-- [ ] Flashear `c3-22` (por defecto sincroniza con `https://ifbotech.com/rootkit`)
+- [ ] Pasar la placa por `tools/fabrica.py` (la nube de producción ya no
+      acepta placas sin registrar) y flashear `c3-144`
+- [ ] **Una actualización por aire de punta a punta**: publicar en beta, ver
+      el log `[ota]`, cortar el wifi a mitad de la descarga, publicar un
+      binario que no sincroniza y ver la vuelta atrás
 - [ ] **HTTPS real**: que la placa valide el certificado del VPS con las
       raíces fijadas (primer sync en el monitor serie)
 - [ ] **La pantalla:** colores, orientación y que el QR se lea desde un
       iPhone y un Android a 30 cm
-- [ ] **Framerate real** de la cara en 240×320. Si baja de 10 fps: subir el
+- [ ] **Framerate real** de la cara en la placa. Si baja de 10 fps: subir el
       bus a 80 MHz, repintar sólo la zona de los ojos, o dibujar a 120×120 y
       escalar ×2
 - [ ] **Portal cautivo** en iPhone y Android: que la página abra sola y que
@@ -197,10 +208,15 @@ Objetivo: el flujo completo con placa real, enchufada a USB.
 - [ ] Ventana de la pantalla contra el módulo real
 - [ ] Antena del C3 fuera del plástico grueso y lejos de la tierra húmeda:
       medir RSSI dentro de la carcasa
-- [ ] Versión mini: 1,44" + LiPo, corrimientos del panel, carcasa chica
+- [ ] Corrimientos del panel de 1,44" (`RK_TFT_OFS_X/Y`) contra el módulo real
 - [ ] Dos semanas a batería: comparar la autonomía con la estimación
 
 ## Fase 2b — Sonido: el Rooti hace ruiditos
+
+**Postergada hasta después del piloto.** Suma lista de materiales, consumo y
+una rejilla en una carcasa que no puede tener aperturas hacia arriba; y el
+sonido ya vive en la app (la voz de cada Rooti, el ronroneo, las burbujas).
+Se retoma con datos de uso.
 
 Un parlantito para que el Rooti se exprese también con sonido: un gorjeo al
 despertar del cofre, un quejido cuando tiene sed, un "gracias" cuando lo
@@ -241,18 +257,24 @@ Opciones de hardware y pines en [hardware.md](hardware.md#sonido).
       firmware (raíces fijadas); falta probarlo en placa (Fase 1)
 - [ ] Dominio propio para la app (pasos en `root-lab/docs/despliegue.md`),
       con SPF, DKIM y DMARC para el correo
-- [ ] Respaldos fuera del VPS (snapshots del proveedor o un bucket cifrado)
+- [x] Respaldos cifrados para sacar del VPS, con prueba de restauración
+      mensual que avisa por email
+- [ ] Elegir el destino de esos respaldos (`ROOTLAB_RESPALDO_DESTINO`)
 - [ ] Rotación de la clave maestra (`tools/rotar-secreto.mjs`)
 - [ ] DMARC en `p=quarantine` cuando los reportes de Brevo estén limpios
-- [ ] **Registro de fábrica:** apagar la confianza al primer uso
-      (`ROOTLAB_TOFU=0`) y registrar cada token desde la estación de fábrica.
-      Cierra también el uso de la IA con Rooties inventados
-- [ ] Actualizaciones por aire (OTA): la tabla de particiones ya deja lugar
+- [x] **Registro de fábrica:** en producción sólo entran las placas que
+      registró la estación de fábrica (`ROOTLAB_TOFU=emulador`); un aparato o
+      un lote se pueden deshabilitar
+- [x] Actualizaciones por aire firmadas, por canales (beta y estable)
+- [x] Administración (`/api/admin/*`), vigía de caídas masivas, latido
+      opcional y métricas anónimas sin terceros
+- [x] Sin una IA de verdad, la app esconde las funciones de IA en vez de
+      simularlas
 - [ ] Passkeys como segundo factor opcional; cambiar el email de la cuenta
 - [ ] Política de privacidad y términos (fotos de plantas, charlas, datos de
       la casa), y exportar los datos de una cuenta
-- [ ] Monitoreo: aparatos caídos, errores de IA, gasto, emails rebotados,
-      notificaciones fallidas
+- [ ] Monitoreo que falta: errores de IA, emails rebotados, notificaciones
+      fallidas; y un latido externo configurado (`ROOTLAB_LATIDO_URL`)
 - [ ] Sitio principal: `@anthropic-ai/sdk` y `mercadopago` a sus versiones
       mayores nuevas (avisos moderados), probando los flujos de pago
 

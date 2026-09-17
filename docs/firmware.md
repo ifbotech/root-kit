@@ -39,17 +39,19 @@ Hace falta [PlatformIO](https://platformio.org/) (`pip install platformio`).
 
 ```bash
 cd firmware
-pio run -e c3-22                     # C3 SuperMini + TFT 2,2"
-pio run -e c3-22 -t upload           # flashear
+pio run -e c3-144                    # C3 SuperMini + TFT 1,44" (el producto)
+pio run -e c3-144 -t upload          # flashear
 pio device monitor                   # log por USB
 ```
 
 | Entorno | Placa | Pantalla |
 |---|---|---|
-| `c3-22` | ESP32-C3 SuperMini | TFT 2,2" 240×320 ILI9341 |
-| `c3-144` | ESP32-C3 SuperMini | TFT 1,44" 128×128 ST7735S |
-| `devkit-22` | ESP32 DevKit 30 pines | TFT 2,2" |
-| `devkit-144` | ESP32 DevKit 30 pines | TFT 1,44" |
+| `c3-144` | ESP32-C3 SuperMini | TFT 1,44" 128×128 ST7735S: **el producto** |
+| `devkit-144` | ESP32 DevKit 30 pines | la misma: el banco de pruebas |
+
+El TFT de 2,2" del primer prototipo se retiró ([hardware.md](hardware.md)).
+La versión va en `platformio.ini` (`RK_FW_VERSION`): es la que el aparato le
+dice a la nube y la que decide si hay una actualización ([ota.md](ota.md)).
 
 **Antes de flashear, apuntar a la nube.** En `platformio.ini`:
 
@@ -127,6 +129,9 @@ Tres reglas que salen de ahí:
 
 `esp32/main.cpp` no bloquea nunca:
 
+0. **Fábrica.** Si por el puerto serie llega una orden `FABRICA {...}` y el
+   aparato no está vinculado, graba secreto, Rooti y lote
+   ([fabrica.md](fabrica.md)).
 1. **Botón.** Tocar prende la pantalla. Mantener: a los 2 s los ojos
    empiezan a cerrarse; a los 10 s se borra el vínculo y el wifi.
 2. **Portal.** Si el enlace lo pide, levanta la red `ROOTKIT-XXXX` con DNS
@@ -138,13 +143,19 @@ Tres reglas que salen de ahí:
    una tarea aparte, así la cara no se congela durante el TLS. Aplica la
    respuesta: vínculo, cofre, persona, **rareza** (la piel que salió del
    cofre), nombre, especie, calibración, brillo, modo de pantalla, días
-   sanos. Descarta las lecturas confirmadas.
-6. **Enlace.** Avanza la máquina de estados.
-7. **Guardar** en NVS lo que cambió.
-8. **Energía.** Enchufado o configurando: pantalla prendida. A batería con
+   sanos. Descarta las lecturas confirmadas. Si la app está **calibrando**
+   el sensor, mide y cuenta cada 5 s sin dormirse. Si la nube ofrece un
+   **firmware** nuevo, decide si lo baja (`core/ota.c`).
+6. **Actualización.** La descarga corre en su propia tarea; cuando quedó
+   instalada y verificada, guarda todo y reinicia. La versión recién
+   instalada tiene diez minutos para hablar con la nube o vuelve a la
+   anterior ([ota.md](ota.md)).
+7. **Enlace.** Avanza la máquina de estados.
+8. **Guardar** en NVS lo que cambió.
+9. **Energía.** Enchufado o configurando: pantalla prendida. A batería con
    cara: se apaga a los 20 s y, sin nada pendiente, deep sleep hasta la
    próxima medición o hasta que la toquen.
-9. **Dibujar** a 30 fps enchufado o 15 fps a batería, mandando por SPI sólo
+10. **Dibujar** a 30 fps enchufado o 15 fps a batería, mandando por SPI sólo
    las filas que cambiaron.
 
 ## Las caras
@@ -250,7 +261,7 @@ usa: no sabe quién tiene al lado. Vía WebAssembly, `cara_mirada`.
 make transicion  # la lámina de arriba
 make sheet       # 8 Rooties × 11 ánimos
 make despertar   # el despertar, por personaje
-make pantallas   # QR, dormida, despertar y cara, en los dos paneles
+make pantallas   # QR, dormida, despertar y cara
 make golden      # después de un cambio visual intencional
 ```
 
