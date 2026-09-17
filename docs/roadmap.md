@@ -150,7 +150,11 @@ la pantalla (sólo el QR y los ojos):
       tablero que no cambió vuelve vacío
 - [x] La ficha y Ajustes con lo de todos los días adelante y lo de una vez
       plegado: de cuatro pantallas de scroll a una
-- [x] 469 pruebas, y verificación de punta a punta contra producción
+- [x] **La trastienda** (`/rootkit/admin`): el panel de quien hace el
+      producto —flota, firmware, uso, salud de los sensores— y **el vivero**,
+      la lista de mejoras que llenan cinco agentes que revisan el proyecto
+      ([trastienda.md](https://github.com/ifbotech/root-lab/blob/main/docs/trastienda.md))
+- [x] 493 pruebas, y verificación de punta a punta contra producción
 - [x] En línea: https://ifbotech.com/rootkit/
 
 ### El servidor (VPS)
