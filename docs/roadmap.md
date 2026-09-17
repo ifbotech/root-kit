@@ -143,7 +143,14 @@ la pantalla (sólo el QR y los ojos):
 - [x] **Seguridad web**: CSP estricta, anti-iframe, HSTS, nada de terceros
       (la fuente se sirve desde la app); servicio systemd encerrado
 - [x] Emulador de Rooti en el navegador con el firmware real
-- [x] 224 pruebas, y verificación de punta a punta contra producción
+- [x] **Accesibilidad WCAG 2.1 AA**: auditoría con axe sin violaciones, de día
+      y de noche; el contraste lo garantiza el motor de paletas
+- [x] **Lo que el teléfono no gasta**: todo el texto comprimido (el armazón
+      pasó de 281 a 89 KB) y con etiqueta, así la segunda carga son 6 KB y un
+      tablero que no cambió vuelve vacío
+- [x] La ficha y Ajustes con lo de todos los días adelante y lo de una vez
+      plegado: de cuatro pantallas de scroll a una
+- [x] 469 pruebas, y verificación de punta a punta contra producción
 - [x] En línea: https://ifbotech.com/rootkit/
 
 ### El servidor (VPS)
@@ -273,6 +280,9 @@ Opciones de hardware y pines en [hardware.md](hardware.md#sonido).
 - [ ] Passkeys como segundo factor opcional; cambiar el email de la cuenta
 - [ ] Política de privacidad y términos (fotos de plantas, charlas, datos de
       la casa), y exportar los datos de una cuenta
+- [x] **Qué queda escrito:** errores, frenos por límite, lo lento y un resumen
+      cada diez minutos en el journal, sin IPs ni ids
+      ([operacion.md](https://github.com/ifbotech/root-lab/blob/main/docs/operacion.md))
 - [ ] Monitoreo que falta: errores de IA, emails rebotados, notificaciones
       fallidas; y un latido externo configurado (`ROOTLAB_LATIDO_URL`)
 - [ ] Sitio principal: `@anthropic-ai/sdk` y `mercadopago` a sus versiones
