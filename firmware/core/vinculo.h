@@ -28,7 +28,7 @@
 
 typedef enum {
     RK_ETAPA_ESPORA = 0,   /*   0 días sanos */
-    RK_ETAPA_BROTE,        /*   7 */
+    RK_ETAPA_RETONO,       /*   7: "retoño" (no "brote": Brote es un Rooti) */
     RK_ETAPA_JOVEN,        /*  30 */
     RK_ETAPA_MADURO,       /*  90 */
     RK_ETAPA_ANCESTRAL,    /* 180 */

@@ -20,7 +20,7 @@ CFLAGS  ?= -std=c99 -Wall -Wextra -Wpedantic -O2
 BUILD    = build
 
 CORE     = core/species.c core/mood.c core/vinculo.c core/persona.c core/node.c \
-           core/sha256.c core/codigo.c core/enlace.c
+           core/sha256.c core/codigo.c core/enlace.c core/ota.c core/fabrica.c
 GFX      = gfx/fb.c gfx/aa.c gfx/font.c gfx/panel.c
 ART      = art/look.c art/face.c
 UI       = ui/cara.c ui/despertar.c ui/qr.c
@@ -34,7 +34,7 @@ LIB      = $(CORE) $(GFX) $(ART) $(UI) $(NET) $(NODO) $(TERCEROS)
 TESTSRC  = test/rk_test.c test/golden_util.c \
            test/test_mood.c test/test_nodo.c test/test_sensores.c \
            test/test_gfx.c test/test_render.c test/test_persona.c \
-           test/test_enlace.c test/test_red.c test/test_qr.c test/main.c
+           test/test_enlace.c test/test_red.c test/test_qr.c test/test_ota.c test/main.c
 
 HEADERS  = $(wildcard core/*.h gfx/*.h art/*.h ui/*.h net/*.h nodo/*.h third_party/*/*.h)
 

@@ -7,7 +7,7 @@
  *   2. Un buffer RGB565 plano es exactamente lo que espera el panel. El
  *      mismo código corre en el simulador, en las placas y, compilado a
  *      WebAssembly, en la app, sin capa intermedia.
- *   3. El sistema tiene DOS paneles de tamaños distintos —240x320 y
+ *   3. El motor dibuja en DOS tamaños de lienzo —240x320 y
  *      128x128— y LVGL pesa lo mismo en los dos. Acá el Mini paga
  *      exactamente las primitivas que usa.
  *

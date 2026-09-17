@@ -249,7 +249,7 @@ static void test_el_guino(void)
 static void test_adornos_por_etapa(void)
 {
     CHECK_INT("espora no desbloquea nada", 0, rk_face_adornos_etapa(RK_ETAPA_ESPORA));
-    CHECK_INT("brote tampoco", 0, rk_face_adornos_etapa(RK_ETAPA_BROTE));
+    CHECK_INT("retono tampoco", 0, rk_face_adornos_etapa(RK_ETAPA_RETONO));
     CHECK_TRUE("joven desbloquea brillos",
                (rk_face_adornos_etapa(RK_ETAPA_JOVEN) & RK_ADORNO_BRILLOS) != 0u);
     CHECK_TRUE("maduro desbloquea el aura",
@@ -265,7 +265,7 @@ static void test_adornos_por_etapa(void)
         for (i = 0; i < RK_ETAPA_COUNT; i++) {
             h[i] = cara_hash(0, RK_RAREZA_COMUN, RK_MOOD_HAPPY, rk_face_adornos_etapa(i), 1200u);
         }
-        /* ESPORA y BROTE comparten adornos a propósito: el primer premio
+        /* ESPORA y RETONO comparten adornos a propósito: el primer premio
          * llega a los 30 días sanos. De JOVEN en adelante cada etapa se ve. */
         for (i = 2; i < RK_ETAPA_COUNT; i++) {
             for (j = i + 1; j < RK_ETAPA_COUNT; j++) {

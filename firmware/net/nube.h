@@ -29,6 +29,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#include "../core/ota.h"
 #include "../core/species.h"
 #include "../core/vinculo.h"
 #include "../nodo/historial.h"
@@ -41,7 +42,7 @@ typedef struct {
     const char *id;
     const char *fw;          /* "0.5.0"                                   */
     const char *placa;       /* "c3-supermini", "esp32-devkit"            */
-    const char *pantalla;    /* "st7735-128", "ili9341-240x320"           */
+    const char *pantalla;    /* "st7735-128"                              */
     const char *persona;     /* id grabado en fábrica, o "" si no tiene   */
     const char *codigo;      /* NULL una vez vinculado                    */
     const char *estado;      /* rk_enlace_nombre()                        */
@@ -51,6 +52,11 @@ typedef struct {
     bool        usb;
     uint16_t    bat_mv;
     uint32_t    arranques;
+    const char *lote;        /* el de fábrica, o NULL                     */
+    /* Cómo va la actualización por aire, si hubo alguna: la versión que se
+     * intentó y "bajando", "verificando", "ok" o "fallo". NULL = nada. */
+    const char *ota_version;
+    const char *ota_estado;
 } rk_nube_yo_t;
 
 /* Arma el cuerpo con hasta `max_lecturas` de las más viejas del historial.
@@ -99,6 +105,12 @@ typedef struct {
      * mandaron. */
     bool     hay_vinculo;
     rk_bond_t vinculo;
+    /* La app está calibrando el sensor de tierra: medir y contar seguido,
+     * sin dormir, mientras dure (la nube lo apaga sola a los 10 minutos). */
+    bool     calibrando;
+    /* Hay una versión nueva para este aparato (core/ota.h). */
+    bool     hay_firmware;
+    rk_ota_manifiesto_t firmware;
 } rk_nube_resp_t;
 
 /* Interpreta la respuesta. Devuelve false si no es JSON de la nube (sin

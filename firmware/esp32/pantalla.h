@@ -1,12 +1,10 @@
 /* pantalla.h — el panel físico.
  *
  * El núcleo dibuja en un framebuffer RGB565 cuadrado del lado corto del
- * panel. En el de 128x128 es la pantalla entera; en el de 240x320 son los
- * 240x240 del medio, y las dos franjas de 40 pixeles de arriba y abajo se
- * pintan lisas del color de fondo. La cara y el QR se escalan con el lado
- * corto de todas formas, así que no pierden nada, y el framebuffer ocupa
- * 115 KB en vez de 154: en un C3 con wifi prendido esa diferencia es la
- * que separa andar holgado de andar justo.
+ * panel. En el de 128x128 (el del producto) es la pantalla entera: 32 KB. Si
+ * algún día vuelve un panel que no sea cuadrado, las franjas que sobran se
+ * pintan lisas del color de fondo: la cara y el QR se escalan con el lado
+ * corto de todas formas.
  *
  * Sólo se mandan por SPI las filas que cambiaron respecto del cuadro
  * anterior (se comparan por hash, no guardando una copia). Una cara que

@@ -5,11 +5,7 @@
 #include <LovyanGFX.hpp>
 
 class PanelRootkit : public lgfx::LGFX_Device {
-#if defined(RK_PANEL_ILI9341_240)
-    lgfx::Panel_ILI9341 _panel;
-#else
     lgfx::Panel_ST7735S _panel;
-#endif
     lgfx::Bus_SPI   _bus;
     lgfx::Light_PWM _luz;
 
@@ -39,11 +35,9 @@ public:
             cfg.pin_busy = -1;
             cfg.panel_width = RK_TFT_W;
             cfg.panel_height = RK_TFT_H;
-#if defined(RK_PANEL_ST7735_128)
             /* El 1,44" usa la memoria de 132x162 del controlador. */
             cfg.memory_width = 132;
             cfg.memory_height = 162;
-#endif
             cfg.offset_x = RK_TFT_OFS_X;
             cfg.offset_y = RK_TFT_OFS_Y;
             cfg.offset_rotation = 0;

@@ -7,7 +7,7 @@
  *   ./build/rootkit_sim --despertar F los ojos se abren, por Rooti
  *   ./build/rootkit_sim --transicion F de contento a sediento, cuadro a cuadro
  *   ./build/rootkit_sim --shot F [M] [T]  un cuadro suelto
- *   ./build/rootkit_sim --pantallas F QR, dormida, despertar y cara, en los dos paneles
+ *   ./build/rootkit_sim --pantallas F QR, dormida, despertar y cara
  *   ./build/rootkit_sim --sprites DIR [LADO]  una imagen por modelo y animo, para la app
  *   ./build/rootkit_sim --bench       costo de renderizar
  *
@@ -407,8 +407,10 @@ static int do_shot(const char *path, const char *mood_name, uint32_t t_ms)
 }
 
 /* --- las pantallas del vínculo: QR, dormida, despertar y cara --------------
- * Arriba el panel de 1,44"; abajo el de 2,2". Es la lámina que muestra todo lo
- * que la pantalla del ROOTKIT puede llegar a mostrar en su vida. */
+ * Arriba el panel del producto (1,44", 128x128); abajo lo mismo en un lienzo
+ * de 240x320, para verlo de cerca y para comprobar que el motor escala. Es la
+ * lámina que muestra todo lo que la pantalla del ROOTKIT puede llegar a
+ * mostrar en su vida. */
 static int do_pantallas(const char *path)
 {
     enum { PAD = 10 };
@@ -455,7 +457,7 @@ static int do_pantallas(const char *path)
         }
         pegar(&big, grande, RK_PRIME_W, RK_PRIME_H, ox, oy);
         rk_text(&big, ox, oy - 12,
-                i == 0 ? "2,2 QR" : i == 1 ? "2,2 DORMIDA" : i == 2 ? "2,2 DESPERTANDO" : "2,2 CARA",
+                i == 0 ? "DE CERCA: QR" : i == 1 ? "DE CERCA: DORMIDA" : i == 2 ? "DE CERCA: DESPERTANDO" : "DE CERCA: CARA",
                 RK_RGB(227, 165, 74), 1);
     }
     if (save_bmp(path, lienzo, W, H) != 0) {

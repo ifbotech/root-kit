@@ -1,21 +1,25 @@
-/* panel.h — las dos pantallas del ROOTKIT, como datos.
+/* panel.h — los tamaños de pantalla que el motor sabe dibujar, como datos.
  *
- * El mismo motor gráfico dibuja en las dos. Todo lo que cambia entre ellas
+ * HOY EL PRODUCTO USA UNO: el MINI (TFT de 1,44", 128x128). El PRIME (2,2")
+ * fue el del primer prototipo y ya no tiene placa ni compilación
+ * (docs/decisiones.md); su entrada queda porque no cuesta nada y mantiene
+ * honesto al motor: las pruebas del QR lo dibujan también en ese tamaño.
+ *
+ * El mismo motor gráfico dibuja en los dos. Todo lo que cambia entre ellos
  * vive acá; las funciones de dibujo trabajan sobre `fb->w` y `fb->h`.
  *
- *   PRIME   TFT 2,2" ILI9341, 240x320, SPI — el ROOTKIT de maceta mediana
- *           área activa 36,5 x 47,5 mm  ->  paso 0,152 mm
- *
- *   MINI    TFT 1,44" ST7735 IPS, 128x128, SPI — el ROOTKIT mini
+ *   MINI    TFT 1,44" ST7735 IPS, 128x128, SPI — el ROOTKIT
  *           área activa 25,9 x 25,9 mm  ->  paso 0,202 mm
  *
- * Los nombres PRIME y MINI quedaron de la arquitectura anterior; hoy son sólo
- * los dos tamaños del mismo aparato, con el mismo firmware.
+ *   PRIME   240x320 (era un TFT 2,2" ILI9341) — sólo en el escritorio
+ *           área activa 36,5 x 47,5 mm  ->  paso 0,152 mm
+ *
+ * Los nombres PRIME y MINI quedaron de la arquitectura anterior.
  *
  * La cara se escala con el lado corto del panel, así que no necesita escalas
- * enteras: en la placa de 240x320 se dibuja un cuadrado de 240x240 y las
- * franjas se pintan lisas (ver esp32/pantalla.h). El texto sólo aparece en la
- * pantalla del QR, a escala 2 en el panel chico y 3 en el grande.
+ * enteras: en un lienzo de 240x320 se dibuja un cuadrado de 240x240. El texto
+ * sólo aparece en la pantalla del QR, a escala 2 en el panel chico y 3 en el
+ * grande.
  */
 #ifndef ROOTKIT_PANEL_H
 #define ROOTKIT_PANEL_H

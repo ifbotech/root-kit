@@ -1,0 +1,58 @@
+name: publicar-firmware
+
+# Firma el firmware del producto (c3-144) y lo publica en ROOTLAB para que los
+# aparatos se actualicen solos (docs/ota.md). Es manual a propósito: una
+# versión nueva llega primero al canal beta (el piloto) y, cuando anduvo, se
+# vuelve a correr con canal estable.
+#
+# Secretos del repositorio:
+#   FIRMWARE_CLAVE        la clave PRIVADA (PEM) que generó
+#                         root-lab/tools/publicar-firmware.mjs generar-clave
+#   ROOTLAB_ADMIN_CLAVE   la de /etc/root-lab.env en el servidor
+
+on:
+  workflow_dispatch:
+    inputs:
+      canal:
+        description: Canal
+        type: choice
+        options: [beta, estable]
+        default: beta
+      notas:
+        description: Qué cambia (una línea)
+        default: ''
+      nube:
+        description: URL de ROOTLAB
+        default: https://ifbotech.com/rootkit
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: pip install platformio
+      - name: Probar antes de publicar
+        run: make -C firmware test
+      - name: Compilar c3-144
+        run: cd firmware && pio run -e c3-144
+      - name: Firmar y publicar
+        env:
+          FIRMWARE_CLAVE: ${{ secrets.FIRMWARE_CLAVE }}
+          ROOTLAB_ADMIN_CLAVE: ${{ secrets.ROOTLAB_ADMIN_CLAVE }}
+        run: |
+          set -eu
+          version="$(grep -oE 'RK_FW_VERSION=\\"[^\]+' firmware/platformio.ini | cut -d'"' -f2)"
+          git clone --depth 1 https://github.com/ifbotech/root-lab.git /tmp/root-lab
+          umask 077
+          printf '%s\n' "$FIRMWARE_CLAVE" > /tmp/firmware.key
+          node /tmp/root-lab/tools/publicar-firmware.mjs publicar firmware/.pio/build/c3-144/firmware.bin \
+            --version "$version" --placa c3-supermini --canal "${{ inputs.canal }}" \
+            --clave /tmp/firmware.key --publica /tmp/root-lab/deploy/firmware-publica.pem \
+            --nube "${{ inputs.nube }}" --notas "${{ inputs.notas }}"
+          rm -f /tmp/firmware.key

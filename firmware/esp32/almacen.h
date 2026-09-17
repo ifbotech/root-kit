@@ -5,6 +5,8 @@
  *                "placa de desarrollo". En producción lo graba la estación
  *                de fábrica junto con la persona (ver docs/fabrica.md).
  *     persona    id del Rooti (la figura), grabado en fábrica
+ *     lote       el lote de fábrica (para la nube; vacío en desarrollo)
+ *     ota        la última actualización por aire que se intentó (core/ota.h)
  *     rareza     la piel que salió del cofre: 0 común, 1 rara, 2 épica
  *     enlace     época, wifi sí/no, vinculado, revelado
  *     wifi       ssid y clave
@@ -25,6 +27,8 @@
 extern "C" {
 #include "../core/codigo.h"
 #include "../core/enlace.h"
+#include "../core/fabrica.h"
+#include "../core/ota.h"
 #include "../core/vinculo.h"
 #include "../net/nube.h"
 #include "../nodo/historial.h"
@@ -34,6 +38,8 @@ extern "C" {
 typedef struct {
     uint8_t  secreto[RK_SECRETO_LEN];
     char     persona[16];
+    char     lote[RK_LOTE_LEN];
+    rk_ota_nvs_t ota;
     uint8_t  rareza;
     rk_enlace_nvs_t enlace;
     char     ssid[33];
@@ -60,6 +66,10 @@ void almacen_borrar_wifi(rk_almacen_t *a);
 void almacen_guardar_nube(const rk_almacen_t *a);
 void almacen_guardar_config(const rk_almacen_t *a);    /* persona, rareza, especie, cal, nombre, prefs */
 void almacen_guardar_vinculo(const rk_almacen_t *a);
+void almacen_guardar_ota(const rk_almacen_t *a);
+/* La estación de fábrica: secreto, Rooti y lote, de una. */
+void almacen_grabar_fabrica(rk_almacen_t *a, const uint8_t secreto[RK_SECRETO_LEN],
+                            const char *persona, const char *lote);
 
 bool almacen_historial_cargar(rk_historial_t *h);
 void almacen_historial_guardar(const rk_historial_t *h);

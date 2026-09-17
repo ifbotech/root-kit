@@ -22,6 +22,7 @@ int main(void)
     suite_qr();
     suite_enlace();
     suite_red();
+    suite_ota();
 
     return rk_t_report();
 }

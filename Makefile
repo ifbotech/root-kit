@@ -7,10 +7,10 @@
 #   make etapas     las 5 etapas de crecimiento, por personaje
 #   make despertar  los ojos se abren, por personaje
 #   make transicion el cambio de animo, cuadro a cuadro
-#   make pantallas  QR, dormida, despertar y cara en los dos paneles
+#   make pantallas  QR, dormida, despertar y cara
 #   make capturas   regenera las imagenes de tools/preview
 #   make wasm       el renderer compilado para la app (root-lab)
-#   make placa      compila las cuatro variantes con PlatformIO
+#   make placa      compila el producto (c3-144) y el banco (devkit-144)
 #   make bench      costo de renderizar una cara
 #   make golden     regenera las referencias visuales
 #   make verify     lo que corre CI: pruebas + referencias al dia
@@ -38,7 +38,7 @@ capturas:
 	@python3 tools/bmp2png.py firmware/build/pantallas.bmp tools/preview/pantallas.png
 
 placa:
-	@cd firmware && python3 -m platformio run -e c3-22 -e c3-144 -e devkit-22 -e devkit-144
+	@cd firmware && python3 -m platformio run -e c3-144 -e devkit-144
 
 # Lo mismo que corre CI. Además de las pruebas verifica que los hashes de
 # regresión visual estén commiteados al día: si alguien toca el rig de caras

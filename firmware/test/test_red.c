@@ -254,6 +254,10 @@ static void test_parsear(void)
     CHECK_TRUE("una rareza desconocida no cambia la piel",
                rk_nube_parsear("{\"ok\":true,\"revelado\":true,\"rareza\":\"legendaria\"}", &r)
                && !r.hay_rareza);
+    CHECK_TRUE("sin firmware ni calibracion en curso, nada de eso",
+               rk_nube_parsear("{\"ok\":true}", &r) && !r.hay_firmware && !r.calibrando);
+    CHECK_TRUE("la app calibrando llega",
+               rk_nube_parsear("{\"ok\":true,\"calibrando\":true}", &r) && r.calibrando);
     CHECK_TRUE("la rara llega como rara",
                rk_nube_parsear("{\"ok\":true,\"rareza\":\"raro\"}", &r)
                && r.hay_rareza && r.rareza == RK_RAREZA_RARA);

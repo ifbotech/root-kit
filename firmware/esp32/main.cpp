@@ -7,8 +7,8 @@
  *
  * El bucle no bloquea nunca. Cada vuelta:
  *
- *   botón  ->  portal  ->  wifi  ->  medir  ->  nube  ->  enlace  ->
- *   guardar  ->  energía  ->  dibujar
+ *   botón  ->  fábrica  ->  portal  ->  wifi  ->  medir  ->  nube  ->
+ *   actualización  ->  enlace  ->  guardar  ->  energía  ->  dibujar
  *
  * Ver docs/firmware.md para el mapa completo y cómo compilar y flashear.
  */
@@ -22,6 +22,8 @@
 #include "portal.h"
 #include "red.h"
 #include "energia.h"
+#include "ota.h"
+#include "fabrica.h"
 
 extern "C" {
 #include "../core/codigo.h"
@@ -40,7 +42,7 @@ extern "C" {
 }
 
 #ifndef RK_FW_VERSION
-#define RK_FW_VERSION "0.5.0"
+#define RK_FW_VERSION "0.6.0"
 #endif
 #ifndef RK_NUBE_URL
 #define RK_NUBE_URL "https://ifbotech.com/rootkit"
@@ -61,6 +63,8 @@ extern "C" {
 #define BOTON_AVISO_MS          2000u
 #define WIFI_REINTENTO_MS      10000u
 #define LECTURAS_POR_PEDIDO       20u
+/* Con la app calibrando el sensor: medir y contar cada tanto, sin dormir. */
+#define CALIBRANDO_CADA_MS      5000u
 
 static rk_almacen_t   A;
 static rk_enlace_t    E;
@@ -93,6 +97,10 @@ static bool     g_transmitir = true;
 static uint32_t g_intervalo_nube_s = 900u;
 static rk_wifi_t g_wifi_prev = RK_WIFI_APAGADO;
 static rk_enlace_estado_t g_estado_prev = RK_ENL_COUNT;
+static bool     g_calibrando;
+/* La versión recién instalada todavía no habló con la nube. */
+static bool     g_ota_verificando;
+static const char *g_ota_estado;     /* lo que se le cuenta a la nube */
 
 RTC_DATA_ATTR static uint32_t g_dia_desde_s;
 RTC_DATA_ATTR static bool     g_dia_urgente;
@@ -173,6 +181,11 @@ static void medir(uint32_t ahora)
         g_transmitir = true;
     }
     g_t_medir = ahora + (uint32_t)d.sleep_s * 1000u;
+    if (g_calibrando) {
+        /* La app está mirando el número crudo en vivo. */
+        g_t_medir = ahora + CALIBRANDO_CADA_MS;
+        g_transmitir = true;
+    }
 
     /* El día del vínculo: 24 h de reloj, sano si no hubo nada urgente. */
     if (N.verdict.severity == RK_SEV_URGENT) {
@@ -229,6 +242,9 @@ static void sincronizar(uint32_t ahora)
     yo.usb = N.tel.usb;
     yo.bat_mv = N.tel.batt_mv;
     yo.arranques = A.arranques;
+    yo.lote = A.lote;
+    yo.ota_version = A.ota.version;
+    yo.ota_estado = A.ota.version[0] != '\0' ? g_ota_estado : NULL;
 
     n = rk_nube_armar_sync(g_cuerpo, sizeof g_cuerpo, &yo, &H, LECTURAS_POR_PEDIDO, &g_incluidas);
     if (n > 0u && red_pedir(g_url_sync, g_token, g_cuerpo, n)) {
@@ -253,6 +269,23 @@ static void procesar_respuesta(uint32_t ahora)
 
     rk_enlace_nube_t resumen = { R.vinculado, R.revelado };
     rk_enlace_evento(&E, RK_EV_NUBE_OK, &resumen, ahora);
+
+    /* La versión recién instalada habló con la nube: queda confirmada. */
+    if (g_ota_verificando) {
+        g_ota_verificando = false;
+        ota_confirmar();
+        rk_ota_confirmar(&A.ota);
+        almacen_guardar_ota(&A);
+        g_ota_estado = "ok";
+        Serial.printf("[ota] %s confirmada\n", RK_FW_VERSION);
+    }
+    if (R.calibrando != g_calibrando) {
+        g_calibrando = R.calibrando;
+        if (g_calibrando) {
+            g_t_medir = ahora;
+        }
+        Serial.printf("[cal] calibrando %d\n", g_calibrando);
+    }
 
     if (R.vinculado) {
         if (R.persona[0] != '\0' && strcmp(R.persona, A.persona) != 0) {
@@ -303,11 +336,65 @@ static void procesar_respuesta(uint32_t ahora)
     if (R.intervalo_s > 0u) {
         g_intervalo_nube_s = R.intervalo_s;
     }
+    if (R.hay_firmware && !ota_activa()) {
+        rk_ota_decision_t d = rk_ota_decidir(&A.ota, &R.firmware, RK_FW_VERSION, N.tel.usb, N.tel.batt_mv);
+        if (d == RK_OTA_ADELANTE) {
+            rk_ota_marcar_intento(&A.ota, R.firmware.version);
+            almacen_guardar_ota(&A);
+            if (ota_empezar(&R.firmware, g_token)) {
+                g_ota_estado = "bajando";
+            }
+        } else if (d != RK_OTA_MISMA_VERSION) {
+            Serial.printf("[ota] %s: %s\n", R.firmware.version, rk_ota_decision_nombre(d));
+        }
+    }
     rk_historial_descartar(&H, R.aceptadas < g_incluidas ? R.aceptadas : g_incluidas);
     almacen_historial_guardar(&H);
     g_transmitir = H.cuenta > 0u;          /* quedan pendientes: otra tanda */
     if (g_transmitir) {
         g_t_consulta = ahora + 2000u;
+    }
+}
+
+/* ------------------------------------------------------- actualización ---- */
+static void atender_ota(uint32_t ahora)
+{
+    switch (ota_fase()) {
+    case RK_OTA_LISTA:
+        /* Todo lo que está en RAM se guarda antes de reiniciar. */
+        A.ota.verificar = true;
+        almacen_guardar_ota(&A);
+        almacen_historial_guardar(&H);
+        delay(200);
+        ESP.restart();
+        break;
+    case RK_OTA_FALLO:
+        g_ota_estado = "fallo";
+        g_transmitir = true;            /* que la nube se entere */
+        ota_olvidar_fallo();
+        break;
+    default:
+        break;
+    }
+    /* Diez minutos sin lograr hablar con la nube: la versión nueva no sirve. */
+    if (g_ota_verificando && ahora > RK_OTA_VERIFICAR_MS) {
+        A.ota.verificar = false;
+        almacen_guardar_ota(&A);
+        ota_volver_atras();
+        g_ota_verificando = false;      /* no había a dónde volver */
+    }
+}
+
+/* ------------------------------------------------------------ fábrica ---- */
+static void atender_fabrica(void)
+{
+    if (fabrica_atender(&A, E.nvs.vinculado, g_id, g_codigo, RK_FW_VERSION)) {
+        rk_token_api(A.secreto, g_token);
+        g_epoca_qr = 0xFFFFFFFFu;
+        refrescar_codigo();
+        aplicar_persona();
+        pantalla_invalidar();
+        Serial.printf("[fabrica] %s  lote %s  codigo %s\n", A.persona, A.lote, g_codigo);
     }
 }
 
@@ -438,8 +525,10 @@ static void administrar_energia(uint32_t ahora)
     pantalla_brillo(0);
 
     /* A batería, con cara, pantalla apagada y nada en vuelo: a dormir hasta
-     * la próxima medición o hasta que la toquen. */
-    if (!red_ocupada() && !g_transmitir && !portal_activo() && g_t_boton == 0u) {
+     * la próxima medición o hasta que la toquen. Bajando una actualización,
+     * verificándola o con la app calibrando, no. */
+    if (!red_ocupada() && !g_transmitir && !portal_activo() && g_t_boton == 0u &&
+        !ota_activa() && !g_ota_verificando && !g_calibrando) {
         uint32_t falta = g_t_medir > ahora ? (g_t_medir - ahora) / 1000u : 1u;
         if (!usb && N.tel.batt_mv > 0u && rk_batt_is_critical(N.tel.batt_mv)) {
             falta = 3600u;              /* proteger la celda */
@@ -528,6 +617,13 @@ void setup(void)
     }
     refrescar_codigo();
     red_iniciar();
+    ota_iniciar_tarea();
+    /* ¿Esta es una versión recién instalada? Hasta que la nube conteste,
+     * está a prueba (core/ota.h). */
+    g_ota_verificando = rk_ota_arranque(&A.ota, RK_FW_VERSION) || ota_pendiente_de_verificar();
+    g_ota_estado = g_ota_verificando ? "verificando"
+                 : (strcmp(A.ota.version, RK_FW_VERSION) == 0 ? "ok" : "fallo");
+    almacen_guardar_ota(&A);
 
     g_t_medir = 0u;
     g_t_actividad = energia_causa() == RK_DESPERTAR_TIMER ? (uint32_t)(0u - PANTALLA_OCIOSA_MS) : millis();
@@ -541,6 +637,7 @@ void loop(void)
     uint32_t ahora = millis();
     uint32_t apretado = boton_apretado_ms(ahora);
 
+    atender_fabrica();
     atender_portal(ahora);
     atender_wifi(ahora);
     if (ahora >= g_t_medir) {
@@ -548,6 +645,7 @@ void loop(void)
     }
     procesar_respuesta(ahora);
     sincronizar(ahora);
+    atender_ota(ahora);
     rk_enlace_evento(&E, RK_EV_TICK, NULL, ahora);
     if (E.estado != g_estado_prev) {
         Serial.printf("[enlace] %s\n", rk_enlace_nombre(E.estado));

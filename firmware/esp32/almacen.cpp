@@ -26,6 +26,11 @@ bool almacen_cargar(rk_almacen_t *a, const char *nube_por_defecto,
     }
 
     g_nvs.getString("persona", a->persona, sizeof a->persona);
+    g_nvs.getString("lote", a->lote, sizeof a->lote);
+    if (g_nvs.getBytes("ota", &a->ota, sizeof a->ota) != sizeof a->ota) {
+        memset(&a->ota, 0, sizeof a->ota);
+    }
+    a->ota.version[sizeof a->ota.version - 1] = '\0';
     a->rareza = g_nvs.getUChar("rareza", 0);
     g_nvs.getBytes("enlace", &a->enlace, sizeof a->enlace);
     g_nvs.getString("ssid", a->ssid, sizeof a->ssid);
@@ -102,6 +107,24 @@ void almacen_guardar_config(const rk_almacen_t *a)
 void almacen_guardar_vinculo(const rk_almacen_t *a)
 {
     g_nvs.putBytes("vinculo", &a->vinculo, sizeof a->vinculo);
+}
+
+void almacen_guardar_ota(const rk_almacen_t *a)
+{
+    g_nvs.putBytes("ota", &a->ota, sizeof a->ota);
+}
+
+void almacen_grabar_fabrica(rk_almacen_t *a, const uint8_t secreto[RK_SECRETO_LEN],
+                            const char *persona, const char *lote)
+{
+    memcpy(a->secreto, secreto, RK_SECRETO_LEN);
+    memset(a->persona, 0, sizeof a->persona);
+    strncpy(a->persona, persona, sizeof a->persona - 1);
+    memset(a->lote, 0, sizeof a->lote);
+    strncpy(a->lote, lote != NULL ? lote : "", sizeof a->lote - 1);
+    g_nvs.putBytes("secreto", a->secreto, RK_SECRETO_LEN);
+    g_nvs.putString("persona", a->persona);
+    g_nvs.putString("lote", a->lote);
 }
 
 bool almacen_historial_cargar(rk_historial_t *h)

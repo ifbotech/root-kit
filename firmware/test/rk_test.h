@@ -95,5 +95,6 @@ void suite_sensores(void);
 void suite_qr(void);
 void suite_enlace(void);
 void suite_red(void);
+void suite_ota(void);
 
 #endif /* RK_TEST_H */

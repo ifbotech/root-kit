@@ -63,7 +63,7 @@ const char *rk_stage_name(rk_stage_t e)
 {
     switch (e) {
     case RK_ETAPA_ESPORA:     return "ESPORA";
-    case RK_ETAPA_BROTE:      return "BROTE";
+    case RK_ETAPA_RETONO:     return "RETONO";
     case RK_ETAPA_JOVEN:      return "JOVEN";
     case RK_ETAPA_MADURO:     return "MADURO";
     case RK_ETAPA_ANCESTRAL:  return "ANCESTRAL";
@@ -76,7 +76,7 @@ uint16_t rk_stage_faltan(const rk_bond_t *b)
     rk_stage_t e;
 
     if (b == NULL) {
-        return UMBRAL[RK_ETAPA_BROTE];
+        return UMBRAL[RK_ETAPA_RETONO];
     }
     e = rk_stage_from_bond(b);
     if (e >= RK_ETAPA_COUNT - 1) {

@@ -38,6 +38,16 @@ size_t rk_nube_armar_sync(char *buf, size_t cap, const rk_nube_yo_t *yo,
     rk_jw_clave(&w, "usb");       rk_jw_bool(&w, yo->usb);
     rk_jw_clave(&w, "bat_mv");    rk_jw_entero(&w, yo->bat_mv);
     rk_jw_clave(&w, "arranques"); rk_jw_entero(&w, (long)yo->arranques);
+    if (yo->lote != NULL && yo->lote[0] != '\0') {
+        rk_jw_clave(&w, "lote"); rk_jw_texto(&w, yo->lote);
+    }
+    if (yo->ota_estado != NULL && yo->ota_estado[0] != '\0') {
+        rk_jw_clave(&w, "ota");
+        rk_jw_obj(&w);
+        rk_jw_clave(&w, "version"); rk_jw_texto(&w, yo->ota_version ? yo->ota_version : "");
+        rk_jw_clave(&w, "estado");  rk_jw_texto(&w, yo->ota_estado);
+        rk_jw_fin_obj(&w);
+    }
 
     rk_jw_clave(&w, "lecturas");
     rk_jw_arr(&w);
@@ -209,5 +219,8 @@ bool rk_nube_parsear(const char *json, rk_nube_resp_t *r)
             r->pantalla_siempre = strcmp(modo, "siempre") == 0;
         }
     }
+    rk_json_bool(json, "calibrando", &r->calibrando);
+    /* Un manifiesto a medias o absurdo es como si no hubiera ninguno. */
+    r->hay_firmware = rk_ota_manifiesto_parsear(json, &r->firmware);
     return true;
 }
