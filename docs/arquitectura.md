@@ -27,8 +27,10 @@
 
 ## La idea que ordena todo: la variedad es física, la cara es digital
 
-El personaje es la **carcasa impresa en 3D**: su cresta, su pelo, su visera.
-Lo único que se dibuja es la cara, y la cara le hace juego. Es mejor reparto
+El personaje es la **carcasa impresa en 3D**: el cuerpo del Rooti (las hojas
+del Brote, el sombrero del Champi, el brazo del Pinchito). En la maceta lo
+único que se dibuja es la cara, y la cara le hace juego; en la app se ve el
+Rooti entero, con la misma silueta que se imprime. Es mejor reparto
 de esfuerzo que animar cuerpos: una carcasa nueva cuesta filamento y unas
 horas de modelado; un cuerpo animado, semanas.
 
@@ -40,13 +42,13 @@ pantalla llena de barras compite con el objeto; una cara lo completa.
 
 ```
 core/mood.c     QUÉ siente      sed, frío, poca luz...   (11 ánimos)
-core/persona.c  CÓMO lo muestra ojos, cejas, boca, paleta (6 personajes)
+core/persona.c  CÓMO lo muestra ojos, cejas, boca y 3 pieles (5 Rooties)
 art/face.c      los cruza y dibuja
 ```
 
-Ocho Rooties por once ánimos son ochenta y ocho caras, más parpadeo,
-mirada y respiración, y salen del mismo código porque la cara es procedural.
-Un personaje nuevo es una fila de `persona.c`.
+Cinco Rooties por tres pieles por once ánimos son ciento sesenta y cinco
+caras, más parpadeo, mirada y respiración, y salen del mismo código porque la
+cara es procedural. Un personaje nuevo es una fila de `persona.c`.
 
 ### Ilustración, no pixel art
 
@@ -64,7 +66,9 @@ fijo en `gfx/aa.c` porque el C3 no tiene FPU. Ver [firmware.md](firmware.md).
  5  wifi                  el teléfono se conecta a ROOTKIT-XXXX y le pasa la red
  6  vincular              la nube ve a la maceta con el mismo código: es tuya
                           la maceta pasa del QR a unos ojos dormidos
- 7  abrir el cofre        la app muestra quién es; la maceta abre los ojos
+                          la app lo reconoce: "¡Conectaste a tu Brote!"
+ 7  abrir el cofre        sale la piel (común, rara o épica); la maceta abre
+                          los ojos con esos colores y la app se pinta
  8  nombre
  9  foto                  la IA identifica la especie y fija los umbrales
 10  la cara               la maceta cruza sensores con especie y pone cara;
@@ -83,7 +87,8 @@ Por qué este orden, paso por paso: `root-lab/docs/flujo.md`.
 | Qué cara poner | **el aparato** (`core/mood.c`) | Una maceta que necesita la red para saber si tiene sed se queda muda justo cuando importa |
 | Qué pantalla mostrar | **el aparato** (`core/enlace.c`) | Mismo motivo |
 | Con qué umbrales | **la nube** (la especie) | Sale de la foto y del catálogo curado; se cambia desde la app |
-| Qué personaje es | **fábrica**, o **el cofre** si no hay | La carcasa ya es un personaje: el cofre la revela |
+| Qué Rooti es | **fábrica** (la nube asigna uno fijo si no hay) | La carcasa ya es un personaje |
+| Qué piel tiene | **el cofre**, en la nube; el aparato la guarda en NVS | Es la sorpresa, y tiene que ser la misma en la maceta y en la app |
 | Los días sanos | **la nube** | Ve el día entero aunque el aparato duerma |
 | Qué hay que hacer hoy | **la app** (`lib/tareas.mjs`) | Es presentación: verbos y números para una persona |
 | Cuándo avisar | **la nube** (`server/avisos.mjs`) | Tiene que poder avisar con la app cerrada |

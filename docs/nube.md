@@ -35,7 +35,7 @@ del protocolo.
   "fw": "0.5.0",
   "placa": "c3-supermini",
   "pantalla": "ili9341-240x320",
-  "persona": "kawaii",
+  "persona": "brote",
   "estado": "SIN_VINCULO",
   "epoca": 3,
   "codigo": "K7Q2M9XA",
@@ -55,7 +55,7 @@ del protocolo.
 | Campo | Qué es |
 |---|---|
 | `id` | MAC en hex. Identifica, no autoriza. |
-| `persona` | el personaje grabado en fábrica; vacío si no tiene |
+| `persona` | el Rooti grabado en fábrica (`brote`, `musgo`, `pinchito`, `bulbo`, `champi`); vacío si no tiene |
 | `estado` | el estado de `core/enlace.c` |
 | `epoca` | sube con cada desvinculación |
 | `codigo` | **sólo mientras no está vinculado**: el del QR |
@@ -78,7 +78,8 @@ pila de reloj, sin aparatos que arrancan en 1970.
   "ok": true,
   "vinculado": true,
   "revelado": true,
-  "persona": "kawaii",
+  "persona": "brote",
+  "rareza": "epico",
   "nombre": "Rulo",
   "especie": {
     "id": "monstera", "nombre": "Monstera deliciosa",
@@ -99,7 +100,8 @@ pila de reloj, sin aparatos que arrancan en 1970.
 |---|---|
 | `ok` | **sin `"ok": true` no se aplica nada**: un portal de hotel que contesta HTML no puede desvincular una maceta |
 | `vinculado`, `revelado` | alimentan la máquina de estados |
-| `persona` | si no tenía de fábrica, adopta la que salió del cofre |
+| `persona` | qué Rooti es; si no tenía de fábrica, adopta el que le asignó la nube (fijo por id) |
+| `rareza` | **sólo con el cofre abierto**: la piel que salió (`comun`, `raro`, `epico`). Se guarda en NVS y la cara se pinta con esa paleta; un valor desconocido se ignora. Al desvincular vuelve a `comun` |
 | `especie` | umbrales para evaluar el ánimo; si están incompletos o son incoherentes se ignoran |
 | `vinculo` | los días sanos los cuenta la nube, que ve el día entero; decide los adornos de la cara |
 | `aceptadas` | cuántas lecturas del pedido quedaron guardadas: esas se borran del historial |

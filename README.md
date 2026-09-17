@@ -1,13 +1,20 @@
 # ROOTKIT
 
 Una maceta con sensores y una pantalla que muestra **dos cosas: un QR al
-principio y unos ojos después**. Cada ROOTKIT tiene su personaje, su
-**Rooti**: la **carcasa impresa en 3D** y una cara que le hace juego y
-reacciona a lo que necesita la planta. Todo lo demás —números, tareas, avisos,
+principio y unos ojos después**. Cada ROOTKIT es uno de cinco **Rooties**
+botánicos —**Brote, Musgo, Pinchito, Bulbo y Champi**—: la **carcasa impresa
+en 3D** es el cuerpo, y la pantalla pone la cara, que reacciona a lo que
+necesita la planta. Todo lo demás —números, tareas, avisos,
 la colección de Rooties y la charla con tu planta— vive en **ROOTLAB**, la
 app del teléfono.
 
-![Los ocho Rooties en los once ánimos](tools/preview/sheet.png)
+![Los cinco Rooties en los once ánimos](tools/preview/sheet.png)
+
+La figura define qué Rooti es; el cofre de la app sortea su **piel**: común
+(70 %), rara (25 %) o épica (5 %). La nube se la manda a la maceta y la cara
+se pinta con esa paleta:
+
+![Las tres pieles de cada Rooti](tools/preview/pieles.png)
 
 Del primer encendido a la cara: el QR, los ojos dormidos mientras esperás el
 cofre, el despertar y la cara.
@@ -23,8 +30,9 @@ en un tercio de segundo, con un parpadeo en el medio.
 
 ![De contento a sediento, cuadro a cuadro](tools/preview/transicion.png)
 
-Los dos primeros Rooties de Rocío, **Chico Malo** y **Chica Chill**, traen
-además su paleta: cuando salen del cofre, ROOTLAB se pinta con sus colores.
+ROOTLAB se pinta con los colores de la piel que salió, y en el teléfono se ve
+el Rooti entero —el mismo cuerpo que se imprime, sin soportes— con la cara
+del firmware en su ventana, como una mascota que se acaricia y se cuida.
 
 ## Los repositorios
 
@@ -52,7 +60,7 @@ circuito de carga y las conexiones: [docs/hardware.md](docs/hardware.md).
 
 ```bash
 make test         # 1449 comprobaciones del firmware, sin placa
-make sim          # los ocho Rooties en una ventana, en vivo
+make sim          # los cinco Rooties en una ventana, en vivo
 make sheet        # 8 Rooties × 11 ánimos
 make transicion   # el cambio de ánimo, cuadro a cuadro
 make pantallas    # QR, dormida, despertar y cara en los dos paneles

@@ -10,8 +10,9 @@ por qué algo que parecía correcto dejó de serlo.
 ## Arquitectura
 
 **Un ROOTKIT es un aparato en una maceta.** Una placa, sus sensores y una
-carcasa impresa en 3D que le da la cara. Se compra en caja ciega: cinco
-modelos a la vista y un secreto, como un Smiski.
+carcasa impresa en 3D que es el cuerpo de su Rooti. Hay cinco, botánicos:
+Brote, Musgo, Pinchito, Bulbo y Champi. La figura dice cuál es; el cofre de
+la app, de qué colores despierta.
 
 **La variedad es física; la cara es digital.** Lo único que se diseña en
 pixeles es la cara. Lo que cambia entre un modelo y otro es la carcasa
@@ -22,8 +23,9 @@ modelado, dibujar y animar un cuerpo cuesta semanas. Y una cara sola en
 
 **El ánimo dice qué siente; la persona dice cómo lo muestra.** `core/mood.c`
 decide el estado a partir de la planta y `core/persona.c` decide cómo se
-dibuja ese estado. Ocho modelos por once ánimos son ochenta y ocho caras, y
-salen todas del mismo código porque la cara es procedural.
+dibuja ese estado. Cinco Rooties por tres pieles por once ánimos son ciento
+sesenta y cinco caras, y salen todas del mismo código porque la cara es
+procedural.
 
 **La especie y la carcasa son ejes independientes.** La especie decide los
 umbrales; la carcasa decide la cara. Ninguna deriva de la otra, y esa
@@ -35,18 +37,17 @@ ni barras, ni nombre. Sacarle la interfaz es además lo que hace que la carcasa
 mande — una pantalla llena de barras compite con el objeto, una cara lo
 completa.
 
-**La rareza es de la caja, no de la planta.** No hay compra aleatoria dentro
-de un software: hay un juguete en una caja. Es la mecánica de los Smiski y los
-Sonny Angel, y queda todavía más lejos del terreno regulado de las cajas de
-botín que la versión anterior.
+**La figura define el Rooti; el cofre, la piel.** Qué Rooti es lo decide la
+figura que la persona tiene en la mano. El cofre de la app sortea sólo la
+piel: común (70 %), rara (25 %) o épica (5 %). Es cosmético, gratis, una vez
+por vínculo, con probabilidades publicadas antes de abrir y nada que comprar
+para cambiarlas: no es una caja de botín, que es azar **pago**.
 
 **Lo que se gana cuidando la planta es cómo se ve, no quién es.** Los días
 sanos desbloquean capas cosméticas sobre la cara: brillos a los 30, aura a los
-90, corona a los 180. El modelo te toca por azar; el aura no se compra.
-
-**El secreto se imprime en filamento translúcido.** No cuesta un peso más que
-cualquier otro color y hace algo que los otros cinco no hacen: deja de ocultar
-el aparato y pasa a exhibirlo. Es una diferencia de categoría, no de color.
+90, corona a los 180, que se suman a los adornos de la piel. Y en la app, las
+gotas de rocío de la mascota se ganan con la planta cómoda, no abriendo la
+app.
 
 ## Hardware
 
@@ -235,11 +236,10 @@ genuinamente difícil y todos los aparatos de consumo que muestran el número lo
 están inventando. No mostrarlo es honesto y además es un argumento de venta para
 el público al que apunta ROOTKIT.
 
-**El azar está en la caja, no en el software.** Es la misma mecánica que los
-Smiski: comprás una caja ciega y te toca un juguete. El cofre de la app revela
-la persona grabada en fábrica; sólo tira dados en prototipos sin persona, con
-probabilidades públicas y nada que comprar, así que el riesgo regulatorio de
-las cajas de botín —que Bélgica y Países Bajos ya restringen— no aplica.
+**El único azar del software es de color.** El cofre sortea la piel, no el
+Rooti, con probabilidades públicas y nada que comprar: el riesgo regulatorio
+de las cajas de botín —que Bélgica y Países Bajos ya restringen, y que
+siempre es sobre azar pago— no aplica.
 
 **Nada de la palabra Tamagotchi en el marketing.** Es marca registrada de Bandai.
 El vocabulario propio — simbionte, criatura digital — es más distintivo igual.
@@ -272,18 +272,17 @@ nada. Web Bluetooth no existe en iPhone, y una página HTTPS no puede hablarle a
 existen sólo para la app instalada. Pedir el permiso antes sería pedir algo
 imposible, y el usuario lo rechazaría para siempre.
 
-**El cofre se abre en la app y la maceta despierta.** La sorpresa de quién
-te tocó pasa en la pantalla grande, con luz y confeti. La maceta muestra la
-consecuencia: abre los ojos. El pedido al servidor sale recién al tercer toque
-para que las dos cosas pasen juntas.
+**El cofre se abre en la app y la maceta despierta.** La sorpresa de qué piel
+te tocó pasa en la pantalla grande, con luz y confeti de sus colores. La
+maceta muestra la consecuencia: abre los ojos con esa paleta. El pedido al
+servidor sale recién al tercer toque para que las dos cosas pasen juntas.
 
-**Antes del cofre, ojos dormidos y grises.** Mostrar la piel del personaje en
-la maceta arruinaría la sorpresa.
+**Antes del cofre, el Rooti dormido y en gris.** Se reconoce la forma de su
+cara —la app ya dijo "¡Conectaste a tu Brote!"— pero no la piel.
 
-**La persona se graba en fábrica; si no hay, el cofre tira.** Con carcasa
-impresa, el personaje ya existe y el cofre lo revela. En prototipos sin
-persona grabada, el cofre elige con probabilidades públicas (70 / 25 / 5) y
-nada que comprar para cambiarlas.
+**La persona se graba en fábrica; si no hay, la nube asigna una fija.** Con
+carcasa impresa, el personaje ya existe. En prototipos sin persona grabada,
+la nube elige una por el id del aparato, siempre la misma.
 
 **La especie sale de una foto, y los umbrales del catálogo.** La IA identifica;
 si la planta está en el catálogo curado se usan sus números y no los del
@@ -367,6 +366,26 @@ tocado.
 
 **Qué lo tumbó:** la persona grabada en fábrica y el cofre. El usuario no
 declara nada: lo descubre.
+
+### El cofre que sorteaba el personaje
+
+**Antes:** ocho Rooties (Cresta, Kawaii, Visor, Cíclope, Hongo, Chico Malo,
+Chica Chill y un secreto) y un cofre que revelaba el de fábrica o, en
+prototipos, sorteaba cuál te tocaba con 70 / 25 / 5 por rareza de modelo.
+
+**Qué lo tumbó:** la figura. Si la persona tiene un Pinchito en la mano, un
+cofre que diga "¡Te tocó el Musgo!" es mentira, y el aparato no puede cambiar
+de carcasa. Y los personajes estaban dispersos: mitad criaturas, mitad
+estilos, sin un mundo común.
+
+**Lo que lo reemplaza:** cinco Rooties botánicos, con un mundo de libro de
+cuentos (Ooblets, Pokémon Café ReMix), y un cofre que sortea la piel. La cara
+queda en la maceta; el cuerpo entero se ve en la app, con las mismas reglas
+de impresión que la carcasa (voladizos de 45°, base plana, centro de masa
+bajo), verificadas por un test.
+
+**Lo que se perdió:** el secreto translúcido. Si vuelve, vuelve como edición
+de filamento de una piel épica, no como un personaje que no está en la caja.
 
 ### El gachapón se volvió físico
 

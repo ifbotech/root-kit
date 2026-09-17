@@ -4,9 +4,10 @@ Este documento es para quien modela. Tiene los números que la carcasa tiene
 que respetar y nada más: la forma es decisión de arte, el envolvente es
 decisión de física.
 
-**La carcasa es el personaje.** La pantalla sólo pone la cara. Si la silueta
-impresa no se distingue de las otras cinco desde el otro lado de una
-habitación, la cara no va a salvarla — y si se distingue, la cara la completa.
+**La carcasa es el personaje.** La carcasa es el cuerpo (y la cabeza) del
+Rooti; la pantalla sólo pone la cara. Si la silueta impresa no se distingue
+de las otras cuatro desde el otro lado de una habitación, la cara no va a
+salvarla — y si se distingue, la cara la completa.
 
 ## El envolvente
 
@@ -69,52 +70,67 @@ estanco, pero sí:
 - **La junta del sensor va abajo y con el cable haciendo panza**, para que el
   agua que corra por el cable gotee antes de llegar a la placa.
 
-## Los ocho modelos
+## Imprimir sin soportes: las reglas
+
+Valen para las cinco carcasas y para las siluetas de los Rooties en la app,
+que son las mismas (`root-lab/public/lib/cuerpo.mjs`).
+
+| Regla | Valor | Por qué |
+|---|---|---|
+| **Voladizo máximo** | **45°** respecto de la vertical | lo que FDM imprime sin soporte con boquilla de 0,4 mm; un ala de sombrero plana (90°) no sale |
+| **Base** | plana, al menos 30 % del ancho | apoya en la cama y la maceta no se vuelca |
+| **Centro de gravedad** | en la mitad de abajo, sobre la base | la 18650 va parada, abajo, haciendo de pie |
+| **Qué es la carcasa** | el cuerpo o la cabeza del Rooti | la pantalla no es un marco pegado: es una ventana del personaje |
+| **Ventana del TFT** | el panel entra **desde atrás** y apoya en un marco; la abertura va **biselada a 45°** hacia afuera | el bisel no es voladizo (mira hacia arriba y hacia afuera) y no tapa pixeles en diagonal; el área activa es de 25,9 × 25,9 mm en el panel de 1,44" |
+
+**Cómo se verifica.** Las siluetas se describen como puntos y se suavizan con
+Catmull-Rom; `test/cuerpo.test.mjs` en root-lab muestrea la curva que se
+dibuja (no los puntos) y mide el tramo que más mira hacia abajo: tiene que
+dar 45° o menos. También verifica la base plana, que el centroide quede abajo
+y sobre la base, y que la ventana con su bisel entre entera en la silueta.
+Donde una curva suave se pasa (el ala del Champi), se usa una **esquina**: el
+ala termina en un canto a 42,5° en vez de un redondeo a 56°.
+
+## Los cinco Rooties
 
 Los parámetros de cada cara están en `firmware/core/persona.c`, una fila por
-modelo, y se pueden ajustar sin tocar una línea de lógica. Lo que sigue es la
+Rooti con sus tres pieles, y se pueden ajustar sin tocar una línea de lógica.
+Las siluetas, en `root-lab/public/lib/cuerpo.mjs`. Lo que sigue es la
 intención; los números concretos viven ahí.
 
-| Modelo | Rareza | Silueta | La cara que le hace juego |
-|---|---|---|---|
-| **Cresta** | común | Mohicano de hojas puntiagudas, ancho arriba | Ojos angostos e inclinados, cejas despeinadas en tres trazos, dentadura, un colmillo |
-| **Kawaii** | común | Melena con flequillo recto y dos hojas como coletas | Ojos rasgados que al sonreír son dos arcos `^ ^`, boca de gato, rubor, destellos |
-| **Visor** | común | Cúpula lisa con una única ranura horizontal | Sin ojos: una banda cuya onda es la expresión, plana si está bien, dentada si hay alerta |
-| **Ciclope** | raro | Una sola apertura circular grande, tipo ojo de buey | Un ojo enorme con pupila gigante que deriva sola; boca mínima |
-| **Hongo** | raro | Sombrero que vuela por encima y da sombra a la pantalla | Párpados a media asta siempre, esporas subiendo |
-| **Chico Malo** | común | *A definir con Rocío.* Idea: capucha o gorra hacia atrás con una hoja rebelde | Ojos angostos e inclinados, cejas gruesas y bajas, sonrisa de costado con un colmillo, una curita en el cachete. Rojos de brasa (paleta Chico Malo) |
-| **Chica Chill** | común | *A definir con Rocío.* Idea: rodete con un lápiz clavado, o auriculares | Párpados relajados, anteojos redondos, cejas finas, sonrisa chica. Azules de medianoche (paleta Chica Chill) |
-| **?????** | secreto | **Filamento translúcido**: se ve la placa por dentro | Ojos que no terminan de decidirse, estática |
+| Rooti | Silueta | Relieves | La cara que le hace juego | Voladizo |
+|---|---|---|---|---:|
+| **Brote** | semilla redonda con dos hojitas en V arriba | nervaduras en las hojas, hojitas-brazo a los costados, raíces-pie | ojos redondos enormes con brillos de cachorro, sin cejas | 37,7° |
+| **Musgo** | domo bajo y ancho, el más estable | matas de musgo, manitos sobre la panza, un botón de flor arriba | ojos en medialuna "u u", boca de gato; calma | 35,6° |
+| **Pinchito** | cactus columnar con un brazo en alto (saluda) y un bracito del otro lado | costillas verticales, espinas, flor arriba | ojos en arco "^ ^" que guiñan, sonrisa con dientecito | 38,6° |
+| **Bulbo** | gota de cebolla con la punta arriba | espiral en la punta, collar de pétalos, gajos | ojos grandes con doble brillo, cejas flotantes, rubor suave | 31,4° |
+| **Champi** | sombrero de hongo sobre un tallo | manchas del sombrero, laminillas debajo del ala | cejas finas, boca ":D" con lengua, pecas | 42,5° |
 
-### Por qué el secreto es translúcido y no dorado
+**Las pieles no cambian la carcasa.** La rareza es de color y de adornos en
+la pantalla y en la app; el cuerpo impreso es el mismo. Una edición especial
+de filamento para las épicas queda como idea para más adelante.
 
-Un dorado es un filamento más caro y una unidad que hay que separar en la
-producción. El translúcido cuesta lo mismo que cualquier otro y hace algo que
-ninguno de los otros cinco hace: **deja de ocultar el aparato y pasa a
-exhibirlo.** El que le toca ve la placa, la celda y la pantalla desde afuera.
-Es una diferencia de categoría, no de color, y eso es lo que un secreto tiene
-que ser.
-
-### Qué hace distinguible a un modelo
+### Qué hace distinguible a un Rooti
 
 Dos reglas, y las dos salieron de mirar la lámina de las caras juntas:
 
 1. **La silueta manda.** Se reconoce a tres metros, antes que cualquier
-   detalle. Si dos modelos tienen el mismo contorno, son el mismo modelo con
+   detalle. Si dos Rooties tienen el mismo contorno, son el mismo Rooti con
    dos texturas.
-2. **Un solo rasgo dominante por modelo.** Cresta es la cresta, Ciclope es el
-   ojo, Hongo es el sombrero. Un modelo con tres ideas buenas se lee peor que
-   uno con una sola llevada al extremo.
+2. **Un solo rasgo dominante por Rooti.** El Brote son las hojitas, el
+   Pinchito el brazo que saluda, el Champi el sombrero. Un personaje con tres
+   ideas buenas se lee peor que uno con una sola llevada al extremo.
 
 ## Cómo sabe el aparato qué carcasa lleva
 
 **Se lo graban en fábrica.** La estación que ensambla la carcasa escribe el id
-del personaje en la NVS del aparato (`persona`), junto con su secreto. El
-aparato lo informa en cada sincronización y el cofre de la app lo revela: el
-usuario no declara nada, lo descubre.
+del Rooti en la NVS del aparato (`persona`), junto con su secreto. El aparato
+lo informa en cada sincronización y la app lo reconoce apenas se vincula: el
+usuario no declara nada. El cofre sortea después la piel (la rareza), que la
+nube le manda al aparato y queda también en la NVS.
 
-Si una placa no tiene persona grabada (prototipos, placas de desarrollo), el
-cofre tira con las probabilidades públicas y la nube se la asigna.
+Si una placa no tiene persona grabada (prototipos, placas de desarrollo), la
+nube le asigna siempre el mismo Rooti, elegido por su id.
 
 **Lo que se descartó, y por qué.** La versión elegante es una **resistencia
 dentro de la carcasa** leída por un divisor: se cambia la carcasa y la cara
@@ -131,7 +147,8 @@ Tres cosas que sólo se saben con una pieza en la mano:
    componentes y el paso del cable. Es la que va a estar mal.
 2. **La ventana contra el módulo real.** Los 0,3 mm de holgura por lado son
    teoría hasta que se apoya el vidrio.
-3. **Una cara encendida adentro de la carcasa, de noche.** El sombrero del
-   Hongo le tira sombra a la pantalla a propósito, y hay que confirmar que la
-   cara oscura de ese modelo sigue leyéndose. Si no, se sube el brillo de su
-   paleta en `persona.c` —una línea— y listo.
+3. **Una cara encendida adentro de la carcasa, de noche.** El ala del
+   sombrero del Champi le tira sombra a la ventana, y las pieles son pastel:
+   hay que confirmar que los ojos de cada piel siguen leyéndose a través del
+   bisel. Si no, se oscurece el color `ojos` de esa piel en `persona.c` —un
+   número— y listo.

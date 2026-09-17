@@ -136,8 +136,9 @@ Tres reglas que salen de ahí:
    → ánimo (si hay especie) → historial en flash.
 5. **Nube.** Arma el pedido con hasta 20 lecturas pendientes y lo manda en
    una tarea aparte, así la cara no se congela durante el TLS. Aplica la
-   respuesta: vínculo, cofre, persona, nombre, especie, calibración, brillo,
-   modo de pantalla, días sanos. Descarta las lecturas confirmadas.
+   respuesta: vínculo, cofre, persona, **rareza** (la piel que salió del
+   cofre), nombre, especie, calibración, brillo, modo de pantalla, días
+   sanos. Descarta las lecturas confirmadas.
 6. **Enlace.** Avanza la máquina de estados.
 7. **Guardar** en NVS lo que cambió.
 8. **Energía.** Enchufado o configurando: pantalla prendida. A batería con
@@ -154,22 +155,49 @@ borde mezcla color y fondo según cuánto lo cubre la forma, y eso es lo que
 separa la ilustración del pixel art. Todo en enteros, porque el C3 no tiene
 FPU.
 
-El fondo es la piel del personaje, liso, y los párpados se pintan del mismo
-color: un párpado que baja es piel que tapa el ojo. Por eso no hay degradé.
+El fondo es liso, del color de la pantalla de la piel, y los párpados se
+pintan del mismo color: un párpado que baja es fondo que tapa el ojo. Por eso
+no hay degradé.
 
-Los Rooties son filas de `core/persona.c`: familia de ojos, proporciones en
-centésimas del lado de la pantalla, cejas, boca, adornos, **accesorio** y
-paleta. Cambiar una proporción es editar un número; la artista no necesita
-tocar código.
+### Los cinco Rooties y sus pieles
 
-Los **accesorios** son parte fija del personaje, con cualquier ánimo: hoy
-`RK_ACC_LENTES` (Chica Chill: anteojos redondos más grandes que el ojo, para no
-taparle los párpados, con un reflejo en cada vidrio) y `RK_ACC_CURITA` (Chico
-Malo: una curita cruzada en el cachete). Se dibujan después de ojos, cejas y
-boca y antes de los adornos.
+Los Rooties son filas de `core/persona.c`, estilo libro de cuentos (Ooblets,
+Pokémon Café ReMix):
 
-Los colores de Chico Malo y Chica Chill salen de sus paletas, las mismas que
-pintan ROOTLAB cuando salen del cofre (`root-lab/docs/paletas.md`).
+| Rooti | Ojos | Brillo | Cejas | Boca | Mejillas |
+|---|---|---|---|---|---|
+| Brote | `RK_OJOS_REDONDOS`, enormes | `RK_BRILLO_CACHORRO`, espejados | ninguna | `RK_BOCA_SUAVE` | `CIRCULO` |
+| Musgo | `RK_OJOS_MEDIALUNA`, "u u" | `SIMPLE` | ninguna | `RK_BOCA_GATO` ":3" | `HORIZONTAL` |
+| Pinchito | `RK_OJOS_ARCO` "^ ^", guiña | `SIMPLE` | ninguna | `RK_BOCA_DIENTECITO` | `BRILLO` |
+| Bulbo | `RK_OJOS_REDONDOS`, grandes | `RK_BRILLO_DOBLE` | `RK_CEJA_FLOTANTE` | `RK_BOCA_SUAVE` | `SUAVE` |
+| Champi | `RK_OJOS_REDONDOS` | `SIMPLE` | `RK_CEJA_FINA` | `RK_BOCA_D` ":D" con lengua | `PECAS` |
+
+Cada fila tiene las proporciones en centésimas del lado de la pantalla y
+**tres pieles** (`rk_piel_t`), una por rareza: `nombre`, cuatro colores
+(`fondo`, `ojos`, `piel`, `rubor`, escritos con `RK_HEX(0xE8F5E9)` tal como
+los entrega la artista) y los **adornos** de la piel: `RK_ADORNO_BRILLOS`,
+`RK_ADORNO_AURA`, `RK_ADORNO_CORONA`, `RK_ADORNO_LUCES`. Del resto de los
+colores de la cara (el blanco del ojo, el iris, la lengua, las pecas) se
+encarga `pintura()` en `art/face.c`, mezclando esos cuatro. Cambiar una
+proporción o un color es editar un número; la artista no necesita tocar
+código.
+
+La **rareza** (`rk_rareza_t`: `RK_RAREZA_COMUN`, `RARA`, `EPICA`; en la nube
+`comun`, `raro`, `epico`) la sortea el cofre de la app y llega en el sync. El
+aparato la guarda en NVS (`rareza`) y dibuja con
+`rk_face_draw(fb, persona, rareza, mood, sev, adornos, t)`. Los adornos de la
+piel se suman a los que ganó el vínculo por días sanos. Desvincular vuelve a
+la común.
+
+Antes del cofre, `rk_cara_dormida(fb, persona, t)` dibuja al Rooti dormido
+con `rk_piel_dormida`, en grises: se reconoce la forma de su cara, pero no la
+piel que le va a tocar.
+
+![Las tres pieles de cada Rooti](../tools/preview/pieles.png)
+
+`make pieles` (o `sim --pieles`) regenera la lámina. Las paletas de las pieles
+son las mismas que pintan ROOTLAB (`root-lab/docs/paletas.md`): `npm run
+firmware` en root-lab las copia a `public/lib/rooties.mjs`.
 
 ### La transición entre ánimos
 

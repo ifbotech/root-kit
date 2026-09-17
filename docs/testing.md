@@ -1,12 +1,12 @@
 # Pruebas
 
 ```bash
-make test        # 1449 comprobaciones del firmware, sin placa ni SDL
+make test        # 1884 comprobaciones del firmware, sin placa ni SDL
 make verify      # lo que corre CI: pruebas y referencias visuales al día
 make placa       # compila las cuatro variantes con PlatformIO
 ```
 
-ROOTLAB (la app, la nube y el emulador) tiene sus propias 301 pruebas en
+ROOTLAB (la app, la nube y el emulador) tiene sus propias 367 pruebas en
 [root-lab](https://github.com/ifbotech/root-lab) (`npm test`), incluido el
 flujo completo de punta a punta.
 
@@ -16,17 +16,17 @@ flujo completo de punta a punta.
 |---|---:|---|
 | `animo` | 28 | Prioridad entre necesidades, ciclo día/noche, histéresis, nodo caído |
 | `nodo` | 91 | Calibración de suelo, fallas eléctricas, el riego que se escurre, curva de batería, muestreo adaptativo |
-| `sensores e historial` | 71 | AHT20, BH1750 y DS18B20 con los vectores de las hojas de datos, CRC, riel y USB, sensores caídos, historial en flash |
+| `sensores e historial` | 77 | AHT20, BH1750 y DS18B20 con los vectores de las hojas de datos, CRC, riel y USB, sensores caídos, historial en flash |
 | `graficos` | 63 | Recorte, tipografía, **antialiasing**: cobertura, bordes mezclados, triángulos en cualquier orden, alfa |
-| `cara` | 371 | Determinismo, batería sin íconos, cara dormida que no delata, despertar, regresión visual de las 88 caras, la transición entre ánimos (extremos idénticos a las caras fijas, el medio distinto, el reloj con desborde), la cara de mimos (en 0 la del ánimo, en 100 otra, ronronea), la mirada dirigida y la preocupación |
-| `modelos y caras` | 634 | Tabla de Rooties (con accesorios), la caja ciega, que los 8 y los 11 se distingan, centinelas del framebuffer |
+| `cara` | 414 | Determinismo, batería sin íconos, cara dormida que no delata la piel, despertar con la piel, regresión visual de las 165 caras, la transición entre ánimos (extremos idénticos a las caras fijas, el medio distinto, el reloj con desborde), la cara de mimos (en 0 la del ánimo, en 100 otra, ronronea), la mirada dirigida y la preocupación |
+| `rooties y caras` | 1023 | La tabla de los cinco Rooties con sus tres pieles y colores, las rarezas (ids, nombres, parseo), que los 5, las 15 pieles y los 11 ánimos se distingan, el guiño, adornos por etapa y por piel, centinelas del framebuffer |
 | `pantalla del QR` | 19 | Que el QR dibujado se lea módulo por módulo en los dos paneles, también con la URL del VPS |
 | `identidad y vinculo` | 91 | SHA-256 y HMAC con vectores oficiales, código y token, el flujo completo del enlace y sus caminos feos |
-| `nube` | 71 | JSON hostil o cortado, el cuerpo del pedido, respuestas incoherentes que no se aplican |
+| `nube` | 78 | JSON hostil o cortado, el cuerpo del pedido, respuestas incoherentes que no se aplican |
 
 ## Las pruebas que valen más que su tamaño
 
-**Que los ocho modelos se vean distintos.** Es la que sostiene el producto: si
+**Que los cinco Rooties y sus quince pieles se vean distintos.** Es la que sostiene el producto: si
 dos carcasas dan la misma cara, la caja ciega vende dos veces lo mismo y no hay
 colección que juntar. Se renderizan los ocho y se comparan por hash, todos
 contra todos.
@@ -57,13 +57,14 @@ un test que recorre la máquina de estados.
 **Que un sensor caído no invente un problema.** Sin AHT20 la temperatura
 queda en cero; el test verifica que la planta no tenga "frío".
 
-**Que la caja ciega tenga la forma que dice la caja.** Cinco modelos a la vista
-y exactamente un secreto. Si esa proporción cambia sin querer, lo que está
-impreso en el packaging deja de ser cierto.
+**Que las rarezas sean las que publica la app.** Tres pieles por Rooti, en el
+orden común, rara, épica, con los ids que manda la nube (`comun`, `raro`,
+`epico`); un valor desconocido no pinta nada raro. En root-lab, el sorteo
+respeta 70 / 25 / 5 en veinte mil tiradas.
 
-**Que la cara dormida no delate al personaje.** Antes del cofre la maceta
-duerme; si usara la piel de su personaje, la sorpresa se arruinaría. Se
-verifica que ningún pixel tenga el color de fondo de ningún modelo.
+**Que la cara dormida no delate la piel.** Antes del cofre la maceta duerme
+en gris; si usara los colores de una piel, la sorpresa se arruinaría. Se
+verifica que ningún pixel tenga el color de fondo de ninguna piel.
 
 **Que el despertar tenga su segundo intento.** Los ojos se abren, se vuelven a
 cerrar y recién después se abren del todo. El test exige ese tramo de subida.
@@ -74,8 +75,8 @@ crecimiento no existe para el usuario por más que el contador avance en NVS.
 **Los centinelas del framebuffer.** El rig dibuja elipses y arcos con radios que
 salen de una tabla editable a mano. Un radio de más escribe fuera del buffer, y
 en el ESP32 eso no tira excepción: corrompe lo que haya al lado y aparece tres
-días después como un bug imposible. Se barren los ocho modelos en los once
-ánimos con todos los adornos, contra un buffer rodeado de guardas.
+días después como un bug imposible. Se barren los cinco Rooties con sus tres
+pieles en los once ánimos con todos los adornos, contra un buffer rodeado de guardas.
 
 **El historial sobrevive un corte de luz.** Un byte corrupto o un archivo
 cortado a la mitad se descartan enteros en vez de devolver lecturas falsas.
@@ -90,8 +91,9 @@ transmisiones — pero también que no ahorre de más, que sería perder eventos
 **Que un aparato caído no acumule días sanos.** Es lo que impide que
 desenchufarlo haga crecer el vínculo gratis.
 
-**Que el secreto no se liste hasta que sale.** Mostrarlo en gris ya le contaría
-al usuario que existe.
+**Que las siluetas se puedan imprimir.** En root-lab, `test/cuerpo.test.mjs`
+mide el voladizo de cada silueta sobre la curva dibujada (45° como máximo),
+la base plana, el centro de masa y que la ventana del TFT entre con su bisel.
 
 **Que el mismo síntoma con distinta tierra dé causas distintas.** Hojas
 amarillas con la tierra encharcada, seca o en rango son tres problemas
@@ -110,12 +112,13 @@ la tarea dos horas; si la planta sigue seca después, reaparece.
 
 ## Regresión visual
 
-`test/golden.h` guarda un FNV-1a del framebuffer de **cada modelo en cada
-ánimo**: 88 hashes. Si un cambio altera cualquier pixel, la suite `cara` lo
-marca.
+`test/golden.h` guarda un FNV-1a del framebuffer de **cada Rooti con cada piel
+en cada ánimo**: 165 hashes. Si un cambio altera cualquier pixel, la suite
+`cara` lo marca.
 
-Son 88 y no 11 a propósito. El rig es procedural y cada familia de ojos toma un
-camino distinto, así que un cambio puede romper el visor sin tocar al ciclope.
+Son 165 y no 11 a propósito. El rig es procedural y cada familia de ojos toma
+un camino distinto, así que un cambio puede romper la medialuna del Musgo sin
+tocar los ojos redondos del Brote, y una piel con aura sin tocar la común.
 La tabla está ordenada por modelo, y eso hace que el diff diga qué pasó: once
 filas seguidas son "se movió un modelo", una columna es "se movió un ánimo en
 todos". Son dos revisiones distintas.

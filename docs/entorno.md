@@ -52,16 +52,16 @@ salida vacía como "no hay cambios" y pasaba en verde sin haber mirado nada. El
 target ahora exige que `git rev-parse --show-toplevel` devuelva algo antes de
 confiar en un `git status` vacío.
 
-## La ventana muestra los ocho Rooties
+## La ventana muestra los cinco Rooties
 
 ```bash
 make sim
 ```
 
-Los ocho Rooties en una grilla, todos animándose con el mismo reloj sobre el
+Los cinco Rooties en una grilla, todos animándose con el mismo reloj sobre el
 mismo mundo simulado, a 2× para que se vean en un monitor.
 
-Eso es deliberado: lo que hay que juzgar es **si los ocho se leen como el mismo
+Eso es deliberado: lo que hay que juzgar es **si los cinco se leen como el mismo
 producto y como ocho personajes distintos al mismo tiempo**. El parecido y la
 diferencia sólo existen en comparación, así que con una cara por vez las dos
 cosas son imposibles de evaluar.

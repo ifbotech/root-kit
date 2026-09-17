@@ -65,10 +65,13 @@ la pantalla (sólo el QR y los ojos):
 
 - [x] Caras en ilustración plana tipo Duolingo, con bordes suavizados en
       punto fijo (`gfx/aa.c`), para los dos paneles
-- [x] **Ocho Rooties** × once ánimos, con parpadeo, mirada y respiración
-- [x] **Chico Malo y Chica Chill**, los primeros de Rocío, con los colores de
-      sus paletas; **accesorios** como parámetro (anteojos, curita)
-- [x] Cara dormida antes del cofre, sin delatar al Rooti
+- [x] **Cinco Rooties botánicos** (Brote, Musgo, Pinchito, Bulbo, Champi) ×
+      once ánimos, estilo libro de cuentos, con parpadeo, mirada, guiño y
+      respiración
+- [x] **Tres pieles por Rooti** (común, rara, épica) con sus paletas y
+      adornos (brillos, aura, corona, luces); la rareza llega en el sync y
+      queda en NVS
+- [x] Cara dormida antes del cofre: el Rooti en gris, sin su piel
 - [x] Despertar: los ojos se abren en dos intentos cuando se abre el cofre
 - [x] Pantalla del QR con código legible y estado del aparato sin palabras
 - [x] Máquina de estados del vínculo (`core/enlace.c`): QR, wifi, vínculo,
@@ -87,19 +90,26 @@ la pantalla (sólo el QR y los ojos):
 - [x] Sincroniza por defecto con el VPS (`https://ifbotech.com/rootkit`)
 - [x] Deep sleep con despertar por toque o por reloj
 - [x] Compila para C3 SuperMini y ESP32 DevKit, con 1,44" y 2,2"
-- [x] 1278 comprobaciones en el escritorio, regresión visual de las 88 caras
+- [x] 1884 comprobaciones en el escritorio, regresión visual de las 165 caras
 - [x] El renderer compilado a WebAssembly para la app y el emulador
 
 ### ROOTLAB: app y nube (`root-lab`)
 
 - [x] Flujo de alta completo: QR → instalar → cuenta → avisos → wifi →
       vincular → cofre → nombre → foto → listo
-- [x] Cofre con probabilidades públicas; revela el Rooti de fábrica o tira
-- [x] **Paletas dinámicas**: Vibrant Tones por defecto; al abrir el cofre de
-      un Rooti con paleta (Chico Malo, Chica Chill) la app entera se pinta
-      con la suya, con una animación que sale del cofre. Elegibles en
-      Ajustes; bloqueadas si no tenés al Rooti. Motor con contraste WCAG AA
-      garantizado y probado en todas
+- [x] La app reconoce al Rooti de la figura al vincular; el **cofre sortea la
+      piel** con probabilidades públicas (70 / 25 / 5)
+- [x] **Paletas dinámicas**: Vibrant Tones por defecto; al abrir el cofre la
+      app entera se pinta con una de las quince pieles (temas claros), con
+      una animación que sale del cofre. Elegibles en Ajustes; bloqueadas si
+      no te salió esa piel. Motor con contraste WCAG AA garantizado y
+      probado en todas
+- [x] **El Rooti entero en la app**, con la silueta que se imprime (voladizo
+      de 45°, base plana, centro de masa bajo, verificados por test)
+- [x] **Mascota**: salud de sensores y felicidad de mimos; caricias, polvo y
+      esponja, snacks de gotas de rocío, y de noche se sienta con gorrito
+- [x] Emulador con **Probar lo nuevo**: pieles, riego que se escurre, 48 h de
+      historial, luces, noche, polvo y gotas, varios aparatos
 - [x] Reconocer la especie por foto con Claude, **sólo con un Rooti
       registrado**
 - [x] **Ficha de cuidados** que nace con el primer reconocimiento (riego,
@@ -248,13 +258,15 @@ Opciones de hardware y pines en [hardware.md](hardware.md#sonido).
 
 ## Fase 4 — Piloto con 20 Rooties
 
-- [ ] 20 unidades con carcasas de los ocho modelos
+- [ ] 20 unidades con carcasas de los cinco Rooties
+- [ ] **Modelar las cinco carcasas** a partir de las siluetas de
+      `root-lab/public/lib/cuerpo.mjs`, con la ventana biselada y la 18650
+      parada; imprimir una de cada una sin soportes
 - [ ] Estación de fábrica: grabar secreto y Rooti en NVS, imprimir la
       etiqueta con el código de respaldo
-- [ ] **Iterar el arte con Rocío**: bocetos de Chico Malo y Chica Chill a
-      parámetros (`core/persona.c`) y siluetas de sus carcasas; más Rooties
-      con paleta propia (`public/lib/paletas.mjs`) y voz propia
-      (`server/ficha.mjs`)
+- [ ] **Iterar el arte con Rocío**: ajustar caras y pieles
+      (`core/persona.c`), siluetas y relieves (`public/lib/cuerpo.mjs`), voces
+      (`public/lib/voz.mjs`) y personalidades (`server/ficha.mjs`)
 - [ ] Medir: cuántos terminan el alta, dónde abandonan, cuántas
       notificaciones silencian, cuánto se usa la charla y cuánto cuesta
 - [ ] Revisar con botánicos las respuestas del chat en las especies más
