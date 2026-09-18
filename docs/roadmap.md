@@ -154,7 +154,11 @@ la pantalla (sólo el QR y los ojos):
       producto —flota, firmware, uso, salud de los sensores— y **el vivero**,
       la lista de mejoras que llenan cinco agentes que revisan el proyecto
       ([trastienda.md](https://github.com/ifbotech/root-lab/blob/main/docs/trastienda.md))
-- [x] 493 pruebas, y verificación de punta a punta contra producción
+- [x] **Cuentas y roles en la trastienda**: quién se registró, quién
+      administra, y se entra con un código de seis dígitos al email
+- [x] **Seis agentes**: cinco proponen mejoras en el vivero y el jardinero
+      implementa la mejor los sábados, en una rama, con informe por correo
+- [x] 511 pruebas, y verificación de punta a punta contra producción
 - [x] En línea: https://ifbotech.com/rootkit/
 
 ### El servidor (VPS)
