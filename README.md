@@ -43,6 +43,8 @@ del firmware en su ventana, como una mascota que se acaricia y se cuida.
 
 Dos cosas de root-lab que se usan desde acá y conviene saber dónde están: **la trastienda** (el panel de quien hace el producto, en `/rootkit/admin`: [docs/trastienda.md](https://github.com/ifbotech/root-lab/blob/main/docs/trastienda.md)) y **los agentes** que revisan el proyecto y anotan mejoras ([agentes/](https://github.com/ifbotech/root-lab/tree/main/agentes), con [RUTINAS.md](https://github.com/ifbotech/root-lab/blob/main/agentes/RUTINAS.md) para dejarlos corriendo).
 
+El agente de hardware, en cambio, vive **acá**: [agentes/ingeniero-de-hardware.md](agentes/ingeniero-de-hardware.md) diseña la PCB impresa con cinta de cobre y el diagrama de conexiones del producto físico.
+
 **Probalo en línea:** https://ifbotech.com/rootkit/ (emulador en
 https://ifbotech.com/rootkit/emulador/).
 
