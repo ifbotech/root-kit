@@ -19,3 +19,11 @@ Thumbs.db
 
 # PlatformIO dentro de firmware/
 firmware/.pio/
+
+# Secretos: el repositorio es público. La clave de firma del firmware vive en
+# ~/.rootkit/, cifrada, y nunca en un repositorio (docs/ota.md).
+*.key
+*.rkc
+*.db.enc
+.env
+.env.*

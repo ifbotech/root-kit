@@ -263,6 +263,44 @@ static void test_parsear(void)
                && r.hay_rareza && r.rareza == RK_RAREZA_RARA);
 }
 
+/* El token del aparato no sale por HTTP plano, ni a una URL que engaña. */
+static void test_url_nube(void)
+{
+    CHECK_TRUE("la nube del producto",
+               rk_nube_url_aceptable("https://ifbotech.com/rootkit", false));
+    /* El transporte elige TLS mirando "https://" en minusculas: en mayusculas
+     * iria por TCP plano al 443 con el token en claro. */
+    CHECK_TRUE("el esquema en mayusculas NO",
+               !rk_nube_url_aceptable("HTTPS://IFBOTECH.COM/ROOTKIT", false));
+    CHECK_TRUE("el servidor en mayusculas si",
+               rk_nube_url_aceptable("https://IFBOTECH.COM/ROOTKIT", false));
+    CHECK_TRUE("con puerto",
+               rk_nube_url_aceptable("https://nube.ejemplo:8443", false));
+
+    CHECK_TRUE("HTTP plano no, en el producto",
+               !rk_nube_url_aceptable("http://192.168.0.10:8080", false));
+    CHECK_TRUE("HTTP plano si, en el banco",
+               rk_nube_url_aceptable("http://192.168.0.10:8080", true));
+    CHECK_TRUE("ni en el banco sin servidor",
+               !rk_nube_url_aceptable("http://", true));
+
+    CHECK_TRUE("con usuario no: https://ifbotech.com@otro.com va a otro.com",
+               !rk_nube_url_aceptable("https://ifbotech.com@otro.com", false));
+    CHECK_TRUE("sin servidor no", !rk_nube_url_aceptable("https:///rootkit", false));
+    CHECK_TRUE("sin servidor, solo puerto, no", !rk_nube_url_aceptable("https://:443", false));
+    CHECK_TRUE("con espacios no", !rk_nube_url_aceptable("https://ifbotech.com/root kit", false));
+    CHECK_TRUE("con un salto de linea no", !rk_nube_url_aceptable("https://ifbotech.com\r\nX: y", false));
+    CHECK_TRUE("con barra invertida no", !rk_nube_url_aceptable("https://ifbotech.com\\@otro", false));
+    CHECK_TRUE("otro esquema no", !rk_nube_url_aceptable("ftp://ifbotech.com", true));
+    CHECK_TRUE("vacia no", !rk_nube_url_aceptable("", true));
+    CHECK_TRUE("NULL no", !rk_nube_url_aceptable(NULL, true));
+    CHECK_TRUE("la URL entera del sync entra",
+               rk_nube_url_aceptable("https://ifbotech.com/rootkit/api/d/sync", false));
+    CHECK_TRUE("mas larga que los buffers del aparato no",
+               !rk_nube_url_aceptable("https://aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                                      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.com", false));
+}
+
 void suite_red(void)
 {
     RK_SUITE("nube");
@@ -270,5 +308,6 @@ void suite_red(void)
     test_json_lectura();
     test_armar_sync();
     test_parsear();
+    test_url_nube();
     RK_SUITE_END();
 }

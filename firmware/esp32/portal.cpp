@@ -2,6 +2,11 @@
 #include <WiFi.h>
 #include <WebServer.h>
 #include <DNSServer.h>
+#include "placa.h"
+
+extern "C" {
+#include "../net/nube.h"
+}
 
 static WebServer *g_web = nullptr;
 static DNSServer  g_dns;
@@ -57,6 +62,14 @@ static void responder_pagina(void)
 {
     String html = FPSTR(PAGINA);
     html.replace("%CODIGO%", g_codigo);
+    if (!RK_ES_BANCO) {
+        /* En el producto el servidor no se elige: ni se ofrece. */
+        int desde = html.indexOf("<details>");
+        int hasta = html.indexOf("</details>");
+        if (desde >= 0 && hasta > desde) {
+            html.remove(desde, hasta + 10 - desde);
+        }
+    }
     g_web->sendHeader("Cache-Control", "no-store");
     g_web->send(200, "text/html; charset=utf-8", html);
 }
@@ -114,8 +127,13 @@ static void responder_guardar(void)
 {
     String ssid = g_web->arg("ssid");
     String clave = g_web->arg("clave");
-    String nube = g_web->arg("nube");
+    String nube = RK_ES_BANCO ? g_web->arg("nube") : String("");
 
+    nube.trim();
+    if (nube.length() > 0 && !rk_nube_url_aceptable(nube.c_str(), RK_ES_BANCO)) {
+        g_web->send(400, "text/plain; charset=utf-8", "El servidor tiene que empezar con https://");
+        return;
+    }
     if (ssid.length() == 0 || ssid.length() > 32 || clave.length() > 64 || nube.length() > 95) {
         g_web->send(400, "text/plain; charset=utf-8", "Datos inválidos");
         return;

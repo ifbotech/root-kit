@@ -88,7 +88,35 @@ node tools/publicar-firmware.mjs cabecera deploy/firmware-publica.pem > ../rootk
 ```
 
 Cambiar de par de claves deja sin actualizaciones por aire a los aparatos
-que tengan la pública vieja: se hace una sola vez, antes de fabricar.
+que tengan la pública vieja: se hace una sola vez, antes de fabricar. Una
+prueba de root-lab (`test/firma-cifrada.test.mjs`) compara esta cabecera con
+`deploy/firmware-publica.pem`: si se separan, el servidor aceptaría binarios
+que los aparatos rechazan, y nadie se enteraría hasta que una actualización
+no llega.
+
+## Quién firma
+
+**Una persona, en su computadora.** La clave privada vive en
+`~/.rootkit/firmware.key`, cifrada con una frase
+(`publicar-firmware.mjs cifrar-clave`), y no está en el servidor, ni en
+ningún repositorio, ni en GitHub. Es la clave de todos los aparatos vendidos:
+con ella se instala cualquier cosa en cualquiera.
+
+El CI (`.github/workflows/ci.yml`) compila cada commit y deja
+`firmware-c3-144` como artefacto, con `firmware.bin.sha256` al lado. Se
+puede firmar ese binario (comprobando la huella) o uno compilado en la
+computadora; las dos cosas dan lo mismo, porque la compilación es la misma.
+
+Hubo un flujo, `publicar-firmware.yml`, que firmaba en un runner de GitHub
+con la clave como secreto del repositorio. Se borró antes de usarse: en ese
+runner corren `pip install platformio`, las toolchains que baja PlatformIO,
+las pruebas del repo y un clon de root-lab, y cualquiera de esas piezas
+comprometida se llevaba la clave. Además recibía la nube como parámetro, así
+que quien pudiera dispararlo podía mandar la clave de administración a otro
+lado. El paso "Ningún flujo usa secretos" del CI falla si vuelve algo así.
+
+Cómo se publica: [root-lab/docs/operacion.md](https://github.com/ifbotech/root-lab/blob/main/docs/operacion.md),
+"Actualizaciones por aire".
 
 ## Particiones
 

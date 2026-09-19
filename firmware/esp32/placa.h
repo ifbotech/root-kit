@@ -28,6 +28,17 @@
 #ifndef ROOTKIT_PLACA_H
 #define ROOTKIT_PLACA_H
 
+/* Placa de BANCO (RK_BANCO=1, la del DevKit): la nube se puede cambiar desde
+ * el portal y puede ser http://, para hablar con root-lab en la PC. El
+ * producto no: habla sólo con RK_NUBE_URL y sólo por HTTPS, porque el portal
+ * de configuración es una red abierta y cualquiera que esté cerca en ese
+ * momento podría mandar al aparato —y a su token— a otro servidor. */
+#if defined(RK_BANCO) && RK_BANCO
+  #define RK_ES_BANCO true
+#else
+  #define RK_ES_BANCO false
+#endif
+
 #if defined(RK_PLACA_C3)
   #define RK_PLACA_NOMBRE      "c3-supermini"
   #define RK_PIN_SUELO_ADC     0    /* ADC1_CH0: salida del capacitivo        */

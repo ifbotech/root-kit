@@ -5,6 +5,10 @@ on:
     branches: [main]
   pull_request:
 
+# El token de GitHub sólo lee: ningún paso de las pruebas escribe en el repo.
+permissions:
+  contents: read
+
 jobs:
   nucleo:
     runs-on: ubuntu-latest
@@ -47,6 +51,18 @@ jobs:
       - name: La estación de fábrica deriva el mismo token que el firmware
         run: python3 tools/fabrica.py --autoprueba
 
+      - name: Ningún flujo usa secretos
+        # La clave privada del firmware no va a GitHub: firmar en un runner es
+        # exponerla a todo lo que corre ahí (pip, PlatformIO, sus toolchains,
+        # las pruebas del repo). Se firma en la computadora de quien publica
+        # (docs/ota.md). Si algún día un flujo necesita un secreto, esto hay
+        # que pensarlo de nuevo, no borrarlo.
+        run: |
+          if grep -rnE 'secrets[.]' .github/workflows/; then
+            echo "Un flujo usa secretos: ver docs/ota.md, 'Quién firma'."
+            exit 1
+          fi
+
   placas:
     runs-on: ubuntu-latest
     strategy:
@@ -64,13 +80,17 @@ jobs:
       - run: pip install platformio
       - name: Compilar ${{ matrix.entorno }}
         run: cd firmware && pio run -e ${{ matrix.entorno }}
-      # El binario queda como artefacto del commit: es el que se firma y se
-      # publica para los aparatos (docs/ota.md). Publicar NO es automático:
-      # lo hace una persona con la clave privada, desde su máquina o con el
-      # flujo "publicar-firmware" de abajo.
+      # El binario queda como artefacto del commit, con su SHA-256: es el que
+      # se firma y se publica para los aparatos (docs/ota.md). Publicar NO es
+      # automático ni pasa por GitHub: lo hace una persona con la clave
+      # privada, en su máquina.
+      - name: Huella del binario
+        run: cd firmware/.pio/build/${{ matrix.entorno }} && sha256sum firmware.bin | tee firmware.bin.sha256
       - uses: actions/upload-artifact@v4
         with:
           name: firmware-${{ matrix.entorno }}
-          path: firmware/.pio/build/${{ matrix.entorno }}/firmware.bin
+          path: |
+            firmware/.pio/build/${{ matrix.entorno }}/firmware.bin
+            firmware/.pio/build/${{ matrix.entorno }}/firmware.bin.sha256
           retention-days: 30
 

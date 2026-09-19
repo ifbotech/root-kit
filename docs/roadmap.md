@@ -97,7 +97,7 @@ la pantalla (sólo el QR y los ojos):
 - [x] **Protocolo de fábrica** por el puerto serie y `tools/fabrica.py`
       ([fabrica.md](fabrica.md))
 - [x] **Modo calibración**: con la app calibrando, mide y cuenta cada 5 s
-- [x] 1884 comprobaciones en el escritorio, regresión visual de las 165 caras
+- [x] 2008 comprobaciones en el escritorio, regresión visual de las 165 caras
 - [x] El renderer compilado a WebAssembly para la app y el emulador
 
 ### ROOTLAB: app y nube (`root-lab`)
@@ -158,7 +158,7 @@ la pantalla (sólo el QR y los ojos):
       administra, y se entra con un código de seis dígitos al email
 - [x] **Seis agentes**: cinco proponen mejoras en el vivero y el jardinero
       implementa la mejor los sábados, en una rama, con informe por correo
-- [x] 518 pruebas, y verificación de punta a punta contra producción
+- [x] 535 pruebas, y verificación de punta a punta contra producción
 - [x] En línea: https://ifbotech.com/rootkit/
 
 ### El servidor (VPS)
@@ -168,6 +168,10 @@ la pantalla (sólo el QR y los ojos):
       fuera de la imagen Docker, chequeo de salud arreglado, Next.js sin la
       vulnerabilidad crítica, nodemailer actualizado
 - [x] HSTS para todo ifbotech.com
+- [x] Auditoría de seguridad completa (septiembre de 2026): SSH sólo con
+      llave, núcleo al día y reinicio automático, administración de Caddy por
+      socket, usuario `respaldos` encerrado, Node de root y al día. Los 21
+      hallazgos, en [root-lab/docs/seguridad.md](https://github.com/ifbotech/root-lab/blob/main/docs/seguridad.md)
 
 ---
 
@@ -177,8 +181,13 @@ la pantalla (sólo el QR y los ojos):
       Mientras tanto ROOTLAB funciona con la IA simulada. Cargarla en
       `/etc/root-lab.env` y en el `.env` del sitio principal, y poner un
       límite de gasto para esa clave en la consola de Anthropic
-- [ ] **Guardar la clave maestra** (`ROOTLAB_SECRETO`) en un gestor de
-      contraseñas: sin ella la base no se puede leer
+- [x] **Sacar del servidor las claves de los respaldos**: la caja fuerte,
+      sellada, probada y en OneDrive
+- [ ] **Cifrar la clave de firma del firmware** con `cifrar-clave`, después
+      de copiarla al gestor de contraseñas, y una copia en un pendrive
+- [ ] **Proteger `main`** en los dos repositorios (sin force-push ni
+      borrado) y encender *secret scanning* y *push protection*
+- [ ] **Una frase para la llave SSH de root**, con el agente de Windows
 - [ ] Revisar que el email de prueba de ROOTLAB llegó a la bandeja de
       entrada y no a spam
 
@@ -331,7 +340,13 @@ Opciones de hardware y pines en [hardware.md](hardware.md#sonido).
       TPS63802, amplificador y parlante, conectores para sensores y pantalla
 - [ ] Antena y pruebas de emisiones
 - [ ] **Homologación ENACOM** (equipo con radio vendido en Argentina)
-- [ ] Cifrado de la flash del ESP32 (la clave del wifi hoy va en NVS sin cifrar)
+- [ ] **Flash encryption (release) y secure boot v2** en la estación de
+      fábrica: hoy el secreto y el wifi van en NVS sin cifrar, y quien tiene la
+      placa en la mano los lee. Queman eFuses: sólo en placas que se venden
+- [ ] Portal de configuración con clave (WPA2) mostrada en la pantalla o en
+      un QR de wifi: hoy es una red abierta que muestra el código de vínculo
+- [ ] Un piso de versión compilado (`RK_FW_PISO`) el día que una versión
+      tenga un problema de seguridad
 - [ ] Caja ciega: empaque, QR de respaldo impreso, instructivo de una página
 - [ ] Plan de reposición de carcasas y del modelo secreto
 - [ ] Auditoría de seguridad externa de ROOTLAB
@@ -350,8 +365,10 @@ Opciones de hardware y pines en [hardware.md](hardware.md#sonido).
 | El Rooti de fábrica no coincide con la carcasa | Grabar el Rooti en la misma estación que ensambla la carcasa |
 | Costo de la IA | Tope global diario y mensual, cuotas por plan, sólo con Rooti, caché de prompts, alertas por email, auditoría en `ia_uso` |
 | Alguien inventa Rooties con el emulador para usar la IA | El tope global acota el gasto; el registro de fábrica lo cierra |
-| **Se pierde la clave maestra** | Sin ella los datos cifrados no se recuperan: copia en un gestor de contraseñas, fuera del VPS |
-| Se pierde el VPS | Respaldos fuera del servidor (pendiente) + la clave maestra guardada aparte |
+| **Se pierde la clave maestra** | Sin ella los datos cifrados no se recuperan: está en la caja fuerte, fuera del VPS |
+| Se pierde el VPS | Respaldos cifrados en la computadora y en OneDrive (los trae la computadora, con una llave que sólo lee), y las claves para abrirlos en la caja fuerte |
+| Se filtra la clave de firma del firmware | Sólo en la computadora de quien firma, cifrada con frase; nunca en el servidor ni en GitHub, y el CI falla si un flujo usa secretos |
+| Alguien cerca configura el aparato hacia su servidor | En el producto la nube es fija y sólo HTTPS; el portal no ofrece el campo |
 | Los emails caen en spam | Relay con reputación (Brevo), SPF/DKIM/DMARC, texto + HTML, nunca a dominios de prueba |
 | La charla dice algo incorrecto o peligroso | Prompt acotado a su cuidado, rangos curados mandan sobre la IA, advertencia de toxicidad, revisión con botánicos en el piloto |
 | El sitio principal comparte el VPS con ROOTLAB | Servicios separados, cada uno detrás de Caddy en 127.0.0.1; ROOTLAB con usuario y Node propios |

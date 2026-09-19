@@ -224,3 +224,42 @@ bool rk_nube_parsear(const char *json, rk_nube_resp_t *r)
     r->hay_firmware = rk_ota_manifiesto_parsear(json, &r->firmware);
     return true;
 }
+
+/* ------------------------------------------------------------ la URL --- */
+bool rk_nube_url_aceptable(const char *url, bool banco)
+{
+    size_t n;
+    size_t host;
+    size_t i;
+
+    if (url == NULL) {
+        return false;
+    }
+    /* 159: lo que entra en los buffers de URL del aparato (160 con el cero).
+     * La base que se guarda en NVS es más corta, y eso lo cuida el portal. */
+    n = strlen(url);
+    if (n == 0u || n > 159u) {
+        return false;
+    }
+    /* El esquema, exacto y en minúsculas: el transporte (esp32/red.cpp,
+     * ota.cpp) decide TLS con strncmp(url, "https://"). Si acá pasara
+     * "HTTPS://", allá iría por TCP plano al 443, con el token en claro. */
+    if (strncmp(url, "https://", 8u) == 0) {
+        host = 8u;
+    } else if (banco && strncmp(url, "http://", 7u) == 0) {
+        host = 7u;
+    } else {
+        return false;
+    }
+    /* Tiene que haber un servidor después del esquema. */
+    if (url[host] == '\0' || url[host] == '/' || url[host] == ':') {
+        return false;
+    }
+    for (i = 0u; i < n; i++) {
+        unsigned char c = (unsigned char)url[i];
+        if (c <= 0x20u || c >= 0x7Fu || c == '@' || c == '\\' || c == '"' || c == '<' || c == '>') {
+            return false;
+        }
+    }
+    return true;
+}

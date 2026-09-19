@@ -37,6 +37,18 @@
 
 #define RK_NUBE_RUTA_SYNC "/api/d/sync"
 
+/* ¿Se le puede mandar el token a esta URL?
+ *
+ * El aparato manda su token en cada pedido, y con ese token cualquiera puede
+ * hacerse pasar por él. Por HTTP plano viajaría en claro por el wifi de la
+ * casa y por cualquier red en el camino. En el producto, sólo HTTPS; `banco`
+ * (las placas de prueba, RK_BANCO) permite http:// para hablar con root-lab
+ * en la PC. El esquema va exacto y en minúsculas, porque así lo mira el
+ * transporte para elegir TLS. Tampoco se aceptan URLs con usuario
+ * (https://a@b: el servidor es b, aunque se lea a), espacios ni caracteres de
+ * control. */
+bool rk_nube_url_aceptable(const char *url, bool banco);
+
 /* Lo que el aparato cuenta de sí mismo. */
 typedef struct {
     const char *id;

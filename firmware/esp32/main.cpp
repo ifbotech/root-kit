@@ -42,7 +42,7 @@ extern "C" {
 }
 
 #ifndef RK_FW_VERSION
-#define RK_FW_VERSION "0.6.0"
+#define RK_FW_VERSION "0.6.1"
 #endif
 #ifndef RK_NUBE_URL
 #define RK_NUBE_URL "https://ifbotech.com/rootkit"
@@ -445,7 +445,9 @@ static void atender_portal(uint32_t ahora)
         strncpy(A.ssid, datos.ssid, sizeof A.ssid - 1);
         strncpy(A.clave, datos.clave, sizeof A.clave - 1);
         almacen_guardar_wifi(&A);
-        if (datos.nube[0] != '\0') {
+        /* Sólo en el banco, y sólo una URL que pase el control: en el producto
+         * el portal ni la ofrece (portal.cpp). */
+        if (RK_ES_BANCO && datos.nube[0] != '\0' && rk_nube_url_aceptable(datos.nube, RK_ES_BANCO)) {
             strncpy(A.nube, datos.nube, sizeof A.nube - 1);
             almacen_guardar_nube(&A);
             g_epoca_qr = 0xFFFFFFFFu;
@@ -591,6 +593,19 @@ void setup(void)
 
     if (!almacen_cargar(&A, RK_NUBE_URL, RK_APP_URL)) {
         Serial.println("[almacen] NVS no responde");
+    }
+    /* En el producto la nube es la de fábrica aunque la memoria diga otra (la
+     * dejó un portal viejo que permitía elegirla): el token sólo va a
+     * RK_NUBE_URL. En el banco, la guardada, si pasa el control. */
+    if (!RK_ES_BANCO || !rk_nube_url_aceptable(A.nube, RK_ES_BANCO)) {
+        if (strcmp(A.nube, RK_NUBE_URL) != 0) {
+            Serial.printf("[almacen] nube %s descartada: uso %s\n", A.nube, RK_NUBE_URL);
+        }
+        strncpy(A.nube, RK_NUBE_URL, sizeof A.nube - 1);
+        A.nube[sizeof A.nube - 1] = '\0';
+    }
+    if (!rk_nube_url_aceptable(A.nube, RK_ES_BANCO)) {
+        Serial.println("[almacen] RK_NUBE_URL no es https: sin RK_BANCO no se habla con la nube");
     }
 
     /* El framebuffer se pide antes que el wifi: después la memoria contigua

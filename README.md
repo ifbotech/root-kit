@@ -64,7 +64,7 @@ compras: [docs/hardware.md](docs/hardware.md).
 ## Empezar
 
 ```bash
-make test         # 1449 comprobaciones del firmware, sin placa
+make test         # 2008 comprobaciones del firmware, sin placa
 make sim          # los cinco Rooties en una ventana, en vivo
 make sheet        # 8 Rooties × 11 ánimos
 make transicion   # el cambio de ánimo, cuadro a cuadro

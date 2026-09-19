@@ -7,8 +7,10 @@
 #include <mbedtls/pk.h>
 #include "certificados.h"
 #include "ota_clave.h"
+#include "placa.h"
 
 extern "C" {
+#include "../net/nube.h"
 #include "../core/sha256.h"
 }
 
@@ -166,6 +168,12 @@ void ota_iniciar_tarea(void)
 bool ota_empezar(const rk_ota_manifiesto_t *m, const char *token)
 {
     if (m == NULL || token == NULL || g_tarea == NULL || g_fase == RK_OTA_BAJANDO || g_fase == RK_OTA_LISTA) {
+        return false;
+    }
+    /* La URL del binario la manda el servidor: igual que en el sync, el token
+     * no sale por HTTP plano. */
+    if (!rk_nube_url_aceptable(m->url, RK_ES_BANCO)) {
+        Serial.println("[ota] la URL del firmware no es https: no la bajo");
         return false;
     }
     g_m = *m;

@@ -1,12 +1,12 @@
 # Pruebas
 
 ```bash
-make test        # 1990 comprobaciones del firmware, sin placa ni SDL
+make test        # 2008 comprobaciones del firmware, sin placa ni SDL
 make verify      # lo que corre CI: pruebas y referencias visuales al día
 make placa       # compila el producto (c3-144) y el banco (devkit-144)
 ```
 
-ROOTLAB (la app, la nube y el emulador) tiene sus propias 518 pruebas en
+ROOTLAB (la app, la nube y el emulador) tiene sus propias 535 pruebas en
 [root-lab](https://github.com/ifbotech/root-lab) (`npm test`), incluido el
 flujo completo de punta a punta.
 
@@ -22,8 +22,7 @@ flujo completo de punta a punta.
 | `rooties y caras` | 1023 | La tabla de los cinco Rooties con sus tres pieles y colores, las rarezas (ids, nombres, parseo), que los 5, las 15 pieles y los 11 ánimos se distingan, el guiño, adornos por etapa y por piel, centinelas del framebuffer |
 | `pantalla del QR` | 19 | Que el QR dibujado se lea módulo por módulo (en 128×128 y en un lienzo más grande), también con la URL del VPS |
 | `identidad y vinculo` | 91 | SHA-256 y HMAC con vectores oficiales, código y token, el flujo completo del enlace y sus caminos feos |
-| `nube` | 80 | JSON hostil o cortado, el cuerpo del pedido, respuestas incoherentes que no se aplican |
-
+| `nube` | 98 | JSON hostil o cortado, el cuerpo del pedido, respuestas incoherentes que no se aplican; a qué URL se le puede mandar el token (sólo `https://` exacto en el producto, sin usuario ni caracteres raros) |
 | `ota y fabrica` | 104 | Versiones, hex y base64; manifiestos hostiles o a medias; cuándo se baja una versión (batería, tres intentos, volver atrás) y el arranque a prueba; el cuerpo del sync con `ota` y `lote`; la línea de fábrica: secretos cortos o en cero, Rooties que no existen, lotes raros, el log que no es una orden |
 
 ## Las pruebas que valen más que su tamaño

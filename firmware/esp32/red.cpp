@@ -3,6 +3,11 @@
 #include <HTTPClient.h>
 #include <WiFiClientSecure.h>
 #include "certificados.h"
+#include "placa.h"
+
+extern "C" {
+#include "../net/nube.h"
+}
 
 #define CUERPO_MAX     4096
 #define RESPUESTA_MAX  2048
@@ -131,6 +136,12 @@ void red_iniciar(void)
 bool red_pedir(const char *url, const char *token, const char *cuerpo, size_t len)
 {
     if (g_en_curso || g_lista || len >= sizeof g_cuerpo) {
+        return false;
+    }
+    /* El token no sale por HTTP plano ni a una URL rara: con él cualquiera
+     * se hace pasar por esta maceta (net/nube.h). */
+    if (!rk_nube_url_aceptable(url, RK_ES_BANCO)) {
+        Serial.printf("[red] no mando el token a %s: tiene que ser https\n", url);
         return false;
     }
     xSemaphoreTake(g_mutex, portMAX_DELAY);

@@ -57,7 +57,7 @@ dice a la nube y la que decide si hay una actualización ([ota.md](ota.md)).
 
 ```ini
 -DRK_NUBE_URL=\"https://ifbotech.com/rootkit\"   ; la versión de prueba en el VPS (por defecto)
--DRK_NUBE_URL=\"http://192.168.0.20:8080\"       ; o la PC con root-lab
+-DRK_NUBE_URL=\"http://192.168.0.20:8080\"       ; o la PC con root-lab (sólo placa de banco)
 -DRK_APP_URL=\"\"                                 ; base del QR, si es otra
 ```
 
@@ -68,11 +68,42 @@ lleva el QR: normalmente la misma. Por defecto apunta al VPS
 alfanumérico del QR) y abre una app con HTTPS, que se puede instalar y
 recibe notificaciones. Con root-lab en la PC la app abre por HTTP y no se
 instala; para eso, `RK_APP_URL` con la URL de un túnel HTTPS mientras la
-placa sigue hablando con la PC por la red local. El servidor también se
-puede cambiar sin recompilar, desde el portal ("Avanzado").
+placa sigue hablando con la PC por la red local.
 
 La placa verifica el certificado del servidor contra raíces fijadas: ver
 "Seguridad" más abajo.
+
+### El banco y el producto
+
+El aparato manda su token en cada pedido, y con ese token cualquiera se hace
+pasar por él. Por eso hay dos clases de placa:
+
+| | Producto (`c3-144`) | Banco (`devkit-144`, o cualquiera con `-DRK_BANCO=1`) |
+|---|---|---|
+| Con qué nube habla | `RK_NUBE_URL`, fija | la de `RK_NUBE_URL` o la que se elija en el portal ("Avanzado") |
+| `http://` | **no**: el token no sale sin TLS | sí, para root-lab en la PC |
+| El campo "Servidor" del portal | no aparece, y si llega se ignora | aparece |
+| Una nube guardada en la memoria | se ignora: manda `RK_NUBE_URL` | se usa, si pasa el control |
+
+El control es `rk_nube_url_aceptable()` (`net/nube.c`, probado en
+`test/test_red.c`): `https://` exacto y en minúsculas —así lo mira el
+transporte para elegir TLS; `HTTPS://` iría por TCP plano al 443 con el token
+adentro—, con un servidor después, sin usuario (`https://a@b` va a `b`), sin
+espacios ni caracteres de control, y que entre en los buffers. `red.cpp` y
+`ota.cpp` se niegan a mandar el token a una URL que no pase, y lo dicen por
+el puerto serie.
+
+Por qué el producto no deja elegir: el portal de configuración es una red
+wifi abierta. Quien estuviera cerca mientras alguien configura su maceta
+podía poner su propio servidor y quedarse con el token. Mudar el producto a
+otra nube (un dominio propio, por ejemplo) se hace publicando por aire una
+versión con otro `RK_NUBE_URL`.
+
+Para usar una C3 contra la PC:
+
+```bash
+PLATFORMIO_BUILD_FLAGS="-DRK_BANCO=1" pio run -e c3-144 -t upload
+```
 
 Si la imagen del panel sale corrida o con colores cambiados:
 `-DRK_TFT_OFS_X=2 -DRK_TFT_OFS_Y=1 -DRK_TFT_BGR=1 -DRK_TFT_INVERT=1`.
@@ -299,5 +330,20 @@ y el secado normal tampoco: `test/test_nodo.c` recorre las cuatro series.
   falta hora antes de conectarse. Para un servidor con CA propia,
   `-DRK_NUBE_CA=...`; sólo en desarrollo, contra un túnel,
   `-DRK_NUBE_INSEGURO=1` vuelve a `setInsecure()`.
-- La clave del wifi se guarda en NVS sin cifrar. El cifrado de flash del
-  ESP32 es tarea de la PCB de producción.
+- **El token sólo sale por HTTPS, y en el producto sólo a `RK_NUBE_URL`**:
+  ver "El banco y el producto", arriba.
+- La clave del wifi y el secreto del aparato se guardan en NVS sin cifrar:
+  quien tenga la placa en la mano y un cable puede leerlos (y hacerse pasar
+  por **ese** aparato, no por otros: cada uno tiene su secreto). El remedio
+  es flash encryption en modo release más secure boot v2, que queman eFuses
+  y no tienen vuelta atrás: se hace en la estación de fábrica, antes de
+  vender, no en las placas de desarrollo ([roadmap.md](roadmap.md)).
+- **Volver atrás es una función**: el servidor puede ofrecer una versión
+  anterior bien firmada. El día que una versión tenga un problema de
+  seguridad, se le pone un piso compilado (`RK_FW_PISO`) para que no se pueda
+  volver a ella.
+- El portal de configuración es una red abierta y muestra el código de
+  vínculo. Alguien cerca, en esos minutos, podría vincular el aparato antes
+  que su dueño (que lo ve en la app y lo deshace con un reinicio largo).
+  Cerrarlo es un portal con clave mostrada en la pantalla: está en el
+  roadmap, porque cambia el alta.
