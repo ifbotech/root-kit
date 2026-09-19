@@ -41,6 +41,8 @@ del firmware en su ventana, como una mascota que se acaricia y se cuida.
 | **rootkit** (este) | Firmware, hardware, carcasas y la documentación del aparato |
 | [**root-lab**](https://github.com/ifbotech/root-lab) | **ROOTLAB**: la app, la nube, las cuentas, la IA y el chat con la planta, el correo, las notificaciones y un emulador del Rooti |
 
+Dos cosas de root-lab que se usan desde acá y conviene saber dónde están: **la trastienda** (el panel de quien hace el producto, en `/rootkit/admin`: [docs/trastienda.md](https://github.com/ifbotech/root-lab/blob/main/docs/trastienda.md)) y **los agentes** que revisan el proyecto y anotan mejoras ([agentes/](https://github.com/ifbotech/root-lab/tree/main/agentes), con [RUTINAS.md](https://github.com/ifbotech/root-lab/blob/main/agentes/RUTINAS.md) para dejarlos corriendo).
+
 **Probalo en línea:** https://ifbotech.com/rootkit/ (emulador en
 https://ifbotech.com/rootkit/emulador/).
 
