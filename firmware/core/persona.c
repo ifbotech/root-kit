@@ -4,75 +4,80 @@
 
 /* Los cinco Rooties botánicos.
  *
- * Distintos DOS VECES: como silueta impresa a un metro (una semilla con dos
- * hojitas, una cúpula de musgo, un cactus ovalado, un bulbo en gota, un
- * honguito con sombrero) y como cara en 128x128. Las siluetas y sus reglas
- * de impresión están en docs/carcasas.md; el cuerpo que dibuja la app, en
- * root-lab/public/lib/cuerpo.mjs.
+ * Distintos DOS VECES: como figura a un metro (una semilla con dos hojas, un
+ * almohadón de musgo con esporas, un cactus barril con flor, una cebolla con
+ * un brote, un hongo con sombrero) y como cara en 128x128. Los cuerpos en 3D
+ * —y la figura que se imprime— están en root-lab/public/lib/rooti3d/formas.mjs;
+ * las reglas de impresión, en docs/carcasas.md; de dónde sale cada uno y qué
+ * lo separa de sus referencias, en docs/rooties.md.
  *
  * Los números de cada fila son un punto de partida para que la artista
  * ajuste: cambiar una proporción o un color es editar una fila.
  *
  * Formato de cada piel, para que tools/sincronizar-firmware.mjs la lea:
  *
- *   { "nombre", RK_HEX(fondo), RK_HEX(ojos), RK_HEX(piel), RK_HEX(rubor), adornos }
+ *   { "nombre", RK_HEX(fondo), RK_HEX(ojos), RK_HEX(piel), RK_HEX(rubor), RK_HEX(acento), adornos }
+ *
+ * `fondo` y `piel` van iguales: la cara se pinta sobre el cuerpo (persona.h).
  */
 const rk_persona_t rk_persona_table[] = {
 {
     "brote", "Brote", "carcasas/brote.stl",
     "Todo le parece nuevo. Sobre todo vos.",
-    /* El brote curioso: una semilla con dos hojitas. Ojos redondos y
-     * enormes con los brillos espejados de un cachorro, una sonrisa chica y
-     * dos chapitas de rubor redondas. Sin cejas: nada que le quite
-     * inocencia. */
+    /* El brote curioso: una semilla gordita, ancha abajo, de la que salen
+     * dos cotiledones redondos en V. Ojos redondos y enormes con los
+     * brillos espejados de un cachorro, una sonrisa chica y dos chapitas de
+     * rubor redondas. Sin cejas: nada que le quite inocencia. */
     RK_OJOS_REDONDOS, RK_BRILLO_CACHORRO, 14, 15, 22, -4,
     RK_CEJA_NINGUNA, 0, 0,
     RK_BOCA_SUAVE, 7, 19,
     RK_MEJILLA_CIRCULO,
     {
-        { "Hoja Nueva", RK_HEX(0xE8F5E9), RK_HEX(0x1B5E20), RK_HEX(0xA5D6A7), RK_HEX(0xFF8A80), 0u },
-        { "Lavanda", RK_HEX(0xF3E5F5), RK_HEX(0x4A148C), RK_HEX(0xCE93D8), RK_HEX(0xEA80FC), RK_ADORNO_BRILLOS },
-        { "Flor de Cerezo Dorada", RK_HEX(0xFFF8E1), RK_HEX(0xE65100), RK_HEX(0xFFE082), RK_HEX(0xFF5252), RK_ADORNO_CORONA | RK_ADORNO_BRILLOS },
+        { "Brote Tierno", RK_HEX(0xD4F26E), RK_HEX(0x2A2140), RK_HEX(0xD4F26E), RK_HEX(0xFF7DA6), RK_HEX(0x3DBF6B), 0u },
+        { "Cereza", RK_HEX(0xFFB3D0), RK_HEX(0x4A1530), RK_HEX(0xFFB3D0), RK_HEX(0xFF6F9E), RK_HEX(0xE8457A), RK_ADORNO_BRILLOS },
+        { "Sol Dorado", RK_HEX(0xFFDA5C), RK_HEX(0x3A2015), RK_HEX(0xFFDA5C), RK_HEX(0xFF5E6C), RK_HEX(0xFF8A2B), RK_ADORNO_CORONA | RK_ADORNO_BRILLOS },
     }
 },
 {
     "musgo", "Musgo", "carcasas/musgo.stl",
     "No hay apuro. Nunca hubo.",
-    /* La esfera serena: una cúpula de musgo tipo almohadón. Ojos de media
-     * luna con los párpados relajados, boca de gato y un rubor ancho y
-     * bajito. Es el que menos se inmuta: sus ánimos se leen en los
-     * párpados. */
+    /* La esfera serena: un almohadón de musgo con flecos en capas, del que
+     * asoman dos esporofitos —los tallitos con cápsula que tiene el musgo de
+     * verdad—. Ojos de media luna con los párpados relajados, boca de gato y
+     * un rubor ancho y bajito. Es el que menos se inmuta: sus ánimos se leen
+     * en los párpados. */
     RK_OJOS_MEDIALUNA, RK_BRILLO_SIMPLE, 15, 13, 22, -2,
     RK_CEJA_NINGUNA, 0, 0,
     RK_BOCA_GATO, 6, 18,
     RK_MEJILLA_HORIZONTAL,
     {
-        { "Musgo", RK_HEX(0xF1F8E9), RK_HEX(0x33691E), RK_HEX(0xC5E1A5), RK_HEX(0xAED581), 0u },
-        { "Glaciar", RK_HEX(0xE0F7FA), RK_HEX(0x006064), RK_HEX(0x80DEEA), RK_HEX(0x4DD0E1), RK_ADORNO_BRILLOS },
-        { "Otoño Tostado", RK_HEX(0xFBE9E7), RK_HEX(0xBF360C), RK_HEX(0xFFAB91), RK_HEX(0xFF7043), RK_ADORNO_CORONA },
+        { "Musgo", RK_HEX(0x74DDB5), RK_HEX(0x113329), RK_HEX(0x74DDB5), RK_HEX(0xFF8FA0), RK_HEX(0xFF9A3C), 0u },
+        { "Glaciar", RK_HEX(0x94DEFF), RK_HEX(0x0F2E4A), RK_HEX(0x94DEFF), RK_HEX(0xFF9EC8), RK_HEX(0x3F6BFF), RK_ADORNO_BRILLOS },
+        { "Aurora", RK_HEX(0xFFA9DC), RK_HEX(0x3D1238), RK_HEX(0xFFA9DC), RK_HEX(0xFF5FA8), RK_HEX(0xFFE066), RK_ADORNO_AURA | RK_ADORNO_LUCES },
     }
 },
 {
     "pinchito", "Pinchito", "carcasas/pinchito.stl",
     "¡Hola! ¿Ya regaste? ¡Hola!",
-    /* El cactus entusiasta: un óvalo con nervaduras suaves y una flor al
-     * costado. Contento, los ojos quedan en arco "^ ^" y cada tanto guiña,
-     * uno y después el otro. Sonríe con un dientito y las mejillas le
-     * brillan. */
+    /* El cactus entusiasta: un barril con costillas y pinchitos, una flor
+     * arriba y un brazo levantado que saluda. Contento, los ojos quedan en
+     * arco "^ ^" y cada tanto guiña, uno y después el otro. Sonríe con un
+     * dientito y las mejillas le brillan. */
     RK_OJOS_ARCO, RK_BRILLO_SIMPLE, 13, 14, 21, -5,
     RK_CEJA_NINGUNA, 0, 0,
     RK_BOCA_DIENTECITO, 8, 19,
     RK_MEJILLA_BRILLO,
     {
-        { "Desierto", RK_HEX(0xE8F5E9), RK_HEX(0x2E7D32), RK_HEX(0xFFF176), RK_HEX(0xFF80AB), 0u },
-        { "Melocotón", RK_HEX(0xFCE4EC), RK_HEX(0x880E4F), RK_HEX(0xF8BBD0), RK_HEX(0xFF4081), RK_ADORNO_BRILLOS },
-        { "Medianoche Neón", RK_HEX(0xECEFF1), RK_HEX(0x0D47A1), RK_HEX(0x90CAF9), RK_HEX(0xFFD600), RK_ADORNO_AURA | RK_ADORNO_LUCES },
+        { "Desierto", RK_HEX(0x8FE27A), RK_HEX(0x16361C), RK_HEX(0x8FE27A), RK_HEX(0xFF7FB0), RK_HEX(0xFF4FA0), 0u },
+        { "Atardecer", RK_HEX(0xFFB47C), RK_HEX(0x4A1E14), RK_HEX(0xFFB47C), RK_HEX(0xFF6A8A), RK_HEX(0xE8447F), RK_ADORNO_BRILLOS },
+        { "Neón", RK_HEX(0x9CAEFF), RK_HEX(0x161B55), RK_HEX(0x9CAEFF), RK_HEX(0xFF6FD8), RK_HEX(0xFF4FE0), RK_ADORNO_AURA | RK_ADORNO_LUCES },
     }
 },
 {
     "bulbo", "Bulbo", "carcasas/bulbo.stl",
     "Sueña con flores que todavía no existen.",
-    /* El soñador mágico: una gota que termina en espiral. Ojos enormes,
+    /* El soñador mágico: un bulbo de cebolla con gajos, que termina en una
+     * punta de la que sale un brote, y raicitas por patas. Ojos enormes,
      * estilo Café, con dos puntos de luz; cejas redondeadas que flotan
      * separadas del ojo. La boca es mínima para que manden los ojos. */
     RK_OJOS_REDONDOS, RK_BRILLO_DOBLE, 17, 18, 23, -3,
@@ -80,26 +85,26 @@ const rk_persona_t rk_persona_table[] = {
     RK_BOCA_SUAVE, 5, 23,
     RK_MEJILLA_SUAVE,
     {
-        { "Limonada", RK_HEX(0xFFFDE7), RK_HEX(0x827717), RK_HEX(0xFFF59D), RK_HEX(0xFFAB91), 0u },
-        { "Lila Místico", RK_HEX(0xEDE7F6), RK_HEX(0x311B92), RK_HEX(0xB39DDB), RK_HEX(0xB388FF), RK_ADORNO_BRILLOS },
-        { "Galáctico", RK_HEX(0xE8EAF6), RK_HEX(0x1A237E), RK_HEX(0x7986CB), RK_HEX(0xFF4081), RK_ADORNO_AURA | RK_ADORNO_BRILLOS },
+        { "Lavanda", RK_HEX(0xC8A4FF), RK_HEX(0x2A1450), RK_HEX(0xC8A4FF), RK_HEX(0xFF86C8), RK_HEX(0x6FDB7E), 0u },
+        { "Menta", RK_HEX(0x8AECD2), RK_HEX(0x0E3A32), RK_HEX(0x8AECD2), RK_HEX(0xFF8FB0), RK_HEX(0xFF7AA0), RK_ADORNO_BRILLOS },
+        { "Galáctico", RK_HEX(0x9C9CFF), RK_HEX(0x15114A), RK_HEX(0x9C9CFF), RK_HEX(0xFF6FC0), RK_HEX(0xFFD84D), RK_ADORNO_AURA | RK_ADORNO_BRILLOS },
     }
 },
 {
     "champi", "Champi", "carcasas/champi.stl",
     "Tiene hambre. Y sed. Y ganas de charlar.",
-    /* El honguito glotón: un tallo macizo bajo un sombrero cónico que le
-     * hace de visera a la pantalla. Ojos ovalados y altos, cejas finas, una
-     * boca abierta en "D" y pecas. Como el sombrero le da sombra, la cara es
-     * la de más contraste. */
+    /* El honguito glotón: un tallo macizo con anillo, bajo un sombrero de
+     * campana que le hace de visera a la cara. La cara va en el tallo, que es
+     * claro; el sombrero es el acento. Ojos ovalados y altos, cejas finas,
+     * una boca abierta en "D" y pecas. */
     RK_OJOS_REDONDOS, RK_BRILLO_SIMPLE, 12, 16, 21, -3,
     RK_CEJA_FINA, 4, 8,
     RK_BOCA_D, 9, 21,
     RK_MEJILLA_PECAS,
     {
-        { "Bosque", RK_HEX(0xEFEBE9), RK_HEX(0x3E2723), RK_HEX(0xD7CCC8), RK_HEX(0xFF8A80), 0u },
-        { "Amanita Rosa", RK_HEX(0xFCE4EC), RK_HEX(0xAD1457), RK_HEX(0xF48FB1), RK_HEX(0xFFCDD2), RK_ADORNO_BRILLOS },
-        { "Bioluminiscente", RK_HEX(0xE0F2F1), RK_HEX(0x004D40), RK_HEX(0x80CBC4), RK_HEX(0x69F0AE), RK_ADORNO_AURA | RK_ADORNO_LUCES },
+        { "Amanita", RK_HEX(0xFFE8CB), RK_HEX(0x3A1E14), RK_HEX(0xFFE8CB), RK_HEX(0xFF8A7A), RK_HEX(0xFF5A4F), 0u },
+        { "Violeta", RK_HEX(0xF2E5FF), RK_HEX(0x2A1850), RK_HEX(0xF2E5FF), RK_HEX(0xFF8FC8), RK_HEX(0x9B6BFF), RK_ADORNO_BRILLOS },
+        { "Bioluminiscente", RK_HEX(0xDBFFF3), RK_HEX(0x0E3A33), RK_HEX(0xDBFFF3), RK_HEX(0xFF7FB2), RK_HEX(0x22D9A8), RK_ADORNO_AURA | RK_ADORNO_LUCES },
     }
 },
 };

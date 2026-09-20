@@ -147,7 +147,8 @@ const char *rk_wasm_persona_id(int i)
     return p != NULL ? p->id : "";
 }
 
-/* Un color de una piel, en RGB565: campo 0 fondo, 1 ojos, 2 piel, 3 rubor. */
+/* Un color de una piel, en RGB565: campo 0 fondo, 1 ojos, 2 piel, 3 rubor,
+ * 4 acento. */
 EXPORTA("piel_color")
 int rk_wasm_piel_color(int i, int rareza, int campo)
 {
@@ -159,6 +160,7 @@ int rk_wasm_piel_color(int i, int rareza, int campo)
     case 1:  return (int)pl->ojos;
     case 2:  return (int)pl->piel;
     case 3:  return (int)pl->rubor;
+    case 4:  return (int)pl->acento;
     default: return (int)pl->fondo;
     }
 }

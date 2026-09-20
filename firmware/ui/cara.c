@@ -6,7 +6,7 @@
 /* Grises tibios sobre un fondo oscuro: ninguna piel de la tabla se parece.
  * Es lo que se ve entre el vínculo y el cofre. */
 const rk_piel_t rk_piel_dormida = {
-    "Dormida", RK_HEX(0x2B2F36), RK_HEX(0x9CA3AE), RK_HEX(0x5D636C), RK_HEX(0x4A4F57), 0u
+    "Dormida", RK_HEX(0x2B2F36), RK_HEX(0x9CA3AE), RK_HEX(0x5D636C), RK_HEX(0x4A4F57), RK_HEX(0x6E747D), 0u
 };
 
 rk_mood_t rk_cara_animo_de(const rk_node_t *n)

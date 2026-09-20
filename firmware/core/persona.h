@@ -14,18 +14,28 @@
  * manda al aparato en el sync ("rareza": "epico"); la pantalla de la maceta
  * se pinta con esos colores desde ese momento.
  *
- * ESTILO: OOBLETS + POKÉMON CAFÉ REMIX
+ * ESTILO: JUGUETES DE VINILO BRILLANTES (la escuela de Ooblets)
  *
- * Ojos grandes y oscuros con brillos blancos, una media luna más clara abajo
- * que les da profundidad, mejillas sonrosadas, bocas chicas y dulces. Sin
- * contorno negro: formas planas y redondas con el borde suavizado. Fondos
- * pastel claros, que es donde un ojo oscuro con brillo se lee mejor.
+ * Cuerpos de formas simples y gorditas, de colores vivos y claros, con UN
+ * rasgo que manda arriba (hojas, sombrero, flor, brote, esporas). Ojos
+ * grandes y oscuros con brillos blancos y una media luna más clara abajo,
+ * mejillas sonrosadas, bocas chicas y dulces. Sin contorno negro.
  *
- * LA PANTALLA PONE LA CARA; LA APP DIBUJA EL CUERPO
+ * LA CARA VA PINTADA SOBRE EL CUERPO
+ *
+ * El fondo de la pantalla ES el color del cuerpo (`fondo` == `piel`): la
+ * cara no se ve como una pantallita pegada sino como ojos pintados sobre el
+ * personaje, igual que en el 3D de la app, donde esta misma cara se proyecta
+ * sobre la superficie del cuerpo. Por eso los cuerpos son claros aunque
+ * sean vivos: sobre ellos tiene que leerse un ojo oscuro a un metro
+ * (test/test_persona.c lo mide).
+ *
+ * LA PANTALLA PONE LA CARA; LA APP DIBUJA EL CUERPO EN 3D
  *
  * El aparato sólo dibuja la cara (art/face.c). El cuerpo entero —hojas,
  * patitas, sombrero— lo pone la figura impresa en la mesa y, en el teléfono,
- * root-lab/public/lib/cuerpo.mjs, con los mismos colores de esta tabla.
+ * el modelo 3D de root-lab/public/lib/rooti3d/, con los colores de esta
+ * tabla: `piel` es el cuerpo y `acento` lo de arriba.
  *
  * ARTE COMO DATOS
  *
@@ -102,13 +112,14 @@ typedef enum {
 #define RK_ADORNO_CORONA    0x04u   /* corona dorada arriba de los ojos    */
 #define RK_ADORNO_LUCES     0x08u   /* luces que suben: bioluminiscencia   */
 
-/* Una piel: los cuatro colores de la paleta y lo que trae de regalo. */
+/* Una piel: los cinco colores de la paleta y lo que trae de regalo. */
 typedef struct {
-    const char *nombre;        /* "Flor de Cerezo Dorada"                 */
-    rk_color_t  fondo;         /* toda la pantalla                        */
+    const char *nombre;        /* "Sol Dorado"                            */
+    rk_color_t  fondo;         /* toda la pantalla: el color del cuerpo   */
     rk_color_t  ojos;          /* ojos, boca y cejas                      */
-    rk_color_t  piel;          /* el cuerpo (o la flor, o el sombrero)    */
+    rk_color_t  piel;          /* el cuerpo (en el 3D de la app)          */
     rk_color_t  rubor;         /* las mejillas                            */
+    rk_color_t  acento;        /* lo de arriba: hojas, sombrero, flor     */
     uint8_t     adornos;       /* RK_ADORNO_*                             */
 } rk_piel_t;
 

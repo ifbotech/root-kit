@@ -19,6 +19,7 @@ respetar; el resto del volumen es libre.
 | Pantalla TFT 1,44" | módulo **28 × 37 mm**, PCB ~1,6 mm | Área activa **25,9 × 25,9 mm** |
 | ESP32-C3 SuperMini | **22,5 × 18 × 4 mm** | La antena cerámica va en un borde |
 | Portapilas 18650 | **75 × 21 × 19 mm** | Es la pieza que manda el tamaño |
+| *(envolvente que usa el modelo)* | celda **23 × 76 × 21**, módulo **30 × 39 × 6** | las medidas de arriba más la holgura de montaje, con 1,6 mm de pared alrededor |
 | Sensor capacitivo | **98 × 23 × 1,5 mm** | Sale por abajo, clavado en la tierra |
 
 La celda es lo más grande de todo. Cualquier carcasa que quiera ser chica
@@ -70,41 +71,74 @@ estanco, pero sí:
 - **La junta del sensor va abajo y con el cable haciendo panza**, para que el
   agua que corra por el cable gotee antes de llegar a la placa.
 
+## Las carcasas se generan, no se dibujan
+
+**El modelo de la app ES la carcasa.** Los cinco Rooties están descritos como
+tablas de números en `root-lab/public/lib/rooti3d/formas.mjs` —un perfil que
+gira y una lista de piezas encima, todo en milímetros— y de ahí salen dos
+cosas: el personaje 3D que gira en el teléfono y los STL de
+[`carcasas/`](../carcasas/), que se regeneran con `npm run carcasas` desde
+root-lab.
+
+No hay una versión "bonita" y otra "para imprimir". Eso importa porque todas
+las reglas de acá abajo se comprueban **en cada commit**, sobre los triángulos
+de verdad (`root-lab/test/rooti3d.test.mjs`), y si el modelo que se imprimiera
+fuera otro, esa prueba no diría nada del objeto que el usuario tiene en la
+mano.
+
+Lo que todavía se modela a mano en el CAD, sobre esos STL: la tapa de abajo
+con sus tornillos, el hueco del USB-C, los pilares del PCB, los agarres del
+portapilas, el pasaje de la sonda y los agujeros de los sensores.
+
 ## Imprimir sin soportes: las reglas
 
-Valen para las cinco carcasas y para las siluetas de los Rooties en la app,
-que son las mismas (`root-lab/public/lib/cuerpo.mjs`).
+Valen para las cinco carcasas y para el 3D de la app, que son lo mismo.
 
 | Regla | Valor | Por qué |
 |---|---|---|
 | **Voladizo máximo** | **45°** respecto de la vertical | lo que FDM imprime sin soporte con boquilla de 0,4 mm; un ala de sombrero plana (90°) no sale |
-| **Base** | plana, al menos 30 % del ancho | apoya en la cama y la maceta no se vuelca |
+| **Base** | plana, al menos 45 % del ancho | apoya en la cama y la maceta no se vuelca |
 | **Centro de gravedad** | en la mitad de abajo, sobre la base | la 18650 va parada, abajo, haciendo de pie |
 | **Qué es la carcasa** | el cuerpo o la cabeza del Rooti | la pantalla no es un marco pegado: es una ventana del personaje |
 | **Ventana del TFT** | el panel entra **desde atrás** y apoya en un marco; la abertura va **biselada a 45°** hacia afuera | el bisel no es voladizo (mira hacia arriba y hacia afuera) y no tapa pixeles en diagonal; el área activa es de 25,9 × 25,9 mm en el panel de 1,44" |
 
-**Cómo se verifica.** Las siluetas se describen como puntos y se suavizan con
-Catmull-Rom; `test/cuerpo.test.mjs` en root-lab muestrea la curva que se
-dibuja (no los puntos) y mide el tramo que más mira hacia abajo: tiene que
-dar 45° o menos. También verifica la base plana, que el centroide quede abajo
-y sobre la base, y que la ventana con su bisel entre entera en la silueta.
-Donde una curva suave se pasa (el ala del Champi), se usa una **esquina**: el
-ala termina en un canto a 42,5° en vez de un redondeo a 56°.
+**Cómo se verifica.** `root-lab/test/rooti3d.test.mjs` recorre los triángulos
+de cada figura y mide la inclinación de cada uno; los que están escondidos
+adentro de otra pieza no cuentan, porque no se imprimen. Además comprueba que
+ninguna pieza empiece en el aire, que todas las mallas estén del derecho
+(volumen con signo positivo), que la base sea plana y ancha, que el centro de
+masa caiga abajo, que la celda y el módulo entren **punto por punto** contra
+la geometría, y que la zona de la cara sea lo bastante plana para el vidrio.
+
+Tres cosas que salieron de ahí y que conviene saber si se toca una figura:
+
+* **Un bulto redondo no se imprime**, así que los bultos son `gota`: media
+  esfera arriba y un cono de 45° abajo.
+* **El canto de una hoja que se abre de golpe es una pared que mira al piso.**
+  Por eso las hojas son lanceoladas: abren a una pendiente elegida y después
+  cierran hacia la punta (un canto que cierra mira hacia arriba y es gratis).
+* **Las costillas del cactus se apagan cerca del frente.** Una costilla en el
+  medio de la cara obliga a tallar un hueco el doble de profundo para que el
+  TFT, que es una plaquita rígida, apoye derecho.
 
 ## Los cinco Rooties
 
 Los parámetros de cada cara están en `firmware/core/persona.c`, una fila por
-Rooti con sus tres pieles, y se pueden ajustar sin tocar una línea de lógica.
-Las siluetas, en `root-lab/public/lib/cuerpo.mjs`. Lo que sigue es la
-intención; los números concretos viven ahí.
+Rooti con sus tres pieles. Las figuras, en
+`root-lab/public/lib/rooti3d/formas.mjs`. Las dos son tablas de números: se
+pueden ajustar sin tocar una línea de lógica.
 
-| Rooti | Silueta | Relieves | La cara que le hace juego | Voladizo |
-|---|---|---|---|---:|
-| **Brote** | semilla redonda con dos hojitas en V arriba | nervaduras en las hojas, hojitas-brazo a los costados, raíces-pie | ojos redondos enormes con brillos de cachorro, sin cejas | 37,7° |
-| **Musgo** | domo bajo y ancho, el más estable | matas de musgo, manitos sobre la panza, un botón de flor arriba | ojos en medialuna "u u", boca de gato; calma | 35,6° |
-| **Pinchito** | cactus columnar con un brazo en alto (saluda) y un bracito del otro lado | costillas verticales, espinas, flor arriba | ojos en arco "^ ^" que guiñan, sonrisa con dientecito | 38,6° |
-| **Bulbo** | gota de cebolla con la punta arriba | espiral en la punta, collar de pétalos, gajos | ojos grandes con doble brillo, cejas flotantes, rubor suave | 31,4° |
-| **Champi** | sombrero de hongo sobre un tallo | manchas del sombrero, laminillas debajo del ala | cejas finas, boca ":D" con lengua, pecas | 42,5° |
+| Rooti | Figura | Rasgo que manda | Tamaño (mm) | Base | Centro de masa |
+|---|---|---|---|---:|---:|
+| **Brote** | semilla germinando, cuerpo lleno | dos cotiledones en V sobre un tallo corto | 90,7 × 152,1 × 76 | 56 % | 34 % |
+| **Musgo** | almohadón bajo y ancho, con tres capas de flecos | dos esporofitos con su cápsula | 86,4 × 145,5 × 82,1 | 67 % | 36 % |
+| **Pinchito** | cactus barril con costillas verticales | flor de cinco pétalos y el brazo que saluda | 92,8 × 132,3 × 72,3 | 48 % | 42 % |
+| **Bulbo** | bulbo de cebolla con gajos y raicitas por patas | un brote con su hoja saliendo de la punta | 89,7 × 146,6 × 79 | 54 % | 35 % |
+| **Champi** | tallo macizo con anillo | el sombrero de campana que le hace de visera | 80 × 132 × 76 | 69 % | 28 % |
+
+Ninguna tiene un solo voladizo por encima de 45° ni una pieza que empiece en
+el aire. El centro de masa es el de la carcasa vacía: con la celda puesta baja
+todavía más.
 
 **Las pieles no cambian la carcasa.** La rareza es de color y de adornos en
 la pantalla y en la app; el cuerpo impreso es el mismo. Una edición especial

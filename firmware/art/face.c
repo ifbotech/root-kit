@@ -53,6 +53,9 @@ typedef struct {
     bool gota;
     bool zzz;
     bool burbujas;
+    bool nieve;       /* copos que caen: frio                              */
+    bool vaho;        /* vapor que sube: calor                             */
+    bool polvillo;    /* motas que flotan: aire seco                       */
 } expr_t;
 
 /* ---------------------------------------------------------- geometría --- */
@@ -179,18 +182,24 @@ static expr_t expresion(const rk_persona_t *p, rk_mood_t mood,
     case RK_MOOD_THIRSTY:
         e.gota = true; e.g.mira_y = 45; e.g.ceja_ang = 10; break;
     case RK_MOOD_HOT:
-        e.gota = true; e.g.ceja_ang = 8;                break;
+        e.gota = true; e.vaho = true; e.g.ceja_ang = 8; break;
     case RK_MOOD_COLD:
+        e.nieve = true;
         e.g.ceja_ang = 12; e.g.ceja_dy = 3; e.g.tapa_inf = 22; break;
     case RK_MOOD_DROWNING:
         e.burbujas = true; e.g.ceja_dy = 5; e.g.ceja_ang = 10; break;
     case RK_MOOD_DARK:
-        e.g.ceja_dy = 4; e.g.ceja_ang = 8; e.g.mira_x = 55;  break;
+        /* En penumbra no mira fijo: barre despacio de un lado al otro,
+           buscando de donde puede venir la luz. */
+        e.g.ceja_dy = 4; e.g.ceja_ang = 8;
+        e.g.mira_x = 55 * (int)rk_sin8((uint8_t)(t / 26u)) / 127;
+        break;
     case RK_MOOD_SLEEPING:
         e.zzz = true;                                  break;
     case RK_MOOD_UNKNOWN:
         e.g.mira_y = -60; e.g.mira_x = -30; e.g.ceja_dy = 4; break;
     case RK_MOOD_PARCHED_AIR:
+        e.polvillo = true;
         e.g.tapa_inf = 30; e.g.tapa_sup = 20;              break;
     case RK_MOOD_SCORCHED:
         e.g.ceja_ang = 12;                               break;
@@ -776,6 +785,50 @@ static void adornos(cara_t *c, const expr_t *e, uint8_t set, int32_t ex_izq,
             pintar(c, f, 1, c->trazo, alfa);
             f[0] = rk_capsula_q4(x - s, y + s, x + s, y + s, g);
             pintar(c, f, 1, c->trazo, alfa);
+        }
+    }
+    if (e->nieve) {
+        /* Copos que bajan despacio y se van de costado: el aparato tiene
+           frio, y se ve antes de leer la cara. */
+        for (i = 0; i < 5; i++) {
+            uint16_t h = rk_hash((uint16_t)(i * 1597 + 11));
+            int32_t baja = (int32_t)((c->t / 26u + (h >> 6)) % 256u);
+            int32_t x = (int32_t)(h % (uint16_t)c->fb->w) * 16
+                      + (int32_t)rk_sin8((uint8_t)(c->t / 18u + i * 51u)) * PX(c, 4) / 127;
+            int32_t y = baja * (int32_t)c->fb->h * 16 / 256;
+            int32_t r = PX(c, 2) + PX(c, i % 2);
+            int k;
+            for (k = 0; k < 3; k++) {
+                int32_t a = (int32_t)rk_sin8((uint8_t)(k * 85 + 64)) * r * 2 / 127;
+                int32_t b = (int32_t)rk_sin8((uint8_t)(k * 85)) * r * 2 / 127;
+                capsula(c, x - a, y - b, x + a, y + b, PX(c, 1), c->blanco);
+            }
+        }
+    }
+    if (e->vaho) {
+        /* Dos hilos de vapor que suben ondulando, arriba de la cabeza. */
+        for (i = 0; i < 2; i++) {
+            int32_t x0 = c->cx + (i ? PQ(c, 14) : -PQ(c, 14));
+            uint32_t ph = (c->t / 14u + (uint32_t)i * 128u) % 256u;
+            int k;
+            for (k = 0; k < 4; k++) {
+                int32_t y = c->oy - ry - PQ(c, 14) - (int32_t)k * PQ(c, 7)
+                          - (int32_t)ph * PQ(c, 7) / 256;
+                int32_t x = x0 + (int32_t)rk_sin8((uint8_t)(ph + (uint32_t)k * 40u)) * PX(c, 3) / 127;
+                uint8_t alfa = (uint8_t)(110u - (uint32_t)k * 22u);
+                circulo(c, x, y, PX(c, 2) + PX(c, k % 2), c->blanco, alfa);
+            }
+        }
+    }
+    if (e->polvillo) {
+        /* El aire seco: motas que flotan sin subir ni bajar del todo. */
+        for (i = 0; i < 4; i++) {
+            uint16_t h = rk_hash((uint16_t)(i * 911 + 23));
+            int32_t x = (int32_t)(h % (uint16_t)c->fb->w) * 16
+                      + (int32_t)rk_sin8((uint8_t)(c->t / 22u + i * 64u)) * PQ(c, 5) / 127;
+            int32_t y = (int32_t)((h >> 7) % (uint16_t)c->fb->h) * 16
+                      + (int32_t)rk_sin8((uint8_t)(c->t / 29u + i * 40u + 64u)) * PQ(c, 4) / 127;
+            circulo(c, x, y, PX(c, 1) + PX(c, i % 2), c->pecas, 150);
         }
     }
     if (e->burbujas) {
