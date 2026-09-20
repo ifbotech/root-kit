@@ -58,6 +58,8 @@ typedef struct {
     bool polvillo;    /* motas que flotan: aire seco                       */
     bool agua;        /* el visor inundado hasta la mitad: se ahoga        */
     bool grietas;     /* la cara cuarteada: sequía                         */
+    bool arrugas;     /* tensión bajo el párpado: el ojo apretado          */
+    bool frijol;      /* la pupila deja de ser un óvalo y se deforma       */
 } expr_t;
 
 /* ---------------------------------------------------------- geometría --- */
@@ -197,9 +199,19 @@ static expr_t expresion(const rk_persona_t *p, rk_mood_t mood,
     case RK_MOOD_DROWNING:
         /* No es sólo cara de susto: el visor se le llena de agua hasta la
            mitad, y eso se entiende de un vistazo desde el otro lado del
-           cuarto, que es para lo que existe la cara. */
-        e.burbujas = true; e.agua = true;
-        e.g.ceja_dy = 5; e.g.ceja_ang = 10; break;
+           cuarto, que es para lo que existe la cara.
+           El acting es de caricatura tradicional, no de emoji: las cejas se
+           levantan y se juntan en el medio de la frente, el párpado de abajo
+           sube apretando el ojo (con su arruga de tensión), y la pupila se
+           achica y mira ARRIBA, a la cámara de aire que queda en el techo
+           de la escafandra. */
+        e.burbujas = true; e.agua = true; e.arrugas = true; e.frijol = true;
+        /* Las cejas, cerca del ojo: altas quedan de sorpresa, no de angustia.
+           El párpado de abajo sube apenas —lo suficiente para apretar el ojo
+           sin cerrarlo— porque el ojo también tiene que asomar sobre el agua. */
+        e.g.ceja_dy = 3; e.g.ceja_ang = 30;
+        e.g.tapa_inf = 12; e.g.pupila = 46; e.g.mira_y = -78;
+        break;
     case RK_MOOD_DARK:
         /* En penumbra no mira fijo: barre despacio de un lado al otro,
            buscando de donde puede venir la luz. */
@@ -509,6 +521,16 @@ static void ojo(cara_t *c, const expr_t *e, int32_t ex, int32_t ey,
             py = ey + (iry - pry) * e->g.mira_y / 140;
             f[0] = rk_elipse_q4(px, py, prx, pry);
             pintar_en(c, f, 2, c->trazo, x0, y0, x1, y1);
+            if (e->frijol) {
+                /* Una segunda elipse corrida convierte el óvalo en un
+                   frijol: una pupila de compás no actúa, y acá el bicho
+                   tiene que verse desesperado. La cola del frijol apunta
+                   hacia donde mira. */
+                int32_t qx = px + prx * 46 / 100 * lado;
+                int32_t qy = py + pry * 30 / 100;
+                f[0] = rk_elipse_q4(qx, qy, prx * 62 / 100, pry * 72 / 100);
+                pintar_en(c, f, 2, c->trazo, x0, y0, x1, y1);
+            }
             f[0] = rk_circulo_q4(px - prx * 34 / 100, py - pry * 34 / 100,
                                  (prx < pry ? prx : pry) * 34 / 100);
             pintar_en(c, f, 2, c->blanco, x0, y0, x1, y1);
@@ -523,13 +545,27 @@ static void ojo(cara_t *c, const expr_t *e, int32_t ex, int32_t ey,
         brillos(c, ex, ey, rx, ryv, lado, x0, y0, x1, y1);
     }
 
+    /* --- la arruga de tensión -------------------------------------------- */
+    /* Dos rayitas cortas bajo la comisura de afuera. Es lo que separa un ojo
+       CERRADO de un ojo APRETADO, y en caricatura tradicional se dibuja
+       siempre: sin ellas, el párpado subido se lee como sueño. */
+    if (e->arrugas) {
+        int32_t ax = ex + rx * 88 / 100 * lado;
+        int32_t ay = ey + ryv * 26 / 100;
+        capsula(c, ax, ay, ax + rx * 34 / 100 * lado, ay + ryv * 6 / 100,
+                PX(c, 2), c->trazo);
+    }
+
     /* --- el corte de la familia ----------------------------------------- */
     /* Se talla DESPUÉS del ojo y con el color del fondo, que es el mismo
        truco de los párpados: así un ojo rasgado es el ojo de siempre con una
        esquina comida, y no hay una segunda geometría que mantener. */
     if (c->p->familia == RK_OJOS_RASGADOS) {
-        /* La punta de afuera sube: el corte entra desde arriba y adentro. */
-        f[0] = rk_semiplano_arriba_q4(ex, ey - ryv * 62 / 100, 26 * lado);
+        /* La punta de afuera sube: el corte entra desde arriba y adentro. Con
+           el ojo bien abierto (susto) se afloja, porque el mismo ángulo sobre
+           un ojo grande lo deja como una cuña. */
+        int corte = e->g.pupila < 100 ? 13 : 26;
+        f[0] = rk_semiplano_arriba_q4(ex, ey - ryv * 62 / 100, corte * lado);
         f[1] = rk_elipse_q4(ex, ey, rx + PX(c, 2), ryv + PX(c, 2));
         pintar_en(c, f, 2, c->bg, x0, y0, x1, y1);
     } else if (c->p->familia == RK_OJOS_ALMENDRA) {
@@ -631,6 +667,15 @@ static void cejas(cara_t *c, const expr_t *e, int32_t ex_izq, int32_t ex_der,
         int32_t k = (int32_t)((int64_t)hl * ang / 40);
         int32_t xin = ex - lado * hl, xout = ex + lado * hl;
         capsula(c, xin, by - k, xout, by + k, r, c->trazo);
+        if (gruesa) {
+            /* Una ceja de grosor parejo es una línea de programa. La de un
+               dibujo a mano tiene peso: es gorda del lado de adentro y afina
+               hacia la sien. Se consigue con una segunda pasada más gruesa
+               sobre la mitad interna, no con una forma nueva. */
+            int32_t mx = xin + (xout - xin) * 42 / 100;
+            int32_t my = (by - k) + ((by + k) - (by - k)) * 42 / 100;
+            capsula(c, xin, by - k, mx, my, r * 142 / 100, c->trazo);
+        }
     }
 }
 
@@ -674,6 +719,28 @@ static void boca(cara_t *c, const expr_t *e)
     int32_t y = c->by;
     int32_t gr = PX(c, 6);
     rk_forma_t f[2], d[3];
+
+    if (e->agua && (e->boca == RK_BOCA_OPEN || e->boca == RK_BOCA_PANT)) {
+        /* Bajo el agua la boca no es una "O" de compás: es un grito sordo,
+           torcido y sin lengua —la lengua abajo del agua no se lee—, con dos
+           burbujitas que se le escapan. */
+        /* Vista a través del agua: el trazo se destiñe hacia el celeste y
+           pierde filo. Es lo que hace que se lea COMO sumergida y no como una
+           boca dibujada encima del charco. */
+        rk_color_t hundido = rk_mix(c->trazo, COL_AGUA, 58);
+        int32_t bw = w * 84 / 100;
+        int32_t off = w * 18 / 100;
+        f[0] = rk_elipse_q4(c->cx - off, y, bw, bw * 86 / 100);
+        pintar(c, f, 1, hundido, 235);
+        f[0] = rk_elipse_q4(c->cx + off, y + bw * 16 / 100, bw * 52 / 100, bw * 62 / 100);
+        pintar(c, f, 1, hundido, 235);
+        /* Y las dos burbujitas que se le escapan, ya del lado del vidrio. */
+        circulo(c, c->cx + w, y - w * 80 / 100, PX(c, 5),
+                rk_mix(COL_BLANCO, COL_AGUA, 40), 235);
+        circulo(c, c->cx + w * 140 / 100, y - w * 150 / 100, PX(c, 3),
+                rk_mix(COL_BLANCO, COL_AGUA, 40), 215);
+        return;
+    }
 
     switch ((rk_boca_t)e->boca) {
     case RK_BOCA_OPEN:
@@ -777,20 +844,45 @@ static void boca(cara_t *c, const expr_t *e)
  * viendo abajo, asustados. */
 static void agua(cara_t *c)
 {
-    rk_color_t azul = rk_mix(COL_AGUA, c->bg, 40);
-    int32_t nivel = c->cy + PQ(c, 4)
+    /* El celeste va casi opaco. Un azul transparente sobre un cuerpo naranja
+       da verde oliva —son complementarios— y lo que tiene que leerse a un
+       metro es AGUA, no un filtro. Con 190 de alfa todavía se adivina la boca
+       abajo, que es justo lo que se quiere ver. */
+    rk_color_t azul = rk_mix(COL_AGUA, c->bg, 18);
+    rk_color_t claro = rk_mix(COL_BLANCO, azul, 70);
+    int32_t u = (int32_t)c->u * 8;
+    /* Un poco por debajo del medio: los ojos tienen que quedar afuera,
+       asomando, y la boca adentro. */
+    int32_t nivel = c->cy + u * 16 / 100
                   + (int32_t)rk_sin8((uint8_t)(c->t / 18u)) * PX(c, 3) / 127;
-    rk_forma_t f = rk_semiplano_abajo_q4(c->cx, nivel, 0);
+    rk_forma_t f[2];
     int i;
 
-    pintar(c, &f, 1, azul, 120);
-    /* La superficie: una línea clara que ondula. */
+    /* La pecera no es un rectángulo: se recorta contra una elipse grande, y
+       así en el cuerpo 3D el agua se ve como un charco dentro de la cara y no
+       como una calcomanía cuadrada pegada en la panza. */
+    f[0] = rk_semiplano_abajo_q4(c->cx, nivel, 0);
+    f[1] = rk_elipse_q4(c->cx, c->cy, u * 96 / 100, u * 96 / 100);
+    pintar(c, f, 2, azul, 232);
+
+    (void)claro;
+    (void)i;
+}
+
+/* La superficie del agua, aparte: va DESPUÉS de la boca, porque es lo que
+ * está más cerca del vidrio. */
+static void agua_superficie(cara_t *c)
+{
+    rk_color_t claro = rk_mix(COL_BLANCO, rk_mix(COL_AGUA, c->bg, 18), 70);
+    int32_t u = (int32_t)c->u * 8;
+    int32_t nivel = c->cy + u * 16 / 100
+                  + (int32_t)rk_sin8((uint8_t)(c->t / 18u)) * PX(c, 3) / 127;
+    int i;
     for (i = -3; i <= 3; i++) {
         int32_t x = c->cx + PQ(c, 12) * i;
         int32_t dy = (int32_t)rk_sin8((uint8_t)(c->t / 14u + (uint32_t)(i * 40)))
                    * PX(c, 2) / 127;
-        capsula(c, x, nivel + dy, x + PQ(c, 12), nivel - dy, PX(c, 2),
-                rk_mix(COL_BLANCO, azul, 90));
+        capsula(c, x, nivel + dy, x + PQ(c, 12), nivel - dy, PX(c, 3), claro);
     }
 }
 
@@ -1158,16 +1250,21 @@ static void dibujar(rk_fb_t *fb, const rk_persona_t *p, const rk_piel_t *piel,
         mejillas(&c, c.cx - dx, c.cx + dx, rx, ry);
     }
     cejas(&c, &e, c.cx - dx, c.cx + dx, ry);
+    /* El agua va DEBAJO de la boca: así el agua se ve limpia y la boca se ve
+       a través de ella, que es lo que pasa en una pecera. Pintándola encima,
+       el celeste se mezclaba con el naranja del cuerpo y daba verde. */
+    if (e.agua) {
+        agua(&c);
+    }
     boca(&c, &e);
+    if (e.agua) {
+        agua_superficie(&c);
+    }
     if (e.grietas) {
         grietas(&c);
     }
     adornos(&c, &e, (uint8_t)(set & (uint8_t)~RK_ADORNO_AURA), c.cx - dx, c.cx + dx, ry);
     acabados(&c, set);
-    /* El agua tapa todo lo demás: está delante de la cara. */
-    if (e.agua) {
-        agua(&c);
-    }
 }
 
 static const rk_piel_t *piel_de(const rk_persona_t *p, uint8_t rareza)
