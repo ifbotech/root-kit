@@ -27,6 +27,20 @@ jobs:
         # prueba rápida, pero nada llega a main con advertencias.
         run: make -C firmware CFLAGS="-std=c99 -Wall -Wextra -Wpedantic -Werror -O2" test
 
+      - name: El sustrato impreso está en regla y sus generados al día
+        # La geometría de la PCB de cinta de cobre (separaciones, anchos,
+        # conectividad, zona libre de la antena) se verifica sola, y los
+        # archivos que salen del dato tienen que estar commiteados: si no,
+        # la plantilla que se imprime y la netlist que mira `make test`
+        # dejan de describir la placa que se arma.
+        run: |
+          python3 tools/pcb.py --generar
+          if [ -n "$(git status --porcelain firmware/test/redes.h docs/conexiones.md hardware/pcb/generado)" ]; then
+            echo "Hay que correr 'make pcb' y commitear:"
+            git --no-pager diff --stat firmware/test/redes.h docs/conexiones.md hardware/pcb/generado
+            exit 1
+          fi
+
       - name: Las referencias visuales están al día
         run: |
           make -C firmware golden

@@ -114,7 +114,7 @@ segunda implementación que se pueda desincronizar.
 ```
 
 Todo lo que está debajo de la línea es C99 portable y se prueba en el
-escritorio: 2008 comprobaciones, incluida la regresión visual de las 165
+escritorio: 2225 comprobaciones, incluida la regresión visual de las 165
 caras.
 
 ## Decisiones que conviene no revisitar sin leer esto

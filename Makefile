@@ -10,6 +10,7 @@
 #   make pantallas  QR, dormida, despertar y cara
 #   make capturas   regenera las imagenes de tools/preview
 #   make wasm       el renderer compilado para la app (root-lab)
+#   make pcb        verifica el sustrato y regenera plantilla, netlist y STL
 #   make placa      compila el producto (c3-144) y el banco (devkit-144)
 #   make bench      costo de renderizar una cara
 #   make golden     regenera las referencias visuales
@@ -18,7 +19,7 @@
 #
 # La app, la nube y el emulador viven en github.com/ifbotech/root-lab.
 
-.PHONY: all test sim sheet pieles etapas despertar pantallas capturas wasm placa bench golden verify clean
+.PHONY: all test sim sheet pieles etapas despertar pantallas capturas wasm placa pcb bench golden verify clean
 
 all: test
 
@@ -40,11 +41,26 @@ capturas:
 placa:
 	@cd firmware && python3 -m platformio run -e c3-144 -e devkit-144
 
+# El sustrato impreso: verifica separaciones, anchos, conectividad y la zona
+# libre de la antena, y reescribe lo que se genera del dato (la plantilla de
+# la cinta, el diagrama de conexiones y la netlist que mira `make test`).
+# El STL necesita OpenSCAD; sin el, el resto se genera igual.
+pcb:
+	@python3 tools/pcb.py --generar
+	@if command -v openscad > /dev/null 2>&1; then \
+	    python3 tools/pcb.py --stl; \
+	 else \
+	    echo "  (sin OpenSCAD: el STL queda como estaba)"; \
+	 fi
+
 # Lo mismo que corre CI. Además de las pruebas verifica que los hashes de
 # regresión visual estén commiteados al día: si alguien toca el rig de caras
 # y se olvida de regenerarlos, acá salta en vez de descubrirse semanas
 # después con una captura vieja.
 verify: test
+	@echo
+	@echo "  verificando el sustrato impreso"
+	@python3 tools/pcb.py --verificar
 	@echo
 	@echo "  verificando que las referencias visuales esten al dia"
 	@$(MAKE) -C firmware --no-print-directory golden > /dev/null
@@ -63,6 +79,14 @@ verify: test
 	    exit 1; \
 	 else \
 	    echo "  referencias al dia"; \
+	 fi
+	@python3 tools/pcb.py --generar > /dev/null
+	@if [ -n "$$(git status --porcelain firmware/test/redes.h docs/conexiones.md hardware/pcb/generado)" ]; then \
+	    echo "  FALLA: el sustrato cambio y falta correr 'make pcb' y commitear:"; \
+	    git status --porcelain firmware/test/redes.h docs/conexiones.md hardware/pcb/generado; \
+	    exit 1; \
+	 else \
+	    echo "  el sustrato y sus generados estan al dia"; \
 	 fi
 
 clean:

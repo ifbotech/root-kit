@@ -97,7 +97,7 @@ la pantalla (sólo el QR y los ojos):
 - [x] **Protocolo de fábrica** por el puerto serie y `tools/fabrica.py`
       ([fabrica.md](fabrica.md))
 - [x] **Modo calibración**: con la app calibrando, mide y cuenta cada 5 s
-- [x] 2008 comprobaciones en el escritorio, regresión visual de las 165 caras
+- [x] 2225 comprobaciones en el escritorio, regresión visual de las 165 caras
 - [x] El renderer compilado a WebAssembly para la app y el emulador
 
 ### ROOTLAB: app y nube (`root-lab`)
@@ -177,6 +177,12 @@ la pantalla (sólo el QR y los ojos):
 
 ## Ahora mismo
 
+- [ ] **Tres decisiones de producto que el hardware dejó planteadas**
+      ([pcb.md](pcb.md), "Preguntas abiertas"): ¿un USB o dos?, ¿celda
+      reemplazable por el usuario o de servicio?, ¿el Musgo con 18650 o con
+      LiPo plana? Las tres están diseñadas en una dirección y siguen
+      adelante con ella
+
 - [ ] **Clave de Anthropic nueva**: la del servidor está revocada (401).
       Mientras tanto ROOTLAB funciona con la IA simulada. Cargarla en
       `/etc/root-lab.env` y en el `.env` del sitio principal, y poner un
@@ -195,8 +201,22 @@ la pantalla (sólo el QR y los ojos):
 
 Objetivo: el flujo completo con placa real, enchufada a USB.
 
+- [x] **La PCB impresa**: sustrato de PETG con canaletas y cinta de cobre,
+      paramétrico y verificado ([pcb.md](pcb.md)), con el diagrama de
+      conexiones generado ([conexiones.md](conexiones.md)) y la guía de
+      armado ([armado.md](armado.md)). Falta imprimirla y armar una
 - [ ] Comprar lo de la [lista de compras](hardware.md#lista-de-compras-del-prototipo)
-- [ ] Armar en protoboard siguiendo [las conexiones](hardware.md#conexiones)
+- [ ] **Cupón de canaletas**: 40 × 40 mm con canaletas de 1,2 / 1,4 / 2,4 /
+      3,0 mm, para confirmar que la cinta entra y se corta contra la pared
+      antes de imprimir el sustrato entero
+- [ ] **Una unión soldada de prueba** con Sn42Bi58 sobre cinta pegada en
+      PETG, y tirar: si el PETG se marca, bajar la punta o pasar a remaches
+- [ ] **Medir los cuatro números que el diseño no pudo medir**
+      ([armado.md](armado.md), paso 1): la huella de la SuperMini, si su pin
+      5V está unido al VBUS, qué es el pin BL de la pantalla y dónde cae el
+      área activa del panel
+- [ ] Armar en protoboard siguiendo [las conexiones](conexiones.md), o
+      directo sobre el sustrato impreso siguiendo [armado.md](armado.md)
 - [ ] Pasar la placa por `tools/fabrica.py` (la nube de producción ya no
       acepta placas sin registrar) y flashear `c3-144`
 - [ ] **Una actualización por aire de punta a punta**: publicar en beta, ver
@@ -212,7 +232,9 @@ Objetivo: el flujo completo con placa real, enchufada a USB.
 - [ ] **Portal cautivo** en iPhone y Android: que la página abra sola y que
       el Rooti se conecte con la clave
 - [ ] Vínculo, cofre y despertar con ROOTLAB en el teléfono, contra el VPS
-- [ ] **Calibrar el capacitivo**: seco, regado y sumergido, tres unidades
+- [ ] **Calibrar el capacitivo**: seco, regado y sumergido, tres unidades.
+      Y medir que el seco no pase de **2,5 V**: arriba de eso satura el ADC
+      del C3 a 11 dB y hay que poner el divisor de `J_SUELO`
 - [ ] Comparar AHT20 y BH1750 contra un termohigrómetro y un luxómetro
 - [ ] Sellar el borde del capacitivo y dejarlo una semana en tierra
 - [ ] Una semana en una planta real, enchufado: que no se cuelgue, que no
@@ -221,7 +243,8 @@ Objetivo: el flujo completo con placa real, enchufada a USB.
 
 ## Fase 2 — A batería y dentro de la carcasa
 
-- [ ] Circuito de carga: TP4056 + carga compartida + divisor
+- [ ] Circuito de carga: TP4056 + carga compartida + divisor, con el control
+      del paso 6 de [armado.md](armado.md) (fuente de laboratorio, sin celda)
 - [ ] **Medir el consumo real** (medidor USB o PPK2) en deep sleep, midiendo,
       transmitiendo y con pantalla, y actualizar `nodo/power.c` con los
       números medidos
@@ -231,7 +254,15 @@ Objetivo: el flujo completo con placa real, enchufada a USB.
 - [ ] Carcasa cruda para verificar encastres ([carcasas.md](carcasas.md))
 - [ ] Ventana de la pantalla contra el módulo real
 - [ ] Antena del C3 fuera del plástico grueso y lejos de la tierra húmeda:
-      medir RSSI dentro de la carcasa
+      medir RSSI dentro de la carcasa. **Criterio**: si cae más de 6 dB
+      respecto del módulo al aire, se mueve la electrónica ([pcb.md](pcb.md),
+      "La antena")
+- [ ] **Medir el reposo contra el presupuesto**: el sustrato promete ~68 µA
+      sumando hojas de datos ([pcb.md](pcb.md)); el número medido es el que
+      va a `nodo/power.c`
+- [ ] **Ver si la luz de fondo pestañea al arrancar** (GPIO21 es el TX del
+      UART0). Si molesta de noche, decidir entre el eFuse `UART_PRINT_CONTROL`
+      en la estación de fábrica o mover la luz a GPIO20
 - [ ] Corrimientos del panel de 1,44" (`RK_TFT_OFS_X/Y`) contra el módulo real
 - [ ] Dos semanas a batería: comparar la autonomía con la estimación
 
@@ -310,7 +341,12 @@ Opciones de hardware y pines en [hardware.md](hardware.md#sonido).
 - [ ] 20 unidades con carcasas de los cinco Rooties
 - [ ] **Modelar las cinco carcasas** a partir de las siluetas de
       `root-lab/public/lib/cuerpo.mjs`, con la ventana biselada y la 18650
-      parada; imprimir una de cada una sin soportes
+      parada; imprimir una de cada una sin soportes. El núcleo pide un
+      volumen de **78 × 116 × 45 mm** ([pcb.md](pcb.md), "Lo que el sustrato
+      le pide a la carcasa")
+- [ ] **Decidir qué hace el Musgo**: el domo bajo y ancho no llega a 116 mm.
+      O se acuesta la celda, o lleva la LiPo plana 103450 y baja de seis
+      meses de autonomía a dos y medio
 - [ ] Estación de fábrica: grabar secreto y Rooti en NVS, imprimir la
       etiqueta con el código de respaldo
 - [ ] **Iterar el arte con Rocío**: ajustar caras y pieles
@@ -337,7 +373,9 @@ Opciones de hardware y pines en [hardware.md](hardware.md#sonido).
 ## Fase 5 — Producción
 
 - [ ] PCB propia: C3 en módulo, cargador (TP4056 o BQ24074), buck-boost
-      TPS63802, amplificador y parlante, conectores para sensores y pantalla
+      TPS63802, amplificador y parlante, conectores para sensores y pantalla.
+      Ahí sí entran **un solo USB-C** con multiplexor de alimentación, el
+      despeje completo de antena y la resistencia que identifica la carcasa
 - [ ] Antena y pruebas de emisiones
 - [ ] **Homologación ENACOM** (equipo con radio vendido en Argentina)
 - [ ] **Flash encryption (release) y secure boot v2** en la estación de

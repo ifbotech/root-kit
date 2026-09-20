@@ -23,6 +23,7 @@ int main(void)
     suite_enlace();
     suite_red();
     suite_ota();
+    suite_placa();
 
     return rk_t_report();
 }

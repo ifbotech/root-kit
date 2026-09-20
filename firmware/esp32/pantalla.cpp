@@ -16,7 +16,7 @@ public:
             auto cfg = _bus.config();
             cfg.spi_host = RK_SPI_HOST;
             cfg.spi_mode = 0;
-            cfg.freq_write = 40000000;
+            cfg.freq_write = RK_TFT_SPI_HZ;
             cfg.freq_read = 16000000;
             cfg.spi_3wire = true;
             cfg.use_lock = true;
@@ -51,7 +51,7 @@ public:
         {
             auto cfg = _luz.config();
             cfg.pin_bl = RK_PIN_TFT_BL;
-            cfg.invert = false;
+            cfg.invert = RK_TFT_BL_INVERTIDO != 0;
             cfg.freq = 22000;
             cfg.pwm_channel = 7;
             _luz.config(cfg);

@@ -1,0 +1,2658 @@
+{
+ "version": "v1.0",
+ "que_es": "El nucleo comun de ROOTKIT: el sustrato impreso en PETG con canaletas, la cinta de cobre que va en ellas, y donde se monta cada modulo. Uno solo para los cinco Rooties. Coordenadas en milimetros, mirando la CARA DE LAS CANALETAS (la de atras del producto): de frente al ROOTKIT, la X crece hacia la izquierda.",
+ "sustrato": {
+  "ancho": 72.0,
+  "alto": 104.0,
+  "espesor": 3.0,
+  "radio_borde": 2.0,
+  "ventana": {
+   "x": 36.0,
+   "y": 35.0,
+   "ancho": 28.6,
+   "alto": 37.6,
+   "repisa": 0.9,
+   "prof": 1.4,
+   "nota": "La pantalla entra desde el frente y apoya en la repisa; la carcasa la aprieta contra el marco de su ventana. El area activa NO esta centrada en el modulo: queda a 14 mm del borde opuesto al conector (MEDIR con el modulo en la mano)."
+  },
+  "activa": {
+   "x": 36.0,
+   "y": 30.2,
+   "lado": 25.9,
+   "nota": "Donde cae el cuadrado que se ve. La ventana de la carcasa se centra ACA, no en el modulo."
+  },
+  "recortes": [
+   {
+    "id": "antena",
+    "x": 36.0,
+    "y": 98.5,
+    "ancho": 9.0,
+    "alto": 5.0
+   }
+  ],
+  "antena": {
+   "modulo": "U1",
+   "x": 36.0,
+   "y": 98.25,
+   "ancho": 8.0,
+   "alto": 4.0,
+   "libre": 5.0
+  },
+  "tornillos": [
+   {
+    "x": 3.0,
+    "y": 3.0,
+    "d": 2.4
+   },
+   {
+    "x": 66.0,
+    "y": 3.0,
+    "d": 2.4
+   },
+   {
+    "x": 3.0,
+    "y": 101.0,
+    "d": 2.4
+   },
+   {
+    "x": 66.0,
+    "y": 101.0,
+    "d": 2.4
+   }
+  ],
+  "bolsillos": [
+   {
+    "id": "tp4056",
+    "x": 25.0,
+    "y": 7.0,
+    "ancho": 27.0,
+    "alto": 14.0,
+    "prof": 0.8
+   }
+  ],
+  "rotulos": [
+   {
+    "x": 59.0,
+    "y": 30.0,
+    "tam": 3.0,
+    "texto": "ROOTKIT"
+   },
+   {
+    "x": 59.0,
+    "y": 25.5,
+    "tam": 2.2,
+    "texto": "v1.0"
+   },
+   {
+    "x": 36.0,
+    "y": 57.2,
+    "tam": 1.8,
+    "texto": "APAGAR ANTES DE FLASHEAR"
+   },
+   {
+    "x": 59.0,
+    "y": 20.5,
+    "tam": 1.6,
+    "texto": "ifbotech"
+   }
+  ]
+ },
+ "reglas": {
+  "separacion_min": 0.8,
+  "holgura_canaleta": 0.3,
+  "prof_canaleta": 0.4,
+  "margen_borde": 0.6,
+  "ancho": {
+   "potencia": 4.0,
+   "senal": 2.0,
+   "sin_conexion": 2.0
+  },
+  "ancho_minimo": {
+   "potencia": 2.4,
+   "senal": 1.2
+  },
+  "porque": "0,8 mm de pared son dos extrusiones de 0,4: menos que eso no se imprime. 0,3 mm de holgura hacen que la cinta entre en la canaleta sin arrugarse. 0,4 mm de profundidad alcanzan para guiar la cinta y para que la pared sirva de guia del bisturi al recortarla."
+ },
+ "rieles": [
+  {
+   "id": "VBAT",
+   "tension": "2,4 – 4,2 V",
+   "vive": "siempre",
+   "cuelga": "el + de la celda y el B+ del TP4056; nada mas"
+  },
+  {
+   "id": "BMIN",
+   "tension": "0 V (protegido)",
+   "vive": "siempre",
+   "cuelga": "el − de la celda y el B− del TP4056. **No es masa**: la proteccion DW01A corta por ahi"
+  },
+  {
+   "id": "V5",
+   "tension": "5 V del USB",
+   "vive": "enchufado",
+   "cuelga": "IN+ del TP4056, el anodo del SS34 y la compuerta del AO3401 de carga compartida"
+  },
+  {
+   "id": "VBATP",
+   "tension": "2,4 – 4,2 V",
+   "vive": "siempre",
+   "cuelga": "OUT+ del TP4056 (la celda ya protegida) y el drenador del AO3401"
+  },
+  {
+   "id": "VSYS",
+   "tension": "3,0 – 4,65 V",
+   "vive": "siempre",
+   "cuelga": "el nodo de carga compartida: SS34, AO3401 y el interruptor"
+  },
+  {
+   "id": "VINT",
+   "tension": "3,0 – 4,65 V",
+   "vive": "con el interruptor prendido",
+   "cuelga": "el pin 5V de la SuperMini y el divisor del riel"
+  },
+  {
+   "id": "3V3",
+   "tension": "3,3 V",
+   "vive": "con la placa prendida",
+   "cuelga": "AHT20, BH1750, DS18B20, TTP223, la pantalla y las resistencias de arranque"
+  },
+  {
+   "id": "3V3S",
+   "tension": "3,3 V",
+   "vive": "400 ms por medicion",
+   "cuelga": "el capacitivo de suelo, y el SD del amplificador el dia que haya sonido"
+  }
+ ],
+ "huellas": {
+  "esp32c3": {
+   "contorno": [
+    18.0,
+    22.5
+   ],
+   "pad": [
+    2.2,
+    1.4
+   ],
+   "agujero": 1.0,
+   "nota": "ESP32-C3 SuperMini, 22,5 x 18 mm, antena ceramica arriba, USB-C abajo. Dos filas de 8 pines a 2,54 mm, separadas 15,24 mm. VERIFICAR con la placa en la mano y, si no coincide, corregir aca y regenerar: es el unico componente con huella al milimetro.",
+   "pines": [
+    "IO5",
+    "IO6",
+    "IO7",
+    "IO8",
+    "IO9",
+    "IO10",
+    "IO20",
+    "IO21",
+    "5V",
+    "GND",
+    "3V3",
+    "IO4",
+    "IO3",
+    "IO2",
+    "IO1",
+    "IO0"
+   ],
+   "pads": [
+    [
+     -7.62,
+     8.13
+    ],
+    [
+     -7.62,
+     5.59
+    ],
+    [
+     -7.62,
+     3.05
+    ],
+    [
+     -7.62,
+     0.51
+    ],
+    [
+     -7.62,
+     -2.03
+    ],
+    [
+     -7.62,
+     -4.57
+    ],
+    [
+     -7.62,
+     -7.11
+    ],
+    [
+     -7.62,
+     -9.65
+    ],
+    [
+     7.62,
+     8.13
+    ],
+    [
+     7.62,
+     5.59
+    ],
+    [
+     7.62,
+     3.05
+    ],
+    [
+     7.62,
+     0.51
+    ],
+    [
+     7.62,
+     -2.03
+    ],
+    [
+     7.62,
+     -4.57
+    ],
+    [
+     7.62,
+     -7.11
+    ],
+    [
+     7.62,
+     -9.65
+    ]
+   ]
+  },
+  "borne1": {
+   "pad": [
+    2.8,
+    2.8
+   ],
+   "agujero": 1.3,
+   "pines": [
+    "1"
+   ],
+   "pads": [
+    [
+     0,
+     0
+    ]
+   ]
+  },
+  "borne2h": {
+   "pad": [
+    2.8,
+    2.8
+   ],
+   "agujero": 1.3,
+   "pines": [
+    "1",
+    "2"
+   ],
+   "pads": [
+    [
+     -2.2,
+     0
+    ],
+    [
+     2.2,
+     0
+    ]
+   ]
+  },
+  "borne6h": {
+   "pad": [
+    2.8,
+    2.8
+   ],
+   "agujero": 1.3,
+   "pines": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6"
+   ],
+   "pads": [
+    [
+     -11,
+     0
+    ],
+    [
+     -6.6,
+     0
+    ],
+    [
+     -2.2,
+     0
+    ],
+    [
+     2.2,
+     0
+    ],
+    [
+     6.6,
+     0
+    ],
+    [
+     11,
+     0
+    ]
+   ]
+  },
+  "borne8h": {
+   "pad": [
+    2.8,
+    2.8
+   ],
+   "agujero": 1.3,
+   "pines": [
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8"
+   ],
+   "pads": [
+    [
+     -15.4,
+     0
+    ],
+    [
+     -11,
+     0
+    ],
+    [
+     -6.6,
+     0
+    ],
+    [
+     -2.2,
+     0
+    ],
+    [
+     2.2,
+     0
+    ],
+    [
+     6.6,
+     0
+    ],
+    [
+     11,
+     0
+    ],
+    [
+     15.4,
+     0
+    ]
+   ]
+  },
+  "r1206": {
+   "pad": [
+    1.9,
+    2.0
+   ],
+   "agujero": 0.0,
+   "pines": [
+    "1",
+    "2"
+   ],
+   "pads": [
+    [
+     -1.7,
+     0
+    ],
+    [
+     1.7,
+     0
+    ]
+   ]
+  },
+  "r1206v": {
+   "pad": [
+    2.0,
+    1.9
+   ],
+   "agujero": 0.0,
+   "pines": [
+    "1",
+    "2"
+   ],
+   "pads": [
+    [
+     0,
+     -1.7
+    ],
+    [
+     0,
+     1.7
+    ]
+   ]
+  },
+  "sot23": {
+   "pad": [
+    1.2,
+    1.4
+   ],
+   "agujero": 0.0,
+   "pines": [
+    "1",
+    "2",
+    "3"
+   ],
+   "pads": [
+    [
+     -1.15,
+     1.4
+    ],
+    [
+     1.15,
+     1.4
+    ],
+    [
+     0,
+     -1.4
+    ]
+   ],
+   "nota": "Pads de 1,2 mm a 2,3 mm de centro: las patas del SOT-23 vienen a 1,9 mm y se abren 0,2 mm con una pinza. La del medio va sola del otro lado."
+  },
+  "sma": {
+   "pad": [
+    2.2,
+    1.8
+   ],
+   "agujero": 0.0,
+   "pines": [
+    "A",
+    "K"
+   ],
+   "pads": [
+    [
+     -2.3,
+     0
+    ],
+    [
+     2.3,
+     0
+    ]
+   ]
+  },
+  "punto_prueba": {
+   "pad": [
+    3.0,
+    3.0
+   ],
+   "agujero": 0.0,
+   "pines": [
+    "1"
+   ],
+   "pads": [
+    [
+     0,
+     0
+    ]
+   ]
+  },
+  "borne2v": {
+   "pad": [
+    2.8,
+    2.8
+   ],
+   "agujero": 1.3,
+   "pines": [
+    "1",
+    "2"
+   ],
+   "pads": [
+    [
+     0,
+     2.2
+    ],
+    [
+     0,
+     -2.2
+    ]
+   ]
+  },
+  "col4": {
+   "pad": [
+    2.8,
+    2.8
+   ],
+   "agujero": 1.3,
+   "pines": [
+    "VCC",
+    "GND",
+    "S1",
+    "S2"
+   ],
+   "pads": [
+    [
+     0,
+     7.0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     -5.0
+    ],
+    [
+     0,
+     -10.0
+    ]
+   ]
+  },
+  "col3": {
+   "pad": [
+    2.8,
+    2.8
+   ],
+   "agujero": 1.3,
+   "pines": [
+    "VCC",
+    "GND",
+    "S1"
+   ],
+   "pads": [
+    [
+     0,
+     7.0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     -5.0
+    ]
+   ]
+  },
+  "col3s": {
+   "pad": [
+    2.8,
+    2.8
+   ],
+   "agujero": 1.3,
+   "pines": [
+    "GND",
+    "AOUT",
+    "VCC"
+   ],
+   "pads": [
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     -5.0
+    ],
+    [
+     0,
+     -10.0
+    ]
+   ]
+  },
+  "selector3v": {
+   "pad": [
+    2.4,
+    2.0
+   ],
+   "agujero": 0.0,
+   "pines": [
+    "A",
+    "C",
+    "B"
+   ],
+   "pads": [
+    [
+     0,
+     3.0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     0,
+     -3.0
+    ]
+   ]
+  },
+  "radial5": {
+   "pad": [
+    3.4,
+    3.4
+   ],
+   "agujero": 1.2,
+   "pines": [
+    "1",
+    "2"
+   ],
+   "pads": [
+    [
+     -3.0,
+     0
+    ],
+    [
+     3.0,
+     0
+    ]
+   ]
+  },
+  "selector3": {
+   "pad": [
+    2.2,
+    2.0
+   ],
+   "agujero": 0.0,
+   "pines": [
+    "A",
+    "C",
+    "B"
+   ],
+   "pads": [
+    [
+     -3.6,
+     0
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     3.6,
+     0
+    ]
+   ]
+  }
+ },
+ "componentes": [
+  {
+   "ref": "U1",
+   "huella": "esp32c3",
+   "pos": [
+    36.0,
+    89.0
+   ],
+   "rotular_pines": true,
+   "desc": "ESP32-C3 SuperMini",
+   "donde": "arriba de todo, con la antena mirando al cielo y fuera del plastico",
+   "como": "tira de pines macho soldada al modulo; los pines pasan por los agujeros y se sueldan a la cinta del otro lado"
+  },
+  {
+   "ref": "J_TFT",
+   "huella": "borne8h",
+   "pos": [
+    36.0,
+    73.5
+   ],
+   "rotular_pines": true,
+   "desc": "bornes de la pantalla TFT 1,44\"",
+   "donde": "la pantalla va en la ventana, apretada contra el marco de la carcasa",
+   "como": "8 cables finos soldados a los pads del modulo, en el mismo orden del conector",
+   "pines": [
+    "SCL",
+    "SDA",
+    "CS",
+    "DC",
+    "BL",
+    "RES",
+    "VCC",
+    "GND"
+   ]
+  },
+  {
+   "ref": "J_AHT",
+   "huella": "col4",
+   "pos": [
+    9.0,
+    61.0
+   ],
+   "rotular_pines": true,
+   "desc": "bornes del AHT20 (aire)",
+   "donde": "lejos del ESP32 y del TP4056, con ventilacion que no mire hacia arriba",
+   "como": "4 cables: VCC, GND, SCL, SDA",
+   "pines": [
+    "VCC",
+    "GND",
+    "SCL",
+    "SDA"
+   ]
+  },
+  {
+   "ref": "J_BH",
+   "huella": "col4",
+   "pos": [
+    14.0,
+    61.0
+   ],
+   "rotular_pines": true,
+   "desc": "bornes del BH1750 (luz)",
+   "donde": "mirando una ventana translucida al frente o a un costado",
+   "como": "4 cables; ADDR se deja al aire (direccion 0x23)",
+   "pines": [
+    "VCC",
+    "GND",
+    "SCL",
+    "SDA"
+   ]
+  },
+  {
+   "ref": "J_TTP",
+   "huella": "col3",
+   "pos": [
+    53.0,
+    61.0
+   ],
+   "rotular_pines": true,
+   "desc": "bornes del TTP223 (toque)",
+   "donde": "pegado a la cara interna de la carcasa donde se acaricia",
+   "como": "3 cables: VCC, GND, I/O",
+   "pines": [
+    "VCC",
+    "GND",
+    "IO"
+   ]
+  },
+  {
+   "ref": "J_DS",
+   "huella": "col3",
+   "pos": [
+    58.0,
+    61.0
+   ],
+   "rotular_pines": true,
+   "desc": "bornes del DS18B20 (tierra)",
+   "donde": "la sonda va clavada en la tierra, al lado del capacitivo",
+   "como": "3 cables: VDD, GND, DQ. No se usa en modo parasito",
+   "pines": [
+    "VCC",
+    "GND",
+    "DQ"
+   ]
+  },
+  {
+   "ref": "J_SUELO",
+   "huella": "col3s",
+   "pos": [
+    19.0,
+    61.0
+   ],
+   "rotular_pines": true,
+   "desc": "bornes del capacitivo de suelo",
+   "donde": "sale por abajo; la junta abajo y el cable haciendo panza",
+   "como": "3 cables: VCC (riel conmutado), GND, AOUT",
+   "pines": [
+    "GND",
+    "AOUT",
+    "VCC"
+   ]
+  },
+  {
+   "ref": "J_TP",
+   "huella": "borne6h",
+   "pos": [
+    25.0,
+    8.0
+   ],
+   "rotular_pines": true,
+   "desc": "bornes del modulo TP4056 + DW01A",
+   "donde": "acostado en el bolsillo de la cara de adelante, con el USB-C mirando hacia abajo",
+   "como": "6 cables cortos: IN+, IN-, B+, B-, OUT+, OUT-",
+   "pines": [
+    "IN-",
+    "OUT-",
+    "B+",
+    "B-",
+    "OUT+",
+    "IN+"
+   ]
+  },
+  {
+   "ref": "J_CELDA",
+   "huella": "borne2h",
+   "pos": [
+    25.0,
+    2.5
+   ],
+   "rotular_pines": true,
+   "desc": "bornes del portapilas 18650",
+   "donde": "abajo, parada, en su propio compartimento",
+   "como": "2 cables gruesos al portapilas. El − va al B− del TP4056, NO a masa",
+   "pines": [
+    "+",
+    "-"
+   ]
+  },
+  {
+   "ref": "J_SW",
+   "huella": "borne2v",
+   "pos": [
+    65.5,
+    12.0
+   ],
+   "rotular_pines": true,
+   "desc": "bornes del interruptor deslizante",
+   "donde": "en la pared de la carcasa, al lado de la tapa de servicio",
+   "como": "2 cables. Corta todo el aparato; el TP4056 sigue cargando con el aparato apagado",
+   "pines": [
+    "1",
+    "2"
+   ]
+  },
+  {
+   "ref": "D1",
+   "huella": "sma",
+   "pos": [
+    41.0,
+    6.5
+   ],
+   "desc": "SS34 (Schottky 3 A, SMA)",
+   "donde": "en el sustrato",
+   "como": "anodo al 5 V del USB, catodo al nodo de sistema",
+   "pines": [
+    "A",
+    "K"
+   ]
+  },
+  {
+   "ref": "Q1",
+   "huella": "sot23",
+   "pos": [
+    54.0,
+    8.0
+   ],
+   "desc": "AO3401 (P, SOT-23) — carga compartida",
+   "donde": "en el sustrato",
+   "como": "1=compuerta, 2=fuente (sistema), 3=drenador (celda protegida)",
+   "rot": 180,
+   "pines": [
+    "G",
+    "S",
+    "D"
+   ]
+  },
+  {
+   "ref": "R3",
+   "huella": "r1206",
+   "pos": [
+    47.0,
+    10.5
+   ],
+   "desc": "100 k — compuerta de Q1 a masa",
+   "donde": "en el sustrato",
+   "como": "sin USB deja conducir al MOSFET; con USB gasta 50 uA, y esta enchufado",
+   "pines": [
+    "1",
+    "2"
+   ]
+  },
+  {
+   "ref": "Q2",
+   "huella": "sot23",
+   "pos": [
+    10.0,
+    44.0
+   ],
+   "desc": "AO3401 (P) — riel conmutado de sensores",
+   "donde": "en el sustrato",
+   "como": "compuerta a GPIO2: bajo enciende",
+   "pines": [
+    "G",
+    "S",
+    "D"
+   ],
+   "rot": 90
+  },
+  {
+   "ref": "R4",
+   "huella": "r1206v",
+   "pos": [
+    5.5,
+    44.0
+   ],
+   "desc": "100 k — compuerta a fuente de Q2",
+   "donde": "en el sustrato",
+   "como": "lo deja apagado mientras el chip duerme o arranca, y sostiene GPIO2 en alto (es pin de arranque)",
+   "pines": [
+    "1",
+    "2"
+   ]
+  },
+  {
+   "ref": "R5",
+   "huella": "r1206v",
+   "pos": [
+    11.3,
+    38.0
+   ],
+   "desc": "100 k — purga del riel conmutado",
+   "donde": "en el sustrato",
+   "como": "descarga el riel al apagarlo; solo gasta mientras el riel esta prendido",
+   "pines": [
+    "1",
+    "2"
+   ]
+  },
+  {
+   "ref": "C4",
+   "huella": "r1206v",
+   "pos": [
+    16.0,
+    38.0
+   ],
+   "desc": "100 nF — desacople del riel conmutado",
+   "donde": "en el sustrato",
+   "como": "al lado del borne del capacitivo",
+   "pines": [
+    "1",
+    "2"
+   ]
+  },
+  {
+   "ref": "Q3",
+   "huella": "sot23",
+   "pos": [
+    8.0,
+    84.0
+   ],
+   "desc": "AO3400 (N) — etapa de la luz de fondo",
+   "donde": "en el sustrato",
+   "como": "GPIO21 a la compuerta; su drenador tira de la compuerta del P",
+   "pines": [
+    "G",
+    "S",
+    "D"
+   ],
+   "rot": 180
+  },
+  {
+   "ref": "Q4",
+   "huella": "sot23",
+   "pos": [
+    8.0,
+    94.0
+   ],
+   "desc": "AO3401 (P) — llave del lado alto de la luz de fondo",
+   "donde": "en el sustrato",
+   "como": "de 3V3 al pin BL de la pantalla",
+   "pines": [
+    "G",
+    "S",
+    "D"
+   ],
+   "rot": 180
+  },
+  {
+   "ref": "R8",
+   "huella": "r1206",
+   "pos": [
+    13.5,
+    82.7
+   ],
+   "desc": "100 k — compuerta de Q3 a masa",
+   "donde": "en el sustrato",
+   "como": "que no prenda sola en el sueño profundo",
+   "pines": [
+    "1",
+    "2"
+   ]
+  },
+  {
+   "ref": "R9",
+   "huella": "r1206",
+   "pos": [
+    13.5,
+    92.7
+   ],
+   "desc": "10 k — compuerta de Q4 a 3V3",
+   "donde": "en el sustrato",
+   "como": "10 k y no 100 k: con 100 k el PWM de 22 kHz se emborrona (tau de 70 us contra 45 us de periodo)",
+   "pines": [
+    "1",
+    "2"
+   ]
+  },
+  {
+   "ref": "R10",
+   "huella": "r1206",
+   "pos": [
+    10.0,
+    72.0
+   ],
+   "desc": "100 k — el nodo BL a masa",
+   "donde": "en el sustrato",
+   "como": "deja el BL definido en bajo con la etapa apagada",
+   "pines": [
+    "1",
+    "2"
+   ]
+  },
+  {
+   "ref": "JP_BL",
+   "huella": "selector3",
+   "pos": [
+    14.0,
+    79.0
+   ],
+   "rotular_pines": true,
+   "desc": "selector del lado de conmutacion de la luz de fondo",
+   "donde": "en el sustrato",
+   "como": "gota de estaño entre C y A (lado alto, por defecto) o entre C y B (lado bajo)",
+   "pines": [
+    "A",
+    "C",
+    "B"
+   ]
+  },
+  {
+   "ref": "R6",
+   "huella": "r1206v",
+   "pos": [
+    62.0,
+    50.0
+   ],
+   "desc": "4,7 k — pull-up del 1-Wire a 3V3 fijo",
+   "donde": "en el sustrato",
+   "como": "al riel FIJO, no al conmutado: ver docs/pcb.md",
+   "pines": [
+    "1",
+    "2"
+   ]
+  },
+  {
+   "ref": "R7",
+   "huella": "r1206v",
+   "pos": [
+    44.0,
+    66.0
+   ],
+   "desc": "10 k — RES de la pantalla a 3V3",
+   "donde": "en el sustrato",
+   "como": "el firmware reinicia el panel por software",
+   "pines": [
+    "1",
+    "2"
+   ]
+  },
+  {
+   "ref": "R1",
+   "huella": "r1206v",
+   "pos": [
+    48.0,
+    86.0
+   ],
+   "desc": "470 k — rama de arriba del divisor",
+   "donde": "en el sustrato",
+   "como": "del riel conmutado por el interruptor, no del nodo de sistema: asi no gasta nada en la caja",
+   "pines": [
+    "1",
+    "2"
+   ]
+  },
+  {
+   "ref": "R2",
+   "huella": "r1206v",
+   "pos": [
+    48.0,
+    80.5
+   ],
+   "desc": "470 k — rama de abajo del divisor",
+   "donde": "en el sustrato",
+   "como": "470 k + 470 k gastan 4 uA",
+   "pines": [
+    "1",
+    "2"
+   ]
+  },
+  {
+   "ref": "C1",
+   "huella": "r1206v",
+   "pos": [
+    54.0,
+    80.5
+   ],
+   "desc": "100 nF — filtro del divisor",
+   "donde": "en el sustrato",
+   "como": "con 100 nF el ADC lee estable",
+   "pines": [
+    "1",
+    "2"
+   ]
+  },
+  {
+   "ref": "C2",
+   "huella": "radial5",
+   "pos": [
+    58.0,
+    88.0
+   ],
+   "desc": "220–470 uF 6,3 V bajo ESR — 3V3",
+   "donde": "en el sustrato",
+   "como": "los picos de transmision del wifi; acostado, con las patas dobladas sobre los pads",
+   "pines": [
+    "1",
+    "2"
+   ]
+  },
+  {
+   "ref": "C3",
+   "huella": "r1206v",
+   "pos": [
+    51.2,
+    88.6
+   ],
+   "desc": "100 nF — desacople de 3V3",
+   "donde": "en el sustrato",
+   "como": "cerca del pin 3V3 de la SuperMini",
+   "pines": [
+    "1",
+    "2"
+   ]
+  },
+  {
+   "ref": "TP1",
+   "huella": "punto_prueba",
+   "pos": [
+    7.0,
+    20.0
+   ],
+   "desc": "masa (la punta negra del tester vive aca)",
+   "pines": [
+    "1"
+   ]
+  },
+  {
+   "ref": "TP2",
+   "huella": "punto_prueba",
+   "pos": [
+    33.0,
+    3.0
+   ],
+   "desc": "celda protegida (OUT+ del TP4056)",
+   "pines": [
+    "1"
+   ]
+  },
+  {
+   "ref": "TP3",
+   "huella": "punto_prueba",
+   "pos": [
+    52.0,
+    3.0
+   ],
+   "desc": "nodo de sistema (VSYS)",
+   "pines": [
+    "1"
+   ]
+  },
+  {
+   "ref": "TP4",
+   "huella": "punto_prueba",
+   "pos": [
+    69.5,
+    20.0
+   ],
+   "desc": "riel del interruptor (VINT); tambien la toma de VIN del amplificador, el dia del sonido",
+   "pines": [
+    "1"
+   ]
+  },
+  {
+   "ref": "TP5",
+   "huella": "punto_prueba",
+   "pos": [
+    40.0,
+    68.0
+   ],
+   "desc": "3V3 fijo",
+   "pines": [
+    "1"
+   ]
+  }
+ ],
+ "orden_redes": [
+  "GND",
+  "BMIN",
+  "VBAT",
+  "V5",
+  "VBATP",
+  "VSYS",
+  "VINT",
+  "3V3",
+  "3V3S",
+  "RIEL",
+  "SENS_EN",
+  "SUELO",
+  "TOQUE",
+  "SDA",
+  "SCL",
+  "SCK",
+  "MOSI",
+  "OW",
+  "TFT_DC",
+  "TFT_CS",
+  "TFT_RST",
+  "BL_G",
+  "BL_M",
+  "BL_A",
+  "BL",
+  "NC_BOOT"
+ ],
+ "redes": {
+  "GND": {
+   "clase": "potencia",
+   "riel": "GND",
+   "porque": "la masa del sistema; sale del OUT−/IN− del TP4056, nunca del B− de la celda",
+   "nodos": [
+    "U1.GND",
+    "J_TFT.GND",
+    "J_AHT.GND",
+    "J_BH.GND",
+    "J_TTP.GND",
+    "J_DS.GND",
+    "J_SUELO.GND",
+    "J_TP.IN-",
+    "J_TP.OUT-",
+    "R2.1",
+    "C1.1",
+    "C2.1",
+    "C3.1",
+    "R3.2",
+    "R5.1",
+    "C4.1",
+    "R8.2",
+    "R10.1",
+    "Q3.S",
+    "TP1.1"
+   ]
+  },
+  "BMIN": {
+   "clase": "potencia",
+   "riel": "BMIN",
+   "porque": "el − de la celda va SOLO al B− del modulo: ahi estan los MOSFET de la proteccion. Unirlo a masa deja la celda sin proteccion",
+   "nodos": [
+    "J_CELDA.-",
+    "J_TP.B-"
+   ],
+   "ancho_minimo": 2.4
+  },
+  "VBAT": {
+   "clase": "potencia",
+   "riel": "VBAT",
+   "porque": "el + de la celda al B+ del modulo",
+   "nodos": [
+    "J_CELDA.+",
+    "J_TP.B+"
+   ]
+  },
+  "V5": {
+   "clase": "potencia",
+   "riel": "V5",
+   "porque": "los 5 V del USB de carga: alimentan el sistema por el Schottky y apagan el MOSFET de carga compartida",
+   "nodos": [
+    "J_TP.IN+",
+    "D1.A",
+    "Q1.G",
+    "R3.1"
+   ]
+  },
+  "VBATP": {
+   "clase": "potencia",
+   "riel": "VBATP",
+   "porque": "la celda ya protegida por el DW01A",
+   "nodos": [
+    "J_TP.OUT+",
+    "Q1.D",
+    "TP2.1"
+   ]
+  },
+  "VSYS": {
+   "clase": "potencia",
+   "riel": "VSYS",
+   "porque": "el nodo de carga compartida: enchufado come del USB, a bateria come de la celda. El grueso de su corriente va por cable (AWG24), no por cinta",
+   "nodos": [
+    "D1.K",
+    "Q1.S",
+    "J_SW.1",
+    "TP3.1"
+   ],
+   "ancho_minimo": 1.2
+  },
+  "VINT": {
+   "clase": "potencia",
+   "riel": "VINT",
+   "porque": "lo que el interruptor deja pasar al pin 5V de la SuperMini. El divisor cuelga de aca y no de VSYS: apagado no gasta ni un microamperio",
+   "nodos": [
+    "J_SW.2",
+    "U1.5V",
+    "R1.2",
+    "TP4.1"
+   ]
+  },
+  "3V3": {
+   "clase": "potencia",
+   "riel": "3V3",
+   "porque": "el ME6211 de la SuperMini. Fijo: el AHT20, el BH1750, el DS18B20 y el TTP223 juntos suman menos de 5 uA durmiendo",
+   "nodos": [
+    "U1.3V3",
+    "C2.2",
+    "C3.2",
+    "R4.2",
+    "Q2.S",
+    "R6.2",
+    "R7.2",
+    "R9.2",
+    "Q4.S",
+    "J_TFT.VCC",
+    "J_AHT.VCC",
+    "J_BH.VCC",
+    "J_TTP.VCC",
+    "J_DS.VCC",
+    "TP5.1"
+   ]
+  },
+  "3V3S": {
+   "clase": "potencia",
+   "riel": "3V3S",
+   "porque": "el riel que se prende 400 ms por medicion; lo unico que cuelga es el capacitivo, que come 5 mA. Son 5 mA: 1,4 mm de cinta sobran",
+   "nodos": [
+    "Q2.D",
+    "R5.2",
+    "C4.2",
+    "J_SUELO.VCC"
+   ],
+   "ancho_minimo": 1.2
+  },
+  "RIEL": {
+   "clase": "senal",
+   "riel": "—",
+   "porque": "divisor 470k/470k con 100 nF: bateria y deteccion de USB con un solo pin (ADC1)",
+   "nodos": [
+    "U1.IO1",
+    "R1.1",
+    "R2.2",
+    "C1.2"
+   ]
+  },
+  "SENS_EN": {
+   "clase": "senal",
+   "riel": "—",
+   "porque": "GPIO2 a la compuerta del P-MOSFET: bajo enciende. Es pin de arranque, por eso la de 100 k lo deja en alto",
+   "nodos": [
+    "U1.IO2",
+    "Q2.G",
+    "R4.1"
+   ]
+  },
+  "SUELO": {
+   "clase": "senal",
+   "riel": "—",
+   "porque": "al ADC1 por GPIO0, directo desde el borne. Si el capacitivo seco se pasa de 2,5 V hay lugar al lado del borne para un divisor 100 k / 220 k (ver docs/pcb.md)",
+   "nodos": [
+    "U1.IO0",
+    "J_SUELO.AOUT"
+   ]
+  },
+  "TOQUE": {
+   "clase": "senal",
+   "riel": "—",
+   "porque": "GPIO3, que es de los que despiertan del sueño profundo (solo GPIO0–5)",
+   "nodos": [
+    "U1.IO3",
+    "J_TTP.IO"
+   ]
+  },
+  "SDA": {
+   "clase": "senal",
+   "riel": "—",
+   "porque": "I2C a 100 kHz: AHT20 (0x38) y BH1750 (0x23)",
+   "nodos": [
+    "U1.IO4",
+    "J_AHT.SDA",
+    "J_BH.SDA"
+   ]
+  },
+  "SCL": {
+   "clase": "senal",
+   "riel": "—",
+   "porque": "idem SDA",
+   "nodos": [
+    "U1.IO5",
+    "J_AHT.SCL",
+    "J_BH.SCL"
+   ]
+  },
+  "SCK": {
+   "clase": "senal",
+   "riel": "—",
+   "porque": "SPI a 40 MHz: corta y con la masa al lado",
+   "nodos": [
+    "U1.IO6",
+    "J_TFT.SCL"
+   ]
+  },
+  "MOSI": {
+   "clase": "senal",
+   "riel": "—",
+   "porque": "idem SCK",
+   "nodos": [
+    "U1.IO7",
+    "J_TFT.SDA"
+   ]
+  },
+  "OW": {
+   "clase": "senal",
+   "riel": "—",
+   "porque": "1-Wire con pull-up de 4,7 k al riel FIJO: asi la linea sostiene GPIO8 en alto al arrancar (es pin de arranque) y no alimenta la sonda por la pata de datos",
+   "nodos": [
+    "U1.IO8",
+    "R6.1",
+    "J_DS.DQ"
+   ]
+  },
+  "TFT_DC": {
+   "clase": "senal",
+   "riel": "—",
+   "porque": "dato/comando de la pantalla",
+   "nodos": [
+    "U1.IO10",
+    "J_TFT.DC"
+   ]
+  },
+  "TFT_CS": {
+   "clase": "senal",
+   "riel": "—",
+   "porque": "seleccion de la pantalla. El dia del sonido se ata a masa y GPIO20 queda libre",
+   "nodos": [
+    "U1.IO20",
+    "J_TFT.CS"
+   ]
+  },
+  "TFT_RST": {
+   "clase": "senal",
+   "riel": "—",
+   "porque": "RES a 3V3 con 10 k; el firmware reinicia el panel por software",
+   "nodos": [
+    "R7.1",
+    "J_TFT.RES"
+   ]
+  },
+  "BL_G": {
+   "clase": "senal",
+   "riel": "—",
+   "porque": "GPIO21 a la compuerta del N. Es el TX del UART0: la ROM escribe ahi al arrancar y la luz pestañea ~50 ms (ver docs/pcb.md)",
+   "nodos": [
+    "U1.IO21",
+    "Q3.G",
+    "R8.1"
+   ]
+  },
+  "BL_M": {
+   "clase": "senal",
+   "riel": "—",
+   "porque": "el drenador del N tira de la compuerta del P",
+   "nodos": [
+    "Q3.D",
+    "R9.1",
+    "Q4.G",
+    "JP_BL.B"
+   ]
+  },
+  "BL_A": {
+   "clase": "senal",
+   "riel": "—",
+   "porque": "la salida del lado alto, antes del selector",
+   "nodos": [
+    "Q4.D",
+    "JP_BL.A"
+   ]
+  },
+  "BL": {
+   "clase": "potencia",
+   "riel": "3V3",
+   "porque": "hasta 30 mA a 22 kHz. Con R10 el nodo queda definido en bajo cuando la etapa esta apagada. Son 30 mA: 1,2 mm de cinta sobran",
+   "nodos": [
+    "JP_BL.C",
+    "J_TFT.BL",
+    "R10.2"
+   ],
+   "ancho_minimo": 1.2
+  },
+  "NC_BOOT": {
+   "clase": "sin_conexion",
+   "riel": "—",
+   "porque": "GPIO9 es el boton BOOT de la propia SuperMini: no se cablea. El borron de 10 s tambien sale por el toque (main.cpp)",
+   "nodos": [
+    "U1.IO9"
+   ]
+  }
+ },
+ "selectores": [
+  {
+   "ref": "JP_BL",
+   "que": "de que lado se conmuta la luz de fondo, segun como sea el pin BL del modulo que llegue",
+   "opciones": [
+    {
+     "nombre": "C–A, lado alto",
+     "defecto": true,
+     "que": "Q4 (P) lleva 3V3 al pin BL. Sirve si BL es el anodo del LED con su resistencia, y tambien si BL es la entrada de control de un transistor del modulo"
+    },
+    {
+     "nombre": "C–B, lado bajo",
+     "que": "Q3 (N) tira el pin BL a masa. Solo si BL resulta ser el catodo del LED. En ese caso NO se pueblan Q4, R9 ni R10"
+    }
+   ]
+  }
+ ],
+ "esp32": {
+  "pines": [
+   {
+    "gpio": 0,
+    "red": "SUELO",
+    "riel": "3V3S",
+    "arranque": "libre",
+    "adc1": true,
+    "despierta": false
+   },
+   {
+    "gpio": 1,
+    "red": "RIEL",
+    "riel": "VINT",
+    "arranque": "libre",
+    "adc1": true,
+    "despierta": false
+   },
+   {
+    "gpio": 2,
+    "red": "SENS_EN",
+    "riel": "3V3",
+    "arranque": "alto",
+    "adc1": false,
+    "despierta": false
+   },
+   {
+    "gpio": 3,
+    "red": "TOQUE",
+    "riel": "3V3",
+    "arranque": "libre",
+    "adc1": false,
+    "despierta": true
+   },
+   {
+    "gpio": 4,
+    "red": "SDA",
+    "riel": "3V3",
+    "arranque": "libre",
+    "adc1": false,
+    "despierta": false
+   },
+   {
+    "gpio": 5,
+    "red": "SCL",
+    "riel": "3V3",
+    "arranque": "libre",
+    "adc1": false,
+    "despierta": false
+   },
+   {
+    "gpio": 6,
+    "red": "SCK",
+    "riel": "3V3",
+    "arranque": "libre",
+    "adc1": false,
+    "despierta": false
+   },
+   {
+    "gpio": 7,
+    "red": "MOSI",
+    "riel": "3V3",
+    "arranque": "libre",
+    "adc1": false,
+    "despierta": false
+   },
+   {
+    "gpio": 8,
+    "red": "OW",
+    "riel": "3V3",
+    "arranque": "alto",
+    "adc1": false,
+    "despierta": false
+   },
+   {
+    "gpio": 9,
+    "red": "NC_BOOT",
+    "riel": "—",
+    "arranque": "alto",
+    "adc1": false,
+    "despierta": false
+   },
+   {
+    "gpio": 10,
+    "red": "TFT_DC",
+    "riel": "3V3",
+    "arranque": "libre",
+    "adc1": false,
+    "despierta": false
+   },
+   {
+    "gpio": 20,
+    "red": "TFT_CS",
+    "riel": "3V3",
+    "arranque": "libre",
+    "adc1": false,
+    "despierta": false
+   },
+   {
+    "gpio": 21,
+    "red": "BL_G",
+    "riel": "3V3",
+    "arranque": "bajo",
+    "adc1": false,
+    "despierta": false
+   }
+  ],
+  "promesas": {
+   "RK_SUSTRATO_VERSION": "\"v1.0\"",
+   "RK_SUELO_DIVISOR_NUM": "1",
+   "RK_SUELO_DIVISOR_DEN": "1",
+   "RK_RIEL_R_ARRIBA_OHM": "470000u",
+   "RK_RIEL_R_ABAJO_OHM": "470000u",
+   "RK_TFT_BL_ALTO_ENCIENDE": "1",
+   "RK_REPOSO_OBJETIVO_UA": "80"
+  }
+ },
+ "pistas": [
+  {
+   "red": "3V3",
+   "ancho": 1.4,
+   "puntos": [
+    [
+     43.62,
+     92.05
+    ],
+    [
+     45.0,
+     92.05
+    ]
+   ]
+  },
+  {
+   "red": "3V3",
+   "ancho": 1.4,
+   "puntos": [
+    [
+     45.0,
+     92.05
+    ],
+    [
+     60.5,
+     92.05
+    ],
+    [
+     60.5,
+     90.0
+    ]
+   ]
+  },
+  {
+   "red": "3V3",
+   "ancho": 2.4,
+   "puntos": [
+    [
+     60.5,
+     90.0
+    ],
+    [
+     60.5,
+     68.0
+    ]
+   ]
+  },
+  {
+   "red": "3V3",
+   "ancho": 2.4,
+   "puntos": [
+    [
+     2.5,
+     68.0
+    ],
+    [
+     60.5,
+     68.0
+    ]
+   ]
+  },
+  {
+   "red": "GND",
+   "ancho": 1.4,
+   "puntos": [
+    [
+     43.62,
+     94.59
+    ],
+    [
+     45.0,
+     94.59
+    ]
+   ]
+  },
+  {
+   "red": "GND",
+   "ancho": 1.4,
+   "puntos": [
+    [
+     45.0,
+     94.59
+    ],
+    [
+     65.5,
+     94.59
+    ],
+    [
+     65.5,
+     92.0
+    ]
+   ]
+  },
+  {
+   "red": "GND",
+   "ancho": 2.4,
+   "puntos": [
+    [
+     65.5,
+     92.0
+    ],
+    [
+     65.5,
+     61.0
+    ]
+   ]
+  },
+  {
+   "red": "GND",
+   "ancho": 2.4,
+   "puntos": [
+    [
+     2.2,
+     61.0
+    ],
+    [
+     65.5,
+     61.0
+    ]
+   ]
+  },
+  {
+   "red": "GND",
+   "ancho": 2.4,
+   "puntos": [
+    [
+     2.2,
+     61.0
+    ],
+    [
+     2.2,
+     13.8
+    ]
+   ]
+  },
+  {
+   "red": "GND",
+   "ancho": 2.4,
+   "puntos": [
+    [
+     2.2,
+     13.8
+    ],
+    [
+     48.7,
+     13.8
+    ]
+   ]
+  },
+  {
+   "red": "GND",
+   "ancho": 1.4,
+   "puntos": [
+    [
+     2.2,
+     20.0
+    ],
+    [
+     7.0,
+     20.0
+    ]
+   ]
+  },
+  {
+   "red": "GND",
+   "ancho": 1.4,
+   "puntos": [
+    [
+     14.0,
+     13.8
+    ],
+    [
+     14.0,
+     9.0
+    ]
+   ]
+  },
+  {
+   "red": "GND",
+   "ancho": 1.4,
+   "puntos": [
+    [
+     18.4,
+     13.8
+    ],
+    [
+     18.4,
+     9.0
+    ]
+   ]
+  },
+  {
+   "red": "GND",
+   "ancho": 1.4,
+   "puntos": [
+    [
+     48.7,
+     13.8
+    ],
+    [
+     48.7,
+     11.5
+    ]
+   ]
+  },
+  {
+   "red": "GND",
+   "ancho": 1.4,
+   "puntos": [
+    [
+     2.2,
+     36.3
+    ],
+    [
+     16.0,
+     36.3
+    ]
+   ]
+  },
+  {
+   "red": "GND",
+   "ancho": 1.4,
+   "puntos": [
+    [
+     48.0,
+     78.8
+    ],
+    [
+     54.0,
+     78.8
+    ]
+   ]
+  },
+  {
+   "red": "GND",
+   "ancho": 1.2,
+   "puntos": [
+    [
+     54.0,
+     78.8
+    ],
+    [
+     56.8,
+     78.8
+    ],
+    [
+     56.8,
+     88.0
+    ],
+    [
+     56.0,
+     88.0
+    ]
+   ]
+  },
+  {
+   "red": "VINT",
+   "ancho": 1.4,
+   "puntos": [
+    [
+     43.62,
+     97.13
+    ],
+    [
+     45.0,
+     97.13
+    ]
+   ]
+  },
+  {
+   "red": "VINT",
+   "ancho": 1.4,
+   "puntos": [
+    [
+     45.0,
+     97.13
+    ],
+    [
+     69.8,
+     97.13
+    ],
+    [
+     69.8,
+     94.0
+    ]
+   ]
+  },
+  {
+   "red": "VINT",
+   "ancho": 2.4,
+   "puntos": [
+    [
+     69.8,
+     94.0
+    ],
+    [
+     69.8,
+     9.8
+    ]
+   ]
+  },
+  {
+   "red": "VINT",
+   "ancho": 1.4,
+   "puntos": [
+    [
+     69.8,
+     9.8
+    ],
+    [
+     66.9,
+     9.8
+    ]
+   ]
+  },
+  {
+   "red": "SCK",
+   "ancho": 1.4,
+   "puntos": [
+    [
+     28.38,
+     94.59
+    ],
+    [
+     27.0,
+     94.59
+    ]
+   ]
+  },
+  {
+   "red": "SCK",
+   "ancho": 1.4,
+   "puntos": [
+    [
+     27.0,
+     94.59
+    ],
+    [
+     21.0,
+     94.59
+    ],
+    [
+     21.0,
+     74.0
+    ]
+   ]
+  },
+  {
+   "red": "MOSI",
+   "ancho": 1.4,
+   "puntos": [
+    [
+     28.38,
+     92.05
+    ],
+    [
+     27.0,
+     92.05
+    ]
+   ]
+  },
+  {
+   "red": "MOSI",
+   "ancho": 1.4,
+   "puntos": [
+    [
+     27.0,
+     92.05
+    ],
+    [
+     25.0,
+     92.05
+    ],
+    [
+     25.0,
+     74.0
+    ]
+   ]
+  },
+  {
+   "red": "TFT_CS",
+   "ancho": 1.4,
+   "puntos": [
+    [
+     28.38,
+     81.89
+    ],
+    [
+     37.0,
+     81.89
+    ]
+   ]
+  },
+  {
+   "red": "TFT_CS",
+   "ancho": 1.2,
+   "puntos": [
+    [
+     37.0,
+     81.89
+    ],
+    [
+     37.0,
+     76.8
+    ],
+    [
+     29.4,
+     76.8
+    ],
+    [
+     29.4,
+     74.0
+    ]
+   ]
+  },
+  {
+   "red": "3V3",
+   "ancho": 1.4,
+   "puntos": [
+    [
+     47.0,
+     68.0
+    ],
+    [
+     47.0,
+     74.0
+    ]
+   ]
+  },
+  {
+   "red": "RIEL",
+   "ancho": 1.4,
+   "puntos": [
+    [
+     43.62,
+     81.89
+    ],
+    [
+     48.0,
+     81.89
+    ]
+   ]
+  },
+  {
+   "red": "RIEL",
+   "ancho": 1.4,
+   "puntos": [
+    [
+     48.0,
+     82.2
+    ],
+    [
+     54.0,
+     82.2
+    ]
+   ]
+  },
+  {
+   "red": "RIEL",
+   "ancho": 1.4,
+   "puntos": [
+    [
+     48.0,
+     82.2
+    ],
+    [
+     48.0,
+     84.3
+    ]
+   ]
+  },
+  {
+   "red": "3V3",
+   "ancho": 1.4,
+   "puntos": [
+    [
+     60.5,
+     92.05
+    ],
+    [
+     61.0,
+     92.05
+    ],
+    [
+     61.0,
+     89.0
+    ]
+   ]
+  },
+  {
+   "red": "3V3",
+   "ancho": 1.4,
+   "puntos": [
+    [
+     51.2,
+     92.05
+    ],
+    [
+     51.2,
+     90.3
+    ]
+   ]
+  },
+  {
+   "red": "OW",
+   "ancho": 1.4,
+   "puntos": [
+    [
+     62.0,
+     48.3
+    ],
+    [
+     58.0,
+     48.3
+    ],
+    [
+     58.0,
+     54.8
+    ]
+   ]
+  },
+  {
+   "red": "SENS_EN",
+   "ancho": 1.2,
+   "puntos": [
+    [
+     5.5,
+     42.3
+    ],
+    [
+     8.4,
+     42.3
+    ]
+   ]
+  },
+  {
+   "red": "3V3S",
+   "ancho": 1.4,
+   "puntos": [
+    [
+     11.3,
+     44.0
+    ],
+    [
+     11.3,
+     39.7
+    ]
+   ]
+  },
+  {
+   "red": "3V3S",
+   "ancho": 1.4,
+   "puntos": [
+    [
+     11.3,
+     39.7
+    ],
+    [
+     16.0,
+     39.7
+    ]
+   ]
+  },
+  {
+   "red": "3V3S",
+   "ancho": 1.4,
+   "puntos": [
+    [
+     11.3,
+     44.0
+    ],
+    [
+     11.3,
+     47.0
+    ],
+    [
+     19.0,
+     47.0
+    ],
+    [
+     19.0,
+     50.0
+    ]
+   ]
+  },
+  {
+   "red": "BL_G",
+   "ancho": 1.2,
+   "puntos": [
+    [
+     9.15,
+     82.6
+    ],
+    [
+     11.8,
+     82.6
+    ]
+   ]
+  },
+  {
+   "red": "BL_M",
+   "ancho": 1.2,
+   "puntos": [
+    [
+     9.15,
+     92.6
+    ],
+    [
+     11.8,
+     92.6
+    ]
+   ]
+  },
+  {
+   "red": "BL_M",
+   "ancho": 1.2,
+   "puntos": [
+    [
+     9.15,
+     92.6
+    ],
+    [
+     9.15,
+     90.0
+    ],
+    [
+     18.5,
+     90.0
+    ],
+    [
+     18.5,
+     79.0
+    ],
+    [
+     17.6,
+     79.0
+    ]
+   ]
+  },
+  {
+   "red": "BL_M",
+   "ancho": 1.2,
+   "puntos": [
+    [
+     8.0,
+     85.4
+    ],
+    [
+     8.0,
+     87.0
+    ],
+    [
+     18.5,
+     87.0
+    ]
+   ]
+  },
+  {
+   "red": "BL_A",
+   "ancho": 1.2,
+   "puntos": [
+    [
+     8.0,
+     95.4
+    ],
+    [
+     4.0,
+     95.4
+    ],
+    [
+     4.0,
+     79.0
+    ],
+    [
+     10.4,
+     79.0
+    ]
+   ]
+  },
+  {
+   "red": "BL",
+   "ancho": 1.2,
+   "puntos": [
+    [
+     14.0,
+     78.0
+    ],
+    [
+     14.0,
+     72.0
+    ],
+    [
+     12.65,
+     72.0
+    ]
+   ]
+  },
+  {
+   "red": "VBAT",
+   "ancho": 2.4,
+   "puntos": [
+    [
+     22.8,
+     2.5
+    ],
+    [
+     22.8,
+     7.0
+    ]
+   ]
+  },
+  {
+   "red": "BMIN",
+   "ancho": 2.4,
+   "puntos": [
+    [
+     27.2,
+     2.5
+    ],
+    [
+     27.2,
+     7.0
+    ]
+   ]
+  },
+  {
+   "red": "V5",
+   "ancho": 2.4,
+   "puntos": [
+    [
+     36.0,
+     8.0
+    ],
+    [
+     36.0,
+     6.5
+    ],
+    [
+     38.7,
+     6.5
+    ]
+   ]
+  },
+  {
+   "red": "V5",
+   "ancho": 1.4,
+   "puntos": [
+    [
+     38.7,
+     6.5
+    ],
+    [
+     38.7,
+     10.5
+    ],
+    [
+     45.3,
+     10.5
+    ]
+   ]
+  },
+  {
+   "red": "VBATP",
+   "ancho": 2.4,
+   "puntos": [
+    [
+     31.6,
+     7.0
+    ],
+    [
+     31.6,
+     5.6
+    ]
+   ]
+  },
+  {
+   "red": "VBATP",
+   "ancho": 1.4,
+   "puntos": [
+    [
+     31.6,
+     5.6
+    ],
+    [
+     31.6,
+     5.0
+    ],
+    [
+     33.0,
+     5.0
+    ],
+    [
+     33.0,
+     4.0
+    ]
+   ]
+  },
+  {
+   "red": "VSYS",
+   "ancho": 1.2,
+   "puntos": [
+    [
+     52.85,
+     6.6
+    ],
+    [
+     52.0,
+     6.6
+    ],
+    [
+     52.0,
+     4.5
+    ]
+   ]
+  }
+ ],
+ "puentes": [
+  {
+   "red": "SCL",
+   "de": "U1.IO5",
+   "a": "J_AHT.SCL",
+   "porque": "cruza las dos barras"
+  },
+  {
+   "red": "SCL",
+   "de": "J_AHT.SCL",
+   "a": "J_BH.SCL",
+   "porque": "el bus sigue al segundo modulo"
+  },
+  {
+   "red": "SDA",
+   "de": "U1.IO4",
+   "a": "J_AHT.SDA",
+   "porque": "cruza las dos barras"
+  },
+  {
+   "red": "SDA",
+   "de": "J_AHT.SDA",
+   "a": "J_BH.SDA",
+   "porque": "el bus sigue al segundo modulo"
+  },
+  {
+   "red": "TOQUE",
+   "de": "U1.IO3",
+   "a": "J_TTP.IO",
+   "porque": "cruza las dos barras"
+  },
+  {
+   "red": "OW",
+   "de": "U1.IO8",
+   "a": "J_DS.DQ",
+   "porque": "cruza las dos barras"
+  },
+  {
+   "red": "SUELO",
+   "de": "U1.IO0",
+   "a": "J_SUELO.AOUT",
+   "porque": "cruza las dos barras"
+  },
+  {
+   "red": "SENS_EN",
+   "de": "U1.IO2",
+   "a": "R4.1",
+   "porque": "cruza las dos barras"
+  },
+  {
+   "red": "BL_G",
+   "de": "U1.IO21",
+   "a": "Q3.G",
+   "porque": "cruza las bajadas del SPI"
+  },
+  {
+   "red": "BL",
+   "de": "JP_BL.C",
+   "a": "J_TFT.BL",
+   "porque": "cruza las bajadas del SPI"
+  },
+  {
+   "red": "TFT_RST",
+   "de": "R7.1",
+   "a": "J_TFT.RES",
+   "porque": "cruza la barra de 3V3"
+  },
+  {
+   "red": "GND",
+   "de": "J_TTP.GND",
+   "a": "C1.1",
+   "porque": "la barra de masa pasa por debajo de la de 3V3"
+  },
+  {
+   "red": "GND",
+   "de": "J_AHT.GND",
+   "a": "R10.1",
+   "porque": "idem, del lado de la luz de fondo"
+  },
+  {
+   "red": "GND",
+   "de": "C3.1",
+   "a": "C2.1",
+   "porque": "une los dos desacoples"
+  },
+  {
+   "red": "3V3",
+   "de": "J_AHT.VCC",
+   "a": "R9.2",
+   "porque": "la barra pasa por debajo del bloque de la luz"
+  },
+  {
+   "red": "3V3",
+   "de": "J_AHT.VCC",
+   "a": "R4.2",
+   "porque": "la barra pasa por encima del bloque del riel"
+  },
+  {
+   "red": "3V3",
+   "de": "J_DS.VCC",
+   "a": "R6.2",
+   "porque": "la barra pasa por encima del pull-up"
+  },
+  {
+   "red": "3V3",
+   "de": "J_DS.VCC",
+   "a": "Q2.S",
+   "porque": "idem, para la fuente del P-MOSFET"
+  },
+  {
+   "red": "3V3",
+   "de": "R9.2",
+   "a": "Q4.S",
+   "porque": "cierra la fuente del P-MOSFET de la luz"
+  },
+  {
+   "red": "VINT",
+   "de": "R1.2",
+   "a": "TP4.1",
+   "porque": "cruza las bajadas de 3V3 y de masa"
+  },
+  {
+   "red": "VBATP",
+   "de": "TP2.1",
+   "a": "Q1.D",
+   "porque": "cruza la pista de 5 V"
+  },
+  {
+   "red": "VSYS",
+   "de": "D1.K",
+   "a": "Q1.S",
+   "porque": "el nodo de sistema, con cable grueso"
+  },
+  {
+   "red": "VSYS",
+   "de": "TP3.1",
+   "a": "J_SW.1",
+   "porque": "al interruptor, con cable grueso"
+  },
+  {
+   "red": "V5",
+   "de": "D1.A",
+   "a": "Q1.G",
+   "porque": "cruza el nodo de sistema"
+  },
+  {
+   "red": "GND",
+   "de": "R10.1",
+   "a": "Q3.S",
+   "porque": "masa de la etapa de la luz de fondo"
+  },
+  {
+   "red": "GND",
+   "de": "Q3.S",
+   "a": "R8.2",
+   "porque": "idem"
+  },
+  {
+   "red": "TFT_DC",
+   "de": "U1.IO10",
+   "a": "J_TFT.DC",
+   "porque": "cruzaria la bajada del CS; una sola cara"
+  },
+  {
+   "red": "GND",
+   "de": "J_TFT.GND",
+   "a": "J_TTP.GND",
+   "porque": "la barra de masa pasa por debajo de la de 3V3"
+  }
+ ]
+}

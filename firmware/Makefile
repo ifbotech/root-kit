@@ -34,7 +34,8 @@ LIB      = $(CORE) $(GFX) $(ART) $(UI) $(NET) $(NODO) $(TERCEROS)
 TESTSRC  = test/rk_test.c test/golden_util.c \
            test/test_mood.c test/test_nodo.c test/test_sensores.c \
            test/test_gfx.c test/test_render.c test/test_persona.c \
-           test/test_enlace.c test/test_red.c test/test_qr.c test/test_ota.c test/main.c
+           test/test_enlace.c test/test_red.c test/test_qr.c test/test_ota.c \
+           test/test_placa.c test/test_placa_devkit.c test/main.c
 
 HEADERS  = $(wildcard core/*.h gfx/*.h art/*.h ui/*.h net/*.h nodo/*.h third_party/*/*.h)
 
@@ -52,7 +53,8 @@ all: test
 test: $(BUILD)/rk_test
 	@./$(BUILD)/rk_test
 
-$(BUILD)/rk_test: $(LIB) $(TESTSRC) $(HEADERS) test/golden.h test/rk_test.h
+$(BUILD)/rk_test: $(LIB) $(TESTSRC) $(HEADERS) test/golden.h test/rk_test.h \
+                  test/redes.h esp32/placa.h
 	@mkdir -p $(BUILD)
 	$(CC) $(CFLAGS) -o $@ $(LIB) $(TESTSRC)
 

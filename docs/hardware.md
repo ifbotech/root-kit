@@ -5,6 +5,13 @@ batería y cómo se conecta. Los pines de este documento son los
 de [`firmware/esp32/placa.h`](../firmware/esp32/placa.h); si cambian allá,
 cambian acá.
 
+**Dónde va cada cosa físicamente** está en [pcb.md](pcb.md): el sustrato
+impreso en 3D con canaletas y cinta de cobre sobre el que se monta todo. El
+**diagrama de conexiones completo**, red por red, se genera desde el mismo
+dato que el sustrato y vive en [conexiones.md](conexiones.md). Y el paso a
+paso para armar una unidad, con los controles de multímetro, en
+[armado.md](armado.md).
+
 ## Resumen
 
 | | ROOTKIT (el producto) | Banco de pruebas |
@@ -81,9 +88,16 @@ corto del panel.
   azul cambiados o con los colores invertidos, se corrige en
   `platformio.ini` con `RK_TFT_OFS_X/Y`, `RK_TFT_BGR` y `RK_TFT_INVERT`, sin
   tocar código.
-- Luz de fondo: 15–30 mA. **No va directo a un GPIO**: va a través de un
-  MOSFET N (AO3400) o un transistor (S8050) con el GPIO a la compuerta, para
-  regularla por PWM sin quemar el pin.
+- Luz de fondo: 15–30 mA. **No va directo a un GPIO.** Va a una etapa de dos
+  transistores que conmuta del **lado alto**: un N-MOSFET (AO3400) con GPIO21
+  en la compuerta tira de la compuerta de un P-MOSFET (AO3401) que lleva 3V3
+  al pin `BL`. Es la forma que funciona tanto si `BL` es el ánodo del LED
+  —que es lo más común en estos módulos— como si es la entrada de control de
+  un transistor del propio módulo. Si resultara ser el cátodo, un selector de
+  estaño (`JP_BL`) pasa la etapa al lado de masa sin rehacer nada. El
+  detalle y el porqué de cada resistencia, en [pcb.md](pcb.md).
+- El PWM no invierte: GPIO21 alto enciende. Si algún lote pide lo contrario,
+  se compila con `-DRK_TFT_BL_INVERTIDO=1`.
 - El framebuffer ocupa 32 KB: en un C3 con el wifi prendido sobra lugar.
 
 ---
@@ -105,7 +119,7 @@ primeras tablas los lee el firmware hoy.
 
 | Magnitud | Sensor | Interfaz | Para qué |
 |---|---|---|---|
-| Temperatura de la tierra | **DS18B20** sumergible | 1-Wire, pull-up 4,7 kΩ | Las raíces sienten la tierra, no el aire. Clave en invierno junto a una ventana. |
+| Temperatura de la tierra | **DS18B20** sumergible | 1-Wire, pull-up 4,7 kΩ **al riel fijo** | Las raíces sienten la tierra, no el aire. Clave en invierno junto a una ventana. |
 | Toque | **TTP223** | digital | Prende la pantalla y despierta al aparato. Funciona a través de 2–3 mm de plástico. |
 | Batería y USB | divisor 470 kΩ / 470 kΩ + 100 nF | ADC | Porcentaje de carga y detección de enchufado con un solo pin. |
 
@@ -143,6 +157,24 @@ El capacitivo consume ~5 mA encendido. Por eso se alimenta a través de un
 P-MOSFET (AO3401) que el firmware prende 150 ms por lectura: apagado, no
 gasta nada.
 
+### Qué cuelga de qué riel, y por qué
+
+**Del riel conmutado cuelga sólo el capacitivo.** Es el único que come de
+verdad. El AHT20, el BH1750, el TTP223 **y el DS18B20** van al 3V3 fijo.
+
+El DS18B20 estaba pensado para el riel conmutado y se mudó: si la sonda
+cuelga del riel conmutado pero su pull-up sale del 3V3 fijo, con el riel
+apagado la línea de datos le mete corriente a la sonda por su pata de datos y
+carga el riel muerto. Y el pull-up no puede irse al riel conmutado porque
+**GPIO8 es pin de arranque** y tiene que estar alto al encender, justo cuando
+el riel está apagado. La sonda consume **1 µA como máximo en reposo**: 24 µAh
+por día, el 0,2 % del presupuesto. Por ese precio desaparecen el camino
+parásito y la duda del arranque. Hay una prueba (`test_placa.c`) que falla si
+alguien la devuelve al riel conmutado.
+
+El riel conmutado lleva además una **resistencia de purga de 100 kΩ** para
+que baje rápido al apagarlo, y un **100 nF** junto al borne del sensor.
+
 ---
 
 ## Batería y carga
@@ -174,12 +206,16 @@ gasta nada.
                   │     G              drenador del lado de la celda)
                   │     └── al 5 V del USB, con 100 kΩ a GND
                   │
-                  ├── interruptor ── 5V de la SuperMini (regula a 3,3 V)
-                  │
-                  └── 470 kΩ ──┬── GPIO1 (ADC)
-                               ├── 470 kΩ ── GND
-                               └── 100 nF ── GND
+                  └── interruptor ──┬── 5V de la SuperMini (regula a 3,3 V)
+                                    │
+                                    └── 470 kΩ ──┬── GPIO1 (ADC)
+                                                 ├── 470 kΩ ── GND
+                                                 └── 100 nF ── GND
 ```
+
+El divisor cuelga de **después** del interruptor y no del nodo de sistema:
+lee exactamente lo mismo (el interruptor no tiene caída) y con el aparato
+apagado en la caja no gasta ni un microamperio en vez de 3,9 µA.
 
 **Carga compartida (AO3401 + SS34).** Sin esto, con el USB enchufado el
 aparato consume a través del cargador, el TP4056 nunca ve la corriente
@@ -206,7 +242,25 @@ divisor y, por encima de 4,35 V, sabe que está enchufado
 lugar de un 100 % falso.
 
 **Interruptor.** Entre la carga compartida y la placa, para despachar el
-aparato apagado en la caja.
+aparato apagado en la caja. Y es además la llave de seguridad del párrafo que
+sigue.
+
+> **Los dos USB y la celda.** La SuperMini tiene su propio USB-C —es por
+> donde se flashea y por donde trabaja la estación de fábrica— y el TP4056
+> tiene otro. En muchas SuperMini el pin `5V` está unido a su VBUS sin
+> diodo: con la celda puesta y el interruptor prendido, enchufar el USB de la
+> SuperMini mete 5 V en el nodo de sistema, el AO3401 conduce (no hay USB en
+> el cargador, así que su compuerta está en bajo) y **la celda recibe 5 V sin
+> control de carga**.
+>
+> El aparato se arma de forma que eso no pueda pasar: se flashea **antes de
+> poner la celda**, el USB de la SuperMini **no sale al exterior**, el
+> interruptor corta ese camino, y el sustrato lleva grabado
+> `APAGAR ANTES DE FLASHEAR` al lado del módulo. La regla, para siempre: **el
+> USB de la SuperMini se enchufa con el interruptor apagado.** El análisis
+> completo y por qué un diodo en serie no es la solución, en
+> [pcb.md](pcb.md). Para la Fase 5: un solo USB-C y un multiplexor de
+> alimentación de verdad.
 
 ### Cuánto dura
 
@@ -292,6 +346,11 @@ poder escuchar en el emulador antes de tener hardware.
 
 ## Conexiones
 
+Esta tabla es el mapa de pines. La **netlist completa** —cada red, de qué
+riel cuelga, qué ancho de cinta lleva y de dónde a dónde va— se genera desde
+`hardware/pcb/nucleo.json` y está en [conexiones.md](conexiones.md).
+`test_placa.c` cruza las dos cosas en cada `make test`.
+
 ### ESP32-C3 SuperMini
 
 | GPIO | Va a | Notas |
@@ -304,11 +363,11 @@ poder escuchar en el emulador antes de tener hardware.
 | 5 | SCL | ídem |
 | 6 | SCK de la pantalla | |
 | 7 | MOSI (SDA/SDI) de la pantalla | |
-| 8 | DATA del DS18B20 | pull-up 4,7 kΩ. De arranque: queda alto |
+| 8 | DATA del DS18B20 | pull-up 4,7 kΩ **al 3V3 fijo**. De arranque: queda alto |
 | 9 | botón BOOT | apretado 10 s: borra vínculo y wifi |
 | 10 | DC (A0/RS) de la pantalla | |
 | 20 | CS de la pantalla | |
-| 21 | compuerta del MOSFET de la luz de fondo | PWM |
+| 21 | compuerta del N-MOSFET de la etapa de la luz de fondo | PWM 22 kHz, alto enciende. Es el TX del UART0: la luz pestañea ~50 ms al arrancar ([pcb.md](pcb.md)) |
 | — | RST de la pantalla | a 3V3 con 10 kΩ; el firmware la reinicia por software |
 
 ### ESP32 DevKit 30 pines
@@ -348,17 +407,25 @@ Por unidad. Los precios de pantalla son los de la cotización actual.
 | 1 | TTP223 | |
 | 1 | Módulo TP4056 USB-C con protección (6 pines) | |
 | 1 | 18650 de marca + portapila | |
-| 1 | AO3401 (P-MOSFET SOT-23) | carga compartida |
-| 1 | AO3401 (P-MOSFET) | alimentación de sensores |
-| 1 | AO3400 (N-MOSFET) | luz de fondo |
-| 1 | SS34 (Schottky) | |
-| 2 | 470 kΩ | divisor del riel |
-| 2 | 4,7 kΩ | pull-ups de 1-Wire (e I2C si hace falta) |
-| 2 | 100 kΩ | compuertas |
-| 1 | 10 kΩ | reset de la pantalla |
-| 1 | 100 nF | divisor |
+| 3 | AO3401 (P-MOSFET SOT-23) | carga compartida, riel de sensores y lado alto de la luz |
+| 1 | AO3400 (N-MOSFET SOT-23) | etapa de la luz de fondo |
+| 1 | SS34 (Schottky SMA) | |
+| 2 | 470 kΩ 1206 | divisor del riel |
+| 1 | 4,7 kΩ 1206 | pull-up del 1-Wire |
+| 4 | 100 kΩ 1206 | compuerta de Q1, compuerta de Q2, purga del riel conmutado, nodo BL |
+| 2 | 10 kΩ 1206 | reset de la pantalla y compuerta del P de la luz |
+| 2 | 100 nF 1206 | divisor y riel conmutado |
+| 1 | 100 nF 1206 | desacople de 3V3 |
 | 1 | 220–470 µF 6,3 V bajo ESR | picos de wifi |
-| 1 | interruptor deslizante | |
+| 1 | interruptor deslizante | en la pared de la carcasa |
+| 1 | sustrato impreso en PETG | [pcb.md](pcb.md) |
+| — | cinta de cobre 6 mm y 20 mm | ~940 mm de pista por unidad |
+| — | cable de silicona AWG30 y AWG24 | 28 puentes |
+| 4 | tornillos M2 × 8 | sustrato a carcasa |
+
+Si los módulos de I2C **no** traen sus pull-ups (casi todos los traen), dos
+4,7 kΩ más, soldadas entre los bornes `SCL`/`SDA` y el `VCC` de su propio
+grupo.
 | | **Sonido (opcional, Fase 2b)** | |
 | 1 | buzzer pasivo 12 mm | para probar en el banco |
 | 1 | PAM8302 (módulo) | amplificador clase D mono |
