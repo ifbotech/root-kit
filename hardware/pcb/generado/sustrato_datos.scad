@@ -189,6 +189,19 @@ tornillos = [
   [66.00,101.00,2.40],
 ];
 
+// --- la estampadora (el negativo, espejado en X) ---
+est_holgura_lateral = 0.30;
+est_sobresalir     = 0.30;
+est_base_extra     = 0.20;
+est_base_alto      = 0.25;
+est_espesor        = 5.00;
+est_faldon_alto    = 2.50;
+est_faldon_pared   = 2.00;
+est_faldon_holgura = 0.50;
+est_relieve_hueco  = 0.60;
+est_rotulo_tam   = 5.00;
+est_rotulo       = "ESTAMPADORA v1.0";
+
 // [x, y, tamano, rot, "texto"]
 rotulos = [
   [59.00,30.00,3.00,0.0,"ROOTKIT"],

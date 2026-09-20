@@ -38,6 +38,7 @@ media.
 | Soldador con punta fina, 260 °C | más caliente marca el PETG |
 | Estaño **Sn42Bi58** (138 °C) y flux | el común de 183 °C también va, con toques cortos |
 | Bisturí o trincheta con hoja nueva | la hoja gastada arruga la cinta |
+| **La estampadora impresa** | mete toda la cinta de una prensada (paso 2) |
 | Bruñidor o el mango de una cuchara | para presionar la cinta en la canaleta |
 | Multímetro con continuidad y prueba de diodo | |
 | **Fuente de laboratorio con límite de corriente** | no es opcional: es lo que reemplaza a la celda hasta el paso 11 |
@@ -54,11 +55,25 @@ media.
 make pcb                       # regenera el STL y la plantilla
 ```
 
-Se imprime `hardware/pcb/generado/nucleo-sustrato.stl` en **PETG**, con la
-cara de las canaletas **hacia arriba**, sin soportes, boquilla 0,4, capa 0,2,
-cuatro perímetros. Sale en unas dos horas.
+Se imprimen **dos piezas**:
+
+| Pieza | STL | Cómo |
+|---|---|---|
+| El sustrato | `generado/nucleo-sustrato.stl` | **PETG**, canaletas **hacia arriba**, sin soportes, boquilla 0,4, capa 0,2, cuatro perímetros. Unas dos horas |
+| La estampadora | `generado/nucleo-estampadora.stl` | PETG o PLA, nervaduras **hacia arriba**, sin soportes, misma boquilla y capa. Unas tres horas |
+
+La estampadora es el negativo del sustrato y sirve para meter toda la cinta
+de una sola prensada ([pcb.md](pcb.md)). Se imprime una sola vez y sirve para
+todas las unidades.
 
 Y se imprime la plantilla **al 100 %, sin ajustar a la página**.
+
+**Control 0.b — la estampadora entra.** Antes de tocar la cinta: apoyar la
+estampadora sobre el sustrato vacío. El faldón tiene que envolver el borde y
+la pieza bajar hasta el fondo **sin resistencia**, y las nervaduras entrar en
+sus canaletas. Si hace tope antes, está al revés (mirala de nuevo: va dada
+vuelta) o las nervaduras salieron gordas y hay que bajar el flujo. **Nunca
+forzar**: las más finas miden 0,9 mm y se parten.
 
 **Control 0.** Con un calibre, la regla de la plantilla impresa tiene que
 medir **50,0 mm**. Si mide otra cosa, la impresora de papel la escaló y todo
@@ -120,23 +135,38 @@ se devuelve.
 
 ---
 
-## Paso 2 — La cinta
+## Paso 2 — La cinta, de una prensada
 
 Se trabaja sobre la **cara de las canaletas**, con la plantilla al lado en la
 misma orientación (el texto grabado se lee derecho).
 
-1. **Los rieles primero**: masa, 3V3, VINT, y las del fondo. Son las anchas y
-   las más largas; hacerlas primero deja las señales para cuando ya se le
-   tomó la mano.
-2. Para cada tramo: cortar un pedazo de cinta un poco más ancho que la
-   canaleta, apoyarlo, presionarlo con el bruñidor **desde el centro hacia
-   los bordes**, y recortar contra la pared con el bisturí apoyado en la
-   pared, no en la cinta.
-3. **Cada esquina y cada empalme lleva una gota de estaño.** El adhesivo no
+1. **Cortar la hoja al contorno del sustrato.** Apoyar la cinta sobre el
+   sustrato cubriéndolo entero —si el rollo es más angosto que 72 mm, dos o
+   tres tiras solapadas 2 mm; el solape no molesta— y pasar el bisturí
+   alrededor del canto del sustrato, que hace de guía. Queda una hoja del
+   tamaño exacto de la placa, que es lo que necesita el faldón para cerrar.
+2. **Apoyar la hoja** con el adhesivo hacia abajo, sin presionar todavía:
+   sólo lo justo para que no se mueva.
+3. **Bajar la estampadora.** El faldón envuelve el borde del sustrato y la
+   centra sola. No hay que apuntar.
+4. **Apretar parejo**, con las dos manos o —mejor— con una tabla y el peso
+   del cuerpo, quince segundos. Presión repartida, no un punto.
+5. **Levantar.** La cinta quedó metida en cada canaleta y tendida sobre las
+   paredes que las separan, marcada por el canto de cada una.
+6. **Recortar lo tendido**: pasar el bisturí por el canto de cada canaleta,
+   que ya está dibujado en la cinta, y levantar el sobrante. Sale en pedazos
+   grandes.
+7. **Repasar con el bruñidor** canaleta por canaleta, **desde el centro hacia
+   los bordes**, para que la cinta apoye contra el fondo.
+8. **Cada esquina y cada empalme lleva una gota de estaño.** El adhesivo no
    es una conexión. Toque corto: apoyar, estañar, retirar, contar hasta tres
    antes del siguiente.
-4. Los pads de componentes y bornes se hacen igual, cortando contra sus
-   paredes.
+
+> **Si no tenés la estampadora** (o si se rompió una nervadura), se puede
+> hacer tramo por tramo: cortar un pedazo de cinta un poco más ancho que la
+> canaleta, apoyarlo, presionarlo con el bruñidor y recortar contra la pared
+> con el bisturí apoyado **en la pared, no en la cinta**. Son los mismos
+> 51 tramos, y media tarde en vez de veinte minutos.
 
 **Control 2.a — continuidad de cada red.** Multímetro en continuidad. Para
 cada red de [conexiones.md](conexiones.md), tocar el nodo más lejano contra
@@ -468,6 +498,8 @@ unidad ___  fecha ______  sustrato v1.0
 | La luz de fondo no prende | el paso 1.c estaba mal: cambiar el lado de `JP_BL` |
 | La luz prende sola en reposo | falta R8 (o R10), o GPIO21 quedó flotando |
 | El suelo lee siempre lo mismo | chip NE555 en vez de TLC555, o el riel conmutado no prende (control 12.b) |
+| La estampadora no baja hasta el fondo | está al revés (va dada vuelta), o las nervaduras salieron gordas: bajar el flujo un 3 % y reimprimir |
+| Quedó cinta pegada sobre las paredes | se apretó de más y la cara plana llegó a apoyar; o la hoja tenía un solape justo ahí |
 | No aparecen AHT20 ni BH1750 | SDA y SCL cruzados; o faltan los pull-ups porque **ninguno** de los dos módulos los trae |
 | Sólo falla el DS18B20 | el pull-up de 4,7 k (R6), o la sonda en modo parásito |
 | El reposo da más de 200 µA | flux, LED de encendido, pull-ups duplicados. En ese orden |

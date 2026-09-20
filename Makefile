@@ -10,7 +10,7 @@
 #   make pantallas  QR, dormida, despertar y cara
 #   make capturas   regenera las imagenes de tools/preview
 #   make wasm       el renderer compilado para la app (root-lab)
-#   make pcb        verifica el sustrato y regenera plantilla, netlist y STL
+#   make pcb        verifica el sustrato y la estampadora, y regenera todo
 #   make placa      compila el producto (c3-144) y el banco (devkit-144)
 #   make bench      costo de renderizar una cara
 #   make golden     regenera las referencias visuales
@@ -50,7 +50,7 @@ pcb:
 	@if command -v openscad > /dev/null 2>&1; then \
 	    python3 tools/pcb.py --stl; \
 	 else \
-	    echo "  (sin OpenSCAD: el STL queda como estaba)"; \
+	    echo "  (sin OpenSCAD: los STL y la prueba de encaje quedan como estaban)"; \
 	 fi
 
 # Lo mismo que corre CI. Además de las pruebas verifica que los hashes de

@@ -8,6 +8,7 @@ nada a mano:
   hardware/pcb/generado/sustrato_datos.scad   los datos que come sustrato.scad
   hardware/pcb/generado/plantilla-cinta.svg   la plantilla 1:1 para cortar cinta
   hardware/pcb/generado/nucleo-sustrato.stl   la pieza para imprimir (--stl)
+  hardware/pcb/generado/nucleo-estampadora.stl  su negativo, para meter la cinta
   docs/conexiones.md                          el diagrama de conexiones
   firmware/test/redes.h                       la netlist para la prueba en C
 
@@ -15,7 +16,8 @@ Uso:
 
   python3 tools/pcb.py --verificar    solo revisa (lo que corre CI)
   python3 tools/pcb.py --generar      revisa y reescribe los generados
-  python3 tools/pcb.py --stl          ademas exporta el STL con OpenSCAD
+  python3 tools/pcb.py --stl          ademas exporta los STL con OpenSCAD
+  python3 tools/pcb.py --encaje       comprueba que la estampadora entre
 
 Sin dependencias: solo la biblioteca estandar, igual que tools/fabrica.py.
 """
@@ -24,6 +26,7 @@ import argparse
 import json
 import math
 import os
+import struct
 import subprocess
 import sys
 
@@ -31,6 +34,8 @@ RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATO = os.path.join(RAIZ, "hardware", "pcb", "nucleo.json")
 GEN = os.path.join(RAIZ, "hardware", "pcb", "generado")
 SCAD = os.path.join(RAIZ, "hardware", "pcb", "sustrato.scad")
+ESTAMPADORA = os.path.join(RAIZ, "hardware", "pcb", "estampadora.scad")
+ENCAJE = os.path.join(RAIZ, "hardware", "pcb", "encaje.scad")
 REDES_H = os.path.join(RAIZ, "firmware", "test", "redes.h")
 CONEXIONES = os.path.join(RAIZ, "docs", "conexiones.md")
 
@@ -222,6 +227,7 @@ class Nucleo:
         self._v_antena()
         self._v_modulos()
         self._v_rotulos()
+        self._v_estampadora()
         return self.errores
 
     def _dentro(self, p, margen):
@@ -438,6 +444,33 @@ class Nucleo:
                     self.errores.append('el rotulo "%s" muerde el pad %s'
                                         % (r["texto"], nodo))
 
+    def _v_estampadora(self):
+        """La estampadora es el negativo del sustrato: las mismas canaletas pero
+        en relieve, para meter toda la cinta de una prensada. Dos cosas la
+        pueden arruinar y las dos se ven desde el dato: una nervadura mas fina
+        de lo que la impresora puede sacar, y una nervadura que no sobresalga
+        mas que la canaleta —ahi la cara plana apoyaria y pegaria la cinta
+        tambien sobre las paredes."""
+        e = self.d.get("estampadora")
+        if not e:
+            return
+        piso = e["ancho_min_nervadura"]
+        holgura = self.reglas["holgura_canaleta"]
+        anchos = {p.ancho for p in self.pistas}
+        for pad in self.pads.values():
+            anchos.add(pad.w)
+            anchos.add(pad.h)
+        for a in sorted(anchos):
+            nerv = a + holgura - 2.0 * e["holgura_lateral"]
+            if nerv < piso - 1e-9:
+                self.errores.append(
+                    "la estampadora: una cinta de %.1f mm deja una nervadura de "
+                    "%.2f mm (el piso es %.2f)" % (a, nerv, piso))
+        if e["sobresalir"] <= 0.0:
+            self.errores.append(
+                "la estampadora: las nervaduras tienen que sobresalir mas que la "
+                "canaleta, si no la cara plana apoya y pega la cinta a los lados")
+
     # -- numeros para la documentacion --------------------------------------
     def cinta(self):
         """Cuanta cinta hace falta, por ancho."""
@@ -542,6 +575,16 @@ def gen_scad(n):
         L.append("  [%.2f,%.2f,%.2f]," % (t["x"], t["y"], t["d"]))
     L.append("];")
     L.append("")
+    e = n.d.get("estampadora")
+    if e:
+        L.append("// --- la estampadora (el negativo, espejado en X) ---")
+        for k in ("holgura_lateral", "sobresalir", "base_extra", "base_alto",
+                  "espesor", "faldon_alto", "faldon_pared", "faldon_holgura",
+                  "relieve_hueco"):
+            L.append("est_%-14s = %.2f;" % (k, e[k]))
+        L.append('est_rotulo_tam   = %.2f;' % e["rotulo"]["tam"])
+        L.append('est_rotulo       = "%s";' % e["rotulo"]["texto"])
+        L.append("")
     L.append('// [x, y, tamano, rot, "texto"]')
     L.append("rotulos = [")
     for t in s.get("rotulos", []):
@@ -749,12 +792,108 @@ def gen_conexiones(n):
     return "\n".join(L) + "\n"
 
 
-def exportar_stl(destino):
-    if not os.path.exists(SCAD):
-        return "no existe %s" % SCAD
+def triangulos(stl):
+    """Cuantos triangulos tiene un STL binario. 0 si no existe."""
+    if not os.path.exists(stl):
+        return 0
+    with open(stl, "rb") as f:
+        cab = f.read(84)
+    if len(cab) < 84:
+        return 0
+    return int.from_bytes(cab[80:84], "little")
+
+
+def _correr_encaje(modo):
+    """Corre hardware/pcb/encaje.scad en un modo y devuelve (triangulos, caja)."""
+    destino = os.path.join(GEN, "encaje-%s.stl" % modo)
+    if os.path.exists(destino):
+        os.remove(destino)
+    try:
+        subprocess.run(["openscad", "-D", 'modo="%s"' % modo,
+                        "--export-format", "binstl", "-o", destino, ENCAJE],
+                       capture_output=True, text=True, timeout=1800)
+    except FileNotFoundError:
+        return None, None
+    n = triangulos(destino)
+    caja = None
+    if n:
+        with open(destino, "rb") as f:
+            f.read(84)
+            xs, ys = [], []
+            for _ in range(n):
+                d = struct.unpack("<12fH", f.read(50))
+                for i in range(3):
+                    xs.append(d[3 + i * 3])
+                    ys.append(d[4 + i * 3])
+        caja = (max(xs) - min(xs), max(ys) - min(ys))
+    if os.path.exists(destino):
+        os.remove(destino)
+    return n, caja
+
+
+def probar_encaje(n):
+    """Dos preguntas sobre la estampadora, y las dos hacen falta.
+
+    "choque": dada vuelta y apoyada a fondo sobre el sustrato, la interseccion
+    de las dos piezas tiene que dar VACIA. Cualquier solido es plastico contra
+    plastico: la pieza no baja del todo y la cinta no entra.
+
+    "presencia": lo que la estampadora mete DENTRO de las canaletas tiene que
+    dar LLENO y cubrir casi toda la placa. Sin esta, la primera se aprobaria
+    por la razon equivocada: si las nervaduras desaparecieran, la interseccion
+    tambien daria vacia."""
+    choque, _ = _correr_encaje("choque")
+    if choque is None:
+        return "openscad no esta instalado"
+    if choque:
+        return ("choca con el sustrato: %d triangulos de contacto "
+                "(ver hardware/pcb/encaje.scad)" % choque)
+    presencia, caja = _correr_encaje("presencia")
+    if not presencia:
+        return ("las nervaduras no llegan al fondo de ninguna canaleta: la "
+                "estampadora no estamparia nada")
+    cobertura = min(caja[0] / n.sustrato["ancho"], caja[1] / n.sustrato["alto"])
+    if cobertura < 0.80:
+        return ("las nervaduras solo cubren el %.0f %% de la placa "
+                "(se esperaba mas del 80 %%)" % (cobertura * 100))
+    return None
+
+
+def _canonizar_stl(stl):
+    """Ordena las facetas de un STL binario para que el archivo sea estable.
+
+    OpenSCAD triangula en paralelo y escribe cada faceta en el orden en que
+    termina su hilo: dos corridas sobre el mismo modelo dan la misma
+    geometria —mismas 22.136 facetas, una por una— y bytes distintos. Con el
+    STL commiteado eso es veneno: `make pcb` ensucia el arbol sin que haya
+    cambiado nada, `make verify` lo denuncia, y el dia que cambie algo de
+    verdad el diff queda escondido entre miles de facetas que se movieron
+    solas. Ordenandolas, el archivo vuelve a ser funcion del modelo y nada
+    mas. La cabecera tambien se reescribe fija, asi no entra por ahi la
+    version de OpenSCAD.
+    """
+    with open(stl, "rb") as f:
+        datos = f.read()
+    if len(datos) < 84:
+        return
+    n = int.from_bytes(datos[80:84], "little")
+    if len(datos) != 84 + n * 50:
+        return              # no es el STL binario que esperamos: mejor no tocar
+    facetas = sorted(datos[84 + i * 50:84 + (i + 1) * 50] for i in range(n))
+    cab = b"ROOTKIT " + os.path.basename(stl).encode("ascii", "replace")
+    with open(stl, "wb") as f:
+        f.write(cab.ljust(80, b"\0")[:80])
+        f.write(n.to_bytes(4, "little"))
+        f.write(b"".join(facetas))
+
+
+def exportar_stl(destino, fuente=None):
+    fuente = fuente or SCAD
+    if not os.path.exists(fuente):
+        return "no existe %s" % fuente
     try:
         r = subprocess.run(["openscad", "--export-format", "binstl",
-                            "-o", destino, SCAD],
+                            "-o", destino, fuente],
                            capture_output=True, text=True, timeout=1800)
     except FileNotFoundError:
         return "openscad no esta instalado"
@@ -762,6 +901,7 @@ def exportar_stl(destino):
         return "openscad tardo demasiado"
     if r.returncode != 0:
         return r.stderr.strip()[-800:]
+    _canonizar_stl(destino)
     return None
 
 
@@ -771,8 +911,9 @@ def main():
     ap.add_argument("--verificar", action="store_true")
     ap.add_argument("--generar", action="store_true")
     ap.add_argument("--stl", action="store_true")
+    ap.add_argument("--encaje", action="store_true")
     args = ap.parse_args()
-    if not (args.verificar or args.generar or args.stl):
+    if not (args.verificar or args.generar or args.stl or args.encaje):
         args.verificar = True
 
     with open(DATO, encoding="utf-8") as f:
@@ -790,7 +931,8 @@ def main():
         for e in errores:
             print("    - %s" % e)
         return 1
-    print("  en regla: separaciones, anchos, conectividad, antena, bordes y rotulos")
+    print("  en regla: separaciones, anchos, conectividad, antena, bordes,\n"
+          "  rotulos y nervaduras de la estampadora")
 
     if args.generar or args.stl:
         os.makedirs(GEN, exist_ok=True)
@@ -801,12 +943,22 @@ def main():
         print("  generados: firmware/test/redes.h, sustrato_datos.scad, "
               "plantilla-cinta.svg, docs/conexiones.md")
     if args.stl:
-        destino = os.path.join(GEN, "nucleo-sustrato.stl")
-        err = exportar_stl(destino)
+        for nombre, fuente in (("nucleo-sustrato.stl", SCAD),
+                               ("nucleo-estampadora.stl", ESTAMPADORA)):
+            destino = os.path.join(GEN, nombre)
+            err = exportar_stl(destino, fuente)
+            if err:
+                print("  STL %s: %s" % (nombre, err))
+                return 1
+            print("  STL: %s (%.0f KB)"
+                  % (destino, os.path.getsize(destino) / 1024.0))
+    if args.encaje or args.stl:
+        err = probar_encaje(n)
         if err:
-            print("  STL: %s" % err)
+            print("  encaje: %s" % err)
             return 1
-        print("  STL: %s (%.0f KB)" % (destino, os.path.getsize(destino) / 1024.0))
+        print("  encaje: la estampadora entra en el sustrato sin tocarlo, y "
+              "llega al fondo de las canaletas")
     return 0
 
 

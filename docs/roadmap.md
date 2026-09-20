@@ -209,6 +209,9 @@ Objetivo: el flujo completo con placa real, enchufada a USB.
 - [ ] **Cupón de canaletas**: 40 × 40 mm con canaletas de 1,2 / 1,4 / 2,4 /
       3,0 mm, para confirmar que la cinta entra y se corta contra la pared
       antes de imprimir el sustrato entero
+- [ ] **Probar la estampadora** ([pcb.md](pcb.md)): que entre en seco, que
+      meta la cinta de una prensada y que no quede cinta pegada sobre las
+      paredes. Si el sobresalir de 0,3 mm no alcanza, subirlo en el JSON
 - [ ] **Una unión soldada de prueba** con Sn42Bi58 sobre cinta pegada en
       PETG, y tirar: si el PETG se marca, bajar la punta o pasar a remaches
 - [ ] **Medir los cuatro números que el diseño no pudo medir**

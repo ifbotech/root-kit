@@ -21,7 +21,9 @@ Es el **núcleo común**: uno solo para los cinco Rooties. La carcasa cambia
 ```
 hardware/pcb/nucleo.json      EL DATO: modulos, posiciones, redes y pistas
         │
-        ├─► hardware/pcb/sustrato.scad ──► generado/nucleo-sustrato.stl
+        ├─► hardware/pcb/sustrato.scad ───► generado/nucleo-sustrato.stl
+        ├─► hardware/pcb/estampadora.scad ► generado/nucleo-estampadora.stl
+        ├─► hardware/pcb/encaje.scad         la prueba de que una entra en la otra
         ├─► generado/plantilla-cinta.svg     1:1, para imprimir y cortar
         ├─► docs/conexiones.md               el diagrama de conexiones
         └─► firmware/test/redes.h            la netlist, para `make test`
@@ -55,6 +57,9 @@ sustrato entero antes de que exista:
 | Nada de cobre en la ventana, los recortes ni los tornillos | ídem |
 | Nada de cobre nuestro en la zona libre de la antena | ídem |
 | El texto grabado no muerde ninguna canaleta | ídem |
+| Ninguna nervadura de la estampadora queda más fina de lo que imprime | ídem |
+| La estampadora **entra** en el sustrato sin tocarlo | `encaje.scad`, con OpenSCAD |
+| La estampadora **llega al fondo** de las canaletas | ídem |
 
 Son 217 comprobaciones en C y once reglas geométricas en Python. Lo que **no**
 verifica: que el módulo que llegue tenga los pines donde dice el JSON. Eso se
@@ -199,6 +204,83 @@ casilla de la Fase 2 del [roadmap](roadmap.md). Si el RSSI dentro de la
 carcasa cae más de 6 dB respecto del módulo al aire, hay que mover la
 electrónica, no discutir el número. Y para la PCB propia de la Fase 5, con
 el C3 en módulo y dos caras, el despeje completo sí se puede: ahí se hace.
+
+## La estampadora
+
+Pegar cincuenta y un tramos de cinta uno por uno es media tarde y cincuenta y
+una oportunidades de correrse. La estampadora es **el negativo del sustrato**:
+las mismas canaletas, pero en relieve. Se apoya una hoja de cinta de cobre
+sobre el sustrato, se baja la estampadora encima y se aprieta: todas las
+pistas entran a la vez.
+
+Sale del mismo dato que el sustrato, así que no se puede desincronizar: si
+mañana se mueve una pista, `make pcb` rehace las dos piezas.
+
+| | |
+|---|---|
+| Medidas | **77 × 109 × 7,5 mm** (el sustrato más el faldón) |
+| Material | PETG, o PLA: no se suelda nada encima, sólo tiene que ser rígida |
+| Espesor de la placa | **5 mm**, para que no flexione al apretar |
+| Nervaduras | **0,7 mm de alto**, 0,6 mm más finas que la canaleta |
+| Faldón | 2,5 mm de alto, 0,5 mm de holgura: centra la pieza sola |
+| Orientación de impresión | nervaduras **hacia arriba**, sin soportes |
+
+### Los tres números que la hacen funcionar
+
+**Va espejada en X.** Se imprime con las nervaduras hacia arriba —que es la
+única forma de que salgan sin soportes— y se usa dada vuelta. Dar vuelta
+espeja. Por eso el modelo se construye entero dentro de un `mirror([1,0,0])`:
+un pad que en el sustrato está en *x* se imprime en *(ancho − x)* y al
+voltear la pieza vuelve a caer en *x*. Es un error que no se ve mirando el
+modelo —la pieza imprime igual de bien— y por eso tiene su propia prueba.
+
+**La nervadura sobresale 0,3 mm más de lo que hunde la canaleta.** Al
+apretar, la punta toca el fondo y la cara plana de la estampadora queda
+**0,3 mm separada** de la cara del sustrato. Ese aire es el que hace que la
+cinta se pegue *sólo adentro de las canaletas* y no sobre las paredes que las
+separan. Si las dos caras se tocaran, la cinta quedaría pegada en todos lados
+y habría que despegarla justo donde no hay que romperla.
+
+**La nervadura es 0,3 mm más fina por lado.** Ahí entran el espesor de la
+cinta doblada contra las dos paredes (0,035 mm cada una) y la tolerancia de
+impresión. Si midiera exactamente lo mismo que la canaleta, no entraría. La
+nervadura más fina de todo el juego mide **0,9 mm** —la de las pistas de
+1,2 mm— y el verificador falla si alguna baja de 0,8, que son dos
+extrusiones.
+
+### Cómo se comprueba que entra
+
+`hardware/pcb/encaje.scad` pone la estampadora dada vuelta, apoyada a fondo
+sobre el sustrato, y hace dos preguntas:
+
+1. **Choque.** La intersección de las dos piezas tiene que dar **vacía**.
+   Cualquier sólido que aparezca es plástico contra plástico: la pieza no baja
+   del todo y esa canaleta se queda sin cinta.
+2. **Presencia.** Lo que la estampadora mete *dentro* de la franja de las
+   canaletas tiene que dar **lleno**, y cubrir más del 80 % de la placa.
+
+La segunda existe porque la primera sola se aprobaría por la razón
+equivocada: si las nervaduras desaparecieran, la intersección también daría
+vacía y la prueba pasaría con una pieza que no sirve para nada. Con las dos
+juntas: hoy cubren el **100 %** de la placa en los dos ejes.
+
+Y están calibradas. Corriendo la estampadora 0,5 mm, el choque salta con 707
+triángulos de contacto; volteándola sobre el eje equivocado —el error del
+espejo— salta con 1254. No es una prueba que pase sola.
+
+### Cómo se usa
+
+En [armado.md](armado.md), paso 2. En resumen: se corta la hoja de cinta
+contra el borde del sustrato (el propio sustrato hace de guía), se apoya, se
+baja la estampadora hasta que el faldón envuelve el borde, y se aprieta
+parejo. Después se levanta y se recorta lo que quedó tendido sobre las
+paredes, que ya viene marcado por el canto de cada canaleta.
+
+> **La prueba en seco no es opcional.** Antes de poner la cinta, apoyar la
+> estampadora sobre el sustrato vacío: tiene que bajar hasta que el faldón
+> envuelva el borde, sin resistencia. Si hace tope antes, está al revés o la
+> impresión salió con las nervaduras gordas. **Nunca forzar**: las nervaduras
+> de 0,9 mm se parten.
 
 ## Humedad, fugas y barniz
 

@@ -2654,5 +2654,22 @@
    "a": "J_TTP.GND",
    "porque": "la barra de masa pasa por debajo de la de 3V3"
   }
- ]
+ ],
+ "estampadora": {
+  "que_es": "La estampadora: el negativo del sustrato. Las mismas canaletas pero en relieve, para meter toda la cinta de cobre de una sola prensada en vez de tramo por tramo. Se imprime con las nervaduras hacia arriba y se usa dada vuelta, asi que la geometria va ESPEJADA en X.",
+  "holgura_lateral": 0.3,
+  "sobresalir": 0.3,
+  "base_extra": 0.2,
+  "base_alto": 0.25,
+  "espesor": 5.0,
+  "faldon_alto": 2.5,
+  "faldon_pared": 2.0,
+  "faldon_holgura": 0.5,
+  "relieve_hueco": 0.6,
+  "ancho_min_nervadura": 0.8,
+  "rotulo": {
+   "tam": 5.0,
+   "texto": "ESTAMPADORA v1.0"
+  }
+ }
 }
