@@ -588,3 +588,25 @@ tiene treinta líneas.
 
 **Qué se ganó además:** los STL dejaron de ser una tarea pendiente del
 roadmap. Se generan con `npm run carcasas`.
+
+### Que el personaje y la carcasa fueran la misma malla
+
+**Antes:** —y duró un día— el modelo 3D de la app era exactamente el STL de la
+carcasa. Sonaba bien: una sola fuente, y las pruebas de voladizo midiendo la
+pieza de verdad.
+
+**Qué la tumbó:** los personajes. Atar el diseño a que la figura saliera de una
+impresora sin soportes obliga a voladizos de 45°, base plana y nada que
+sobresalga; con esas reglas, los cinco Rooties quedaron cuerpos de revolución
+redondos, sin patitas separadas, sin bracitos que salieran del torso y sin
+sombrero. Correctos y sin gracia. El usuario lo dijo en una línea: *"se ve
+bastante igual que antes"*.
+
+**Qué se hizo:** separarlos. El personaje de la app se esculpe como campos de
+distancia fundidos (`esculpir.mjs`), sin ninguna regla de impresión, y la
+carcasa se diseña aparte en el CAD del hardware. De los modelos sale igual un
+STL, pero como referencia de forma.
+
+**La lección, que es más general:** una restricción de fabricación aplicada
+demasiado arriba en la cadena no limita el resultado, lo achata. La restricción
+va donde se fabrica.

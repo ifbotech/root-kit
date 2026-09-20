@@ -71,24 +71,25 @@ estanco, pero sí:
 - **La junta del sensor va abajo y con el cable haciendo panza**, para que el
   agua que corra por el cable gotee antes de llegar a la placa.
 
-## Las carcasas se generan, no se dibujan
+## El personaje y la carcasa son dos objetos
 
-**El modelo de la app ES la carcasa.** Los cinco Rooties están descritos como
-tablas de números en `root-lab/public/lib/rooti3d/formas.mjs` —un perfil que
-gira y una lista de piezas encima, todo en milímetros— y de ahí salen dos
-cosas: el personaje 3D que gira en el teléfono y los STL de
-[`carcasas/`](../carcasas/), que se regeneran con `npm run carcasas` desde
-root-lab.
+Al principio se intentó que fueran el mismo: que el modelo 3D de la app saliera
+tal cual en STL y ésa fuera la carcasa. Salió mal, y conviene que quede
+escrito. Atar el diseño del personaje a que se imprimiera sin soportes dejó
+cinco cuerpos redondos, correctos y sin gracia: sin patitas separadas, sin
+bracitos, sin sombrero volador. Un Rooti que no se puede querer no sirve.
 
-No hay una versión "bonita" y otra "para imprimir". Eso importa porque todas
-las reglas de acá abajo se comprueban **en cada commit**, sobre los triángulos
-de verdad (`root-lab/test/rooti3d.test.mjs`), y si el modelo que se imprimiera
-fuera otro, esa prueba no diría nada del objeto que el usuario tiene en la
-mano.
+Así que ahora son dos:
 
-Lo que todavía se modela a mano en el CAD, sobre esos STL: la tapa de abajo
-con sus tornillos, el hueco del USB-C, los pilares del PCB, los agarres del
-portapilas, el pasaje de la sonda y los agujeros de los sensores.
+* el **personaje** (`root-lab/public/lib/rooti3d/formas.mjs`) se esculpe para
+  verse bien. Es lo que gira en el teléfono;
+* la **carcasa** —esto— tiene que alojar la celda, el módulo del TFT y la
+  electrónica, apoyarse sin volcarse y salir de la impresora. Se modela en el
+  CAD tomando del personaje la silueta y el carácter.
+
+Para eso, `npm run carcasas` en root-lab escribe en [`carcasas/`](../carcasas/)
+los cinco personajes en STL, **como referencia de forma**: para tenerlos a mano
+mientras se modela, no para imprimirlos como aparato.
 
 ## Imprimir sin soportes: las reglas
 
@@ -102,24 +103,21 @@ Valen para las cinco carcasas y para el 3D de la app, que son lo mismo.
 | **Qué es la carcasa** | el cuerpo o la cabeza del Rooti | la pantalla no es un marco pegado: es una ventana del personaje |
 | **Ventana del TFT** | el panel entra **desde atrás** y apoya en un marco; la abertura va **biselada a 45°** hacia afuera | el bisel no es voladizo (mira hacia arriba y hacia afuera) y no tapa pixeles en diagonal; el área activa es de 25,9 × 25,9 mm en el panel de 1,44" |
 
-**Cómo se verifica.** `root-lab/test/rooti3d.test.mjs` recorre los triángulos
-de cada figura y mide la inclinación de cada uno; los que están escondidos
-adentro de otra pieza no cuentan, porque no se imprimen. Además comprueba que
-ninguna pieza empiece en el aire, que todas las mallas estén del derecho
-(volumen con signo positivo), que la base sea plana y ancha, que el centro de
-masa caiga abajo, que la celda y el módulo entren **punto por punto** contra
-la geometría, y que la zona de la cara sea lo bastante plana para el vidrio.
+**Cómo se verifica.** A ojo y con el laminador, que para esto alcanza: se abre
+el STL de la carcasa, se mira la vista previa de soportes y no tiene que
+proponer ninguno. Lo que sí está automatizado es la parte del personaje
+(`root-lab/test/rooti3d.test.mjs`): que las mallas estén cerradas y del
+derecho, que apoyen en el piso y que tengan proporción de criatura.
 
-Tres cosas que salieron de ahí y que conviene saber si se toca una figura:
+Tres cosas que conviene tener a mano al modelar:
 
-* **Un bulto redondo no se imprime**, así que los bultos son `gota`: media
-  esfera arriba y un cono de 45° abajo.
-* **El canto de una hoja que se abre de golpe es una pared que mira al piso.**
-  Por eso las hojas son lanceoladas: abren a una pendiente elegida y después
-  cierran hacia la punta (un canto que cierra mira hacia arriba y es gratis).
-* **Las costillas del cactus se apagan cerca del frente.** Una costilla en el
-  medio de la cara obliga a tallar un hueco el doble de profundo para que el
-  TFT, que es una plaquita rígida, apoye derecho.
+* **Un bulto redondo no se imprime**: la panza mirando al piso necesita
+  soporte. Un cono de 45° hacia abajo, sí.
+* **Un ala horizontal tampoco.** El sombrero del Champi, tal como está en la
+  app, hay que resolverlo en la carcasa: o se abre a 45° o se parte en dos
+  piezas que encastran.
+* **La zona de la pantalla tiene que quedar plana**, porque el TFT es una
+  plaquita rígida: nada de costillas ni curvas fuertes justo ahí.
 
 ## Los cinco Rooties
 
@@ -128,13 +126,16 @@ Rooti con sus tres pieles. Las figuras, en
 `root-lab/public/lib/rooti3d/formas.mjs`. Las dos son tablas de números: se
 pueden ajustar sin tocar una línea de lógica.
 
-| Rooti | Figura | Rasgo que manda | Tamaño (mm) | Base | Centro de masa |
-|---|---|---|---|---:|---:|
-| **Brote** | semilla germinando, cuerpo lleno | dos cotiledones en V sobre un tallo corto | 90,7 × 152,1 × 76 | 56 % | 34 % |
-| **Musgo** | almohadón bajo y ancho, con tres capas de flecos | dos esporofitos con su cápsula | 86,4 × 145,5 × 82,1 | 67 % | 36 % |
-| **Pinchito** | cactus barril con costillas verticales | flor de cinco pétalos y el brazo que saluda | 92,8 × 132,3 × 72,3 | 48 % | 42 % |
-| **Bulbo** | bulbo de cebolla con gajos y raicitas por patas | un brote con su hoja saliendo de la punta | 89,7 × 146,6 × 79 | 54 % | 35 % |
-| **Champi** | tallo macizo con anillo | el sombrero de campana que le hace de visera | 80 × 132 × 76 | 69 % | 28 % |
+| Rooti | Figura | Rasgo que manda | Tamaño del personaje (mm) |
+|---|---|---|---|
+| **Brote** | semilla germinando, cuerpo de pera | dos cotiledones en V sobre un tallo corto | 83 × 129 × 63 |
+| **Musgo** | almohadón bajo y ancho, con montículos | dos esporofitos con su cápsula | 91 × 99 × 73 |
+| **Pinchito** | cactus barril con costillas | flor de cuatro pétalos y el brazo que saluda | 93 × 106 × 62 |
+| **Bulbo** | gota gorda en punta, sobre sus raíces | un brote con su hoja | 88 × 116 × 64 |
+| **Champi** | tallo corto y gordo con anillo | el sombrero de campana con pintas | 87 × 118 × 83 |
+
+Son las medidas del PERSONAJE, no de la carcasa: la carcasa va a ser más
+grande, porque adentro entra la celda.
 
 Ninguna tiene un solo voladizo por encima de 45° ni una pieza que empiece en
 el aire. El centro de masa es el de la carcasa vacía: con la celda puesta baja
