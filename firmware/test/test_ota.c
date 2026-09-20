@@ -205,26 +205,26 @@ static void test_fabrica(void)
     rk_fabrica_estado_t e;
 
     CHECK_TRUE("una orden completa",
-               rk_fabrica_parsear("FABRICA {\"secreto\":\"3a917c05ee4218b69d602fc3710e845b\",\"persona\":\"musgo\",\"lote\":\"L2609\"}", &o));
+               rk_fabrica_parsear("FABRICA {\"secreto\":\"3a917c05ee4218b69d602fc3710e845b\",\"persona\":\"nori\",\"lote\":\"L2609\"}", &o));
     CHECK_TRUE("no es consulta", !o.consulta);
     CHECK_HEX("el secreto en bytes", 0x3A, o.secreto[0]);
     CHECK_HEX("hasta el final", 0x5B, o.secreto[15]);
-    CHECK_STR("la persona", "musgo", o.persona);
+    CHECK_STR("la persona", "nori", o.persona);
     CHECK_STR("el lote", "L2609", o.lote);
 
     CHECK_TRUE("sin lote tambien vale",
-               rk_fabrica_parsear("FABRICA {\"secreto\":\"3a917c05ee4218b69d602fc3710e845b\",\"persona\":\"brote\"}", &o)
+               rk_fabrica_parsear("FABRICA {\"secreto\":\"3a917c05ee4218b69d602fc3710e845b\",\"persona\":\"kip\"}", &o)
                && o.lote[0] == '\0');
     CHECK_TRUE("la consulta", rk_fabrica_parsear("FABRICA?", &o) && o.consulta);
 
     CHECK_TRUE("un Rooti que no existe no",
                !rk_fabrica_parsear("FABRICA {\"secreto\":\"3a917c05ee4218b69d602fc3710e845b\",\"persona\":\"kawaii\"}", &o));
     CHECK_TRUE("un secreto corto no",
-               !rk_fabrica_parsear("FABRICA {\"secreto\":\"3a917c05\",\"persona\":\"brote\"}", &o));
+               !rk_fabrica_parsear("FABRICA {\"secreto\":\"3a917c05\",\"persona\":\"kip\"}", &o));
     CHECK_TRUE("un secreto en ceros no",
-               !rk_fabrica_parsear("FABRICA {\"secreto\":\"00000000000000000000000000000000\",\"persona\":\"brote\"}", &o));
+               !rk_fabrica_parsear("FABRICA {\"secreto\":\"00000000000000000000000000000000\",\"persona\":\"kip\"}", &o));
     CHECK_TRUE("un lote con cosas raras no",
-               !rk_fabrica_parsear("FABRICA {\"secreto\":\"3a917c05ee4218b69d602fc3710e845b\",\"persona\":\"brote\",\"lote\":\"L 1;\"}", &o));
+               !rk_fabrica_parsear("FABRICA {\"secreto\":\"3a917c05ee4218b69d602fc3710e845b\",\"persona\":\"kip\",\"lote\":\"L 1;\"}", &o));
     CHECK_TRUE("y tras un fallo la orden queda en cero", o.persona[0] == '\0' && o.secreto[0] == 0u);
     CHECK_TRUE("una linea del log no es una orden", !rk_fabrica_parsear("[medir] suelo 40%", &o));
     CHECK_TRUE("ni reconocerla como tal", !rk_fabrica_es_orden("[enlace] FABRICA"));
@@ -233,13 +233,13 @@ static void test_fabrica(void)
 
     memset(&e, 0, sizeof e);
     e.id = "A1B2C3D4E5F6";
-    e.persona = "musgo";
+    e.persona = "nori";
     e.lote = "L2609";
     e.codigo = "K7Q2M9XA";
     e.fw = "0.6.0";
     CHECK_TRUE("la respuesta se arma", rk_fabrica_respuesta(buf, sizeof buf, &e) > 0u);
     CHECK_STR("y es JSON de una linea",
-              "{\"fabrica\":true,\"id\":\"A1B2C3D4E5F6\",\"persona\":\"musgo\",\"lote\":\"L2609\","
+              "{\"fabrica\":true,\"id\":\"A1B2C3D4E5F6\",\"persona\":\"nori\",\"lote\":\"L2609\","
               "\"codigo\":\"K7Q2M9XA\",\"fw\":\"0.6.0\",\"vinculado\":false}", buf);
     CHECK_TRUE("el error tambien", rk_fabrica_error(buf, sizeof buf, "vinculado") > 0u);
     CHECK_STR("con su motivo", "{\"fabrica\":false,\"error\":\"vinculado\"}", buf);

@@ -38,13 +38,13 @@ static int luma(rk_color_t c)
 /* ---------------------------------------------------------- la tabla ---- */
 static void test_catalogo(void)
 {
-    static const char *IDS[] = { "brote", "musgo", "pinchito", "bulbo", "champi" };
+    static const char *IDS[] = { "kip", "nori", "blink", "plum" };
     int i, j, r;
     char lbl[112];
 
-    CHECK_INT("son cinco Rooties", 5, rk_persona_count);
+    CHECK_INT("son cuatro Rooties", 4, rk_persona_count);
     /* El índice ES la clave con la que viaja: el orden no se toca. */
-    for (i = 0; i < rk_persona_count && i < 5; i++) {
+    for (i = 0; i < rk_persona_count && i < 4; i++) {
         snprintf(lbl, sizeof lbl, "el Rooti %d es %s", i, IDS[i]);
         CHECK_STR(lbl, IDS[i], rk_persona_at(i)->id);
     }
@@ -98,17 +98,25 @@ static void test_catalogo(void)
                      p->id, rk_rareza_id((rk_rareza_t)r));
             CHECK_TRUE(lbl, pl->acento != pl->piel);
         }
-        snprintf(lbl, sizeof lbl, "%s: las tres pieles tienen fondos distintos", p->id);
-        CHECK_TRUE(lbl, p->pieles[0].fondo != p->pieles[1].fondo &&
-                        p->pieles[1].fondo != p->pieles[2].fondo &&
-                        p->pieles[0].fondo != p->pieles[2].fondo);
+        /* Las tres pieles comparten la paleta del personaje: lo que las
+           separa es el ACABADO. Pero tienen que distinguirse igual, así que
+           cada una difiere de la anterior en el fondo o en los adornos. */
+        snprintf(lbl, sizeof lbl, "%s: la rara no se confunde con la comun", p->id);
+        CHECK_TRUE(lbl, p->pieles[0].fondo != p->pieles[1].fondo ||
+                        p->pieles[0].adornos != p->pieles[1].adornos);
+        snprintf(lbl, sizeof lbl, "%s: la epica no se confunde con la rara", p->id);
+        CHECK_TRUE(lbl, p->pieles[1].fondo != p->pieles[2].fondo ||
+                        p->pieles[1].adornos != p->pieles[2].adornos);
         snprintf(lbl, sizeof lbl, "%s: la comun no trae adornos", p->id);
         CHECK_INT(lbl, 0, p->pieles[RK_RAREZA_COMUN].adornos);
-        snprintf(lbl, sizeof lbl, "%s: la rara brilla", p->id);
-        CHECK_TRUE(lbl, (p->pieles[RK_RAREZA_RARA].adornos & RK_ADORNO_BRILLOS) != 0u);
-        snprintf(lbl, sizeof lbl, "%s: la epica tiene corona o aura", p->id);
+        snprintf(lbl, sizeof lbl, "%s: la rara trae un acabado", p->id);
+        CHECK_TRUE(lbl, p->pieles[RK_RAREZA_RARA].adornos != 0u);
+        /* Y la épica, uno de los grandes: corona, aura, fuego, cristal, oro
+           o metal. Ninguna épica se despacha sólo con destellos. */
+        snprintf(lbl, sizeof lbl, "%s: la epica trae un acabado de los grandes", p->id);
         CHECK_TRUE(lbl, (p->pieles[RK_RAREZA_EPICA].adornos &
-                         (RK_ADORNO_CORONA | RK_ADORNO_AURA)) != 0u);
+                         (RK_ADORNO_CORONA | RK_ADORNO_AURA | RK_ADORNO_FUEGO |
+                          RK_ADORNO_CRISTAL | RK_ADORNO_ORO | RK_ADORNO_METAL)) != 0u);
     }
 
     for (i = 0; i < rk_persona_count; i++) {
@@ -241,17 +249,18 @@ static void test_los_animos_se_distinguen(void)
     }
 }
 
-/* Pinchito contento está en ^ ^ y guiña: un ojo y después el otro. */
-static void test_el_guino(void)
+/* El cíclope tiene UN ojo: lo que en los demás son dos manchas oscuras, en
+ * él es una sola y enorme. Se comprueba contando cuántas columnas del medio
+ * de la cara tienen trazo: con dos ojos, el centro está limpio. */
+static void test_el_ojo_unico(void)
 {
-    const int pinchito = 2;
-    uint32_t quieto = cara_hash(pinchito, RK_RAREZA_COMUN, RK_MOOD_HAPPY, 0u, 1200u);
-    uint32_t izq = cara_hash(pinchito, RK_RAREZA_COMUN, RK_MOOD_HAPPY, 0u, 4400u);
-    uint32_t der = cara_hash(pinchito, RK_RAREZA_COMUN, RK_MOOD_HAPPY, 0u, 9600u);
+    const int blink = 2;
+    const rk_persona_t *p = rk_persona_at(blink);
 
-    CHECK_STR("el tercer Rooti es Pinchito", "pinchito", rk_persona_at(pinchito)->id);
-    CHECK_TRUE("guina con uno y despues con el otro", izq != der);
-    CHECK_TRUE("y el guino no es la cara quieta", izq != quieto && der != quieto);
+    CHECK_STR("el tercer Rooti es Blink", "blink", p->id);
+    CHECK_INT("y mira con un solo ojo", RK_OJOS_UNICO, p->familia);
+    CHECK_INT("que va centrado", 0, p->ojo_dx);
+    CHECK_TRUE("y es enorme", p->ojo_rx >= 25);
 }
 
 /* --------------------------------------------------------- crecimiento -- */
@@ -368,7 +377,7 @@ void suite_persona(void)
     test_los_rooties_se_ven_distintos();
     test_las_pieles_se_ven_distintas();
     test_los_animos_se_distinguen();
-    test_el_guino();
+    test_el_ojo_unico();
     test_adornos_por_etapa();
     test_bordes();
     RK_SUITE_END();

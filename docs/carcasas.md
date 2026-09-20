@@ -93,7 +93,8 @@ mientras se modela, no para imprimirlos como aparato.
 
 ## Imprimir sin soportes: las reglas
 
-Valen para las cinco carcasas y para el 3D de la app, que son lo mismo.
+Valen para las carcasas. El personaje de la app no las cumple, y no tiene
+por qué: son dos objetos (ver más arriba).
 
 | Regla | Valor | Por qué |
 |---|---|---|
@@ -128,11 +129,10 @@ pueden ajustar sin tocar una línea de lógica.
 
 | Rooti | Figura | Rasgo que manda | Tamaño del personaje (mm) |
 |---|---|---|---|
-| **Brote** | semilla germinando, cuerpo de pera | dos cotiledones en V sobre un tallo corto | 83 × 129 × 63 |
-| **Musgo** | almohadón bajo y ancho, con montículos | dos esporofitos con su cápsula | 91 × 99 × 73 |
-| **Pinchito** | cactus barril con costillas | flor de cuatro pétalos y el brazo que saluda | 93 × 106 × 62 |
-| **Bulbo** | gota gorda en punta, sobre sus raíces | un brote con su hoja | 88 × 116 × 64 |
-| **Champi** | tallo corto y gordo con anillo | el sombrero de campana con pintas | 87 × 118 × 83 |
+| **Kip** | cabeza redonda y grande, cuerpito compacto | la cresta de tres rulos | 82 × 141 × 72 |
+| **Nori** | cabeza ovalada, hombros marcados | el corte bob con flequillo | 86 × 116 × 80 |
+| **Blink** | la cabeza es casi todo el bicho | los dos cuernitos, y adentro un ojo enorme | 87 × 133 × 74 |
+| **Plum** | un solo volumen con forma de gota | el cabito con su hojita | 86 × 121 × 73 |
 
 Son las medidas del PERSONAJE, no de la carcasa: la carcasa va a ser más
 grande, porque adentro entra la celda.

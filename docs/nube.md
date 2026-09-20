@@ -37,7 +37,7 @@ del protocolo.
   "pantalla": "st7735-128",
   "lote": "L2609",
   "ota": { "version": "0.6.0", "estado": "ok" },
-  "persona": "brote",
+  "persona": "kip",
   "estado": "SIN_VINCULO",
   "epoca": 3,
   "codigo": "K7Q2M9XA",
@@ -60,7 +60,7 @@ del protocolo.
 | `fw`, `placa` | qué versión corre y en qué placa: con eso la nube decide si le ofrece una actualización |
 | `lote` | el lote de fábrica, si lo tiene; la nube prefiere el que registró la fábrica |
 | `ota` | sólo si alguna vez intentó actualizarse: la versión y cómo le fue (`bajando`, `verificando`, `ok`, `fallo`). Ver [ota.md](ota.md) |
-| `persona` | el Rooti grabado en fábrica (`brote`, `musgo`, `pinchito`, `bulbo`, `champi`); vacío si no tiene |
+| `persona` | el Rooti grabado en fábrica (`kip`, `nori`, `blink`, `plum`, `blink`); vacío si no tiene |
 | `estado` | el estado de `core/enlace.c` |
 | `epoca` | sube con cada desvinculación |
 | `codigo` | **sólo mientras no está vinculado**: el del QR |
@@ -83,7 +83,7 @@ pila de reloj, sin aparatos que arrancan en 1970.
   "ok": true,
   "vinculado": true,
   "revelado": true,
-  "persona": "brote",
+  "persona": "kip",
   "rareza": "epico",
   "nombre": "Rulo",
   "especie": {

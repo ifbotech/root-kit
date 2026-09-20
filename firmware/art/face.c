@@ -56,6 +56,8 @@ typedef struct {
     bool nieve;       /* copos que caen: frio                              */
     bool vaho;        /* vapor que sube: calor                             */
     bool polvillo;    /* motas que flotan: aire seco                       */
+    bool agua;        /* el visor inundado hasta la mitad: se ahoga        */
+    bool grietas;     /* la cara cuarteada: sequía                         */
 } expr_t;
 
 /* ---------------------------------------------------------- geometría --- */
@@ -90,6 +92,12 @@ uint8_t rk_face_ease(uint8_t t_pct)
     int32_t t2 = t * t;
     return (uint8_t)((3 * t2 * 100 - 2 * t2 * t) / 10000);
 }
+
+/* El celeste del agua cuando el visor se inunda, y los tres colores de
+ * los acabados épicos. */
+#define COL_AGUA  RK_HEX(0x6EC6FF)
+#define COL_HIELO RK_HEX(0xCFF3FF)
+#define COL_FUEGO RK_HEX(0xFF7A1A)
 
 /* -------------------------------------------------------------- color --- */
 /* Tinte y penumbra se aplican a TODOS los colores por igual. Si se aplicaran
@@ -187,7 +195,11 @@ static expr_t expresion(const rk_persona_t *p, rk_mood_t mood,
         e.nieve = true;
         e.g.ceja_ang = 12; e.g.ceja_dy = 3; e.g.tapa_inf = 22; break;
     case RK_MOOD_DROWNING:
-        e.burbujas = true; e.g.ceja_dy = 5; e.g.ceja_ang = 10; break;
+        /* No es sólo cara de susto: el visor se le llena de agua hasta la
+           mitad, y eso se entiende de un vistazo desde el otro lado del
+           cuarto, que es para lo que existe la cara. */
+        e.burbujas = true; e.agua = true;
+        e.g.ceja_dy = 5; e.g.ceja_ang = 10; break;
     case RK_MOOD_DARK:
         /* En penumbra no mira fijo: barre despacio de un lado al otro,
            buscando de donde puede venir la luz. */
@@ -199,6 +211,7 @@ static expr_t expresion(const rk_persona_t *p, rk_mood_t mood,
     case RK_MOOD_UNKNOWN:
         e.g.mira_y = -60; e.g.mira_x = -30; e.g.ceja_dy = 4; break;
     case RK_MOOD_PARCHED_AIR:
+        e.grietas = true;
         e.polvillo = true;
         e.g.tapa_inf = 30; e.g.tapa_sup = 20;              break;
     case RK_MOOD_SCORCHED:
@@ -510,6 +523,25 @@ static void ojo(cara_t *c, const expr_t *e, int32_t ex, int32_t ey,
         brillos(c, ex, ey, rx, ryv, lado, x0, y0, x1, y1);
     }
 
+    /* --- el corte de la familia ----------------------------------------- */
+    /* Se talla DESPUÉS del ojo y con el color del fondo, que es el mismo
+       truco de los párpados: así un ojo rasgado es el ojo de siempre con una
+       esquina comida, y no hay una segunda geometría que mantener. */
+    if (c->p->familia == RK_OJOS_RASGADOS) {
+        /* La punta de afuera sube: el corte entra desde arriba y adentro. */
+        f[0] = rk_semiplano_arriba_q4(ex, ey - ryv * 62 / 100, 26 * lado);
+        f[1] = rk_elipse_q4(ex, ey, rx + PX(c, 2), ryv + PX(c, 2));
+        pintar_en(c, f, 2, c->bg, x0, y0, x1, y1);
+    } else if (c->p->familia == RK_OJOS_ALMENDRA) {
+        /* Esquinas rectificadas: se achata arriba y abajo, apenas. */
+        f[0] = rk_semiplano_arriba_q4(ex, ey - ryv * 80 / 100, 0);
+        f[1] = rk_elipse_q4(ex, ey, rx + PX(c, 2), ryv + PX(c, 2));
+        pintar_en(c, f, 2, c->bg, x0, y0, x1, y1);
+        f[0] = rk_semiplano_abajo_q4(ex, ey + ryv * 86 / 100, 0);
+        f[1] = rk_elipse_q4(ex, ey, rx + PX(c, 2), ryv + PX(c, 2));
+        pintar_en(c, f, 2, c->bg, x0, y0, x1, y1);
+    }
+
     /* --- los párpados, del color del fondo ------------------------------ */
     if (e->g.tapa_sup > 0) {
         /* Recta que baja desde el borde de arriba del ojo. La inclinación se
@@ -572,11 +604,23 @@ static void cejas(cara_t *c, const expr_t *e, int32_t ex_izq, int32_t ex_der,
     int32_t alto = PQ(c, p->ceja_alto + e->g.ceja_dy);
     int ang = p->ceja_angulo + e->g.ceja_ang;
     bool flotante = p->ceja == RK_CEJA_FLOTANTE;
-    int32_t hl = PQ(c, p->ojo_rx) * (flotante ? 30 : 58) / 100;
-    int32_t r = flotante ? PX(c, 6) : PX(c, 3);
+    bool gruesa = p->ceja == RK_CEJA_GRUESA;
+    int32_t hl = PQ(c, p->ojo_rx) * (flotante ? 30 : gruesa ? 76 : 58) / 100;
+    /* La ceja gruesa es lo que le da la cara al piloto: tupida y larga, casi
+       tocando el ojo. Con una ceja fina, el mismo ángulo no dice nada. */
+    int32_t r = flotante ? PX(c, 6) : gruesa ? PX(c, 7) : PX(c, 3);
     int lado;
 
     if (p->ceja == RK_CEJA_NINGUNA || e->cerrado != 0) {
+        return;
+    }
+    if (p->familia == RK_OJOS_UNICO) {
+        /* Con un ojo solo, una ceja sola: centrada y más larga. Inclinarla
+           entera es lo único que le queda al cíclope para fruncir el ceño. */
+        int32_t by = c->oy - ry - alto;
+        int32_t largo = PQ(c, p->ojo_rx) * 90 / 100;
+        int32_t k = (int32_t)((int64_t)largo * ang / 40);
+        capsula(c, c->cx - largo, by + k, c->cx + largo, by - k, PX(c, 7), c->trazo);
         return;
     }
     for (lado = -1; lado <= 1; lado += 2) {
@@ -696,10 +740,138 @@ static void boca(cara_t *c, const expr_t *e)
             pintar(c, d, 3, c->lengua, 255);
             d[2] = rk_elipse_q4(c->cx + w * 22 / 100, my, w * 17 / 100, w * 32 / 100);
             pintar(c, d, 3, c->blanco, 255);
+        } else if (curva >= 40 && p->boca == RK_BOCA_LADEADA) {
+            /* La media sonrisa del piloto: sube de un lado nomás. Un arco
+               entero se lee como ternura; medio arco, como picardía. */
+            int32_t xa = c->cx - w * 70 / 100, xb = c->cx + w * 85 / 100;
+            capsula(c, xa, y, c->cx, y + w * 16 / 100, gr / 2, c->trazo);
+            capsula(c, c->cx, y + w * 16 / 100, xb, y - w * 26 / 100, gr / 2, c->trazo);
+        } else if (p->boca == RK_BOCA_SOBRIA && curva > -40) {
+            /* Corta y casi recta: la aprobación de quien no va a decirlo. */
+            int32_t k = w * curva * 22 / 10000;
+            capsula(c, c->cx - w * 46 / 100, y - k, c->cx + w * 46 / 100, y + k,
+                    gr / 2, c->trazo);
+        } else if (curva <= -40 && p->boca == RK_BOCA_SIERRA) {
+            /* Dientes de sierra: la mueca del cíclope cuando algo no le
+               cierra. Es fea a propósito, y dura poco. */
+            int32_t paso = w * 2 / 5;
+            int k;
+            for (k = 0; k < 5; k++) {
+                int32_t xa = c->cx - w + paso * k;
+                capsula(c, xa, y, xa + paso / 2, y - w * 34 / 100, gr / 3, c->trazo);
+                capsula(c, xa + paso / 2, y - w * 34 / 100, xa + paso, y, gr / 3, c->trazo);
+            }
         } else if (curva > -12 && curva < 12) {
             capsula(c, c->cx - w * 2 / 3, y, c->cx + w * 2 / 3, y, gr / 2, c->trazo);
         } else {
             boca_curva(c, w, y, gr, curva);
+        }
+    }
+}
+
+
+/* --------------------------------------------------------- el clima --- */
+/* El visor inundado: agua celeste translúcida hasta la mitad de la cara, con
+ * la superficie ondulando. Va ENCIMA de los ojos y la boca —está delante, no
+ * detrás— y por eso se dibuja al final; con alfa, para que los ojos se sigan
+ * viendo abajo, asustados. */
+static void agua(cara_t *c)
+{
+    rk_color_t azul = rk_mix(COL_AGUA, c->bg, 40);
+    int32_t nivel = c->cy + PQ(c, 4)
+                  + (int32_t)rk_sin8((uint8_t)(c->t / 18u)) * PX(c, 3) / 127;
+    rk_forma_t f = rk_semiplano_abajo_q4(c->cx, nivel, 0);
+    int i;
+
+    pintar(c, &f, 1, azul, 120);
+    /* La superficie: una línea clara que ondula. */
+    for (i = -3; i <= 3; i++) {
+        int32_t x = c->cx + PQ(c, 12) * i;
+        int32_t dy = (int32_t)rk_sin8((uint8_t)(c->t / 14u + (uint32_t)(i * 40)))
+                   * PX(c, 2) / 127;
+        capsula(c, x, nivel + dy, x + PQ(c, 12), nivel - dy, PX(c, 2),
+                rk_mix(COL_BLANCO, azul, 90));
+    }
+}
+
+/* La cara cuarteada de la sequía: unas pocas rayas finas, del color de los
+ * ojos aguado contra el fondo. Pocas y quietas: si se movieran parecerían
+ * suciedad de la pantalla. */
+static void grietas(cara_t *c)
+{
+    rk_color_t col = rk_mix(c->trazo, c->bg, 150);
+    int32_t r = PX(c, 2);
+    /* Medio lado en Q4: desde el centro al borde hay esto, no el lado entero
+       (con el lado entero las grietas caían fuera de la pantalla). */
+    int32_t u = (int32_t)c->u * 8;
+    capsula(c, c->cx - u * 34 / 100, c->cy - u * 30 / 100,
+            c->cx - u * 26 / 100, c->cy - u * 6 / 100, r, col);
+    capsula(c, c->cx - u * 26 / 100, c->cy - u * 6 / 100,
+            c->cx - u * 34 / 100, c->cy + u * 14 / 100, r, col);
+    capsula(c, c->cx + u * 30 / 100, c->cy - u * 16 / 100,
+            c->cx + u * 22 / 100, c->cy + u * 6 / 100, r, col);
+    capsula(c, c->cx + u * 22 / 100, c->cy + u * 6 / 100,
+            c->cx + u * 31 / 100, c->cy + u * 24 / 100, r, col);
+    capsula(c, c->cx - u * 6 / 100, c->cy + u * 30 / 100,
+            c->cx + u * 2 / 100, c->cy + u * 40 / 100, r, col);
+}
+
+
+/* --------------------------------------------------------- acabados --- */
+/* Lo que hace que una piel épica se note SIN cambiarle el color al
+ * personaje. Cada uno va con el carácter de su Rooti, y todos son
+ * movimiento: el premio se ve cuando la cara está viva, no en una captura.
+ *
+ * Los cuatro comparten la misma idea barata: una franja diagonal que cruza
+ * la cara cada tantos segundos. Lo que cambia es el color, el ancho y qué
+ * deja atrás. */
+static void barrido(cara_t *c, rk_color_t col, uint8_t alfa, int32_t ancho,
+                    uint32_t periodo, int32_t desfase)
+{
+    int32_t u = (int32_t)c->u * 8;            /* medio lado, en Q4 */
+    /* De abajo a la izquierda hasta arriba a la derecha, y vuelve a empezar. */
+    int32_t k = (int32_t)(((c->t + (uint32_t)desfase) % periodo) * 300u / periodo) - 100;
+    int32_t x = c->cx + u * k / 100;
+    rk_forma_t f = rk_capsula_q4(x - u * 40 / 100, c->cy + u * 70 / 100,
+                                 x + u * 40 / 100, c->cy - u * 70 / 100, ancho);
+    pintar(c, &f, 1, col, alfa);
+}
+
+static void acabados(cara_t *c, uint8_t set)
+{
+    int32_t u = (int32_t)c->u * 8;            /* medio lado, en Q4 */
+    int i;
+
+    if (set & RK_ADORNO_METAL) {
+        /* Dos filos duros y juntos: chapa pulida. */
+        barrido(c, rk_mix(COL_BLANCO, c->bg, 40), 150, PX(c, 7), 4200u, 0);
+        barrido(c, rk_mix(COL_BLANCO, c->bg, 90), 110, PX(c, 3), 4200u, 260);
+    }
+    if (set & RK_ADORNO_ORO) {
+        /* Ancho, tibio y lento: oro, no acero. */
+        barrido(c, rk_mix(COL_ORO, c->bg, 60), 150, PX(c, 14), 5200u, 0);
+    }
+    if (set & RK_ADORNO_CRISTAL) {
+        /* Frío y facetado: el destello cruza y deja tres esquirlas quietas. */
+        barrido(c, rk_mix(COL_HIELO, c->bg, 70), 130, PX(c, 6), 3800u, 0);
+        for (i = -1; i <= 1; i++) {
+            int32_t x = c->cx + u * i * 34 / 100;
+            int32_t y = c->cy - u * 52 / 100 + (i == 0 ? u * 12 / 100 : 0);
+            destello(c, x, y, PQ(c, 5), rk_mix(COL_HIELO, c->bg, 40), 190);
+        }
+    }
+    if (set & RK_ADORNO_FUEGO) {
+        /* Llamitas lamiendo el borde de abajo. Cada una con su ritmo, o
+           parecerían una sola cosa que late. */
+        for (i = -2; i <= 2; i++) {
+            uint8_t ph = (uint8_t)(c->t / 9u + (uint32_t)(i * 51));
+            int32_t alto = PQ(c, 12) + (int32_t)rk_sin8(ph) * PQ(c, 7) / 127;
+            int32_t x = c->cx + u * i * 26 / 100;
+            int32_t base = c->cy + u * 82 / 100;
+            elipse(c, x, base - alto / 2, PQ(c, 5), alto / 2,
+                   rk_mix(COL_FUEGO, c->bg, 30), 210);
+            elipse(c, x, base - alto / 3, PQ(c, 3), alto / 3,
+                   rk_mix(COL_ORO, c->bg, 20), 230);
         }
     }
 }
@@ -974,12 +1146,28 @@ static void dibujar(rk_fb_t *fb, const rk_persona_t *p, const rk_piel_t *piel,
     if (set & RK_ADORNO_AURA) {
         adornos(&c, &e, RK_ADORNO_AURA, c.cx - dx, c.cx + dx, ry);
     }
-    ojo(&c, &e, c.cx - dx, c.oy, rx, ry, -1);
-    ojo(&c, &e, c.cx + dx, c.oy, rx, ry, +1);
-    mejillas(&c, c.cx - dx, c.cx + dx, rx, ry);
+    if (p->familia == RK_OJOS_UNICO) {
+        /* Un ojo solo, en el medio. Las mejillas se van a los costados de la
+           cara, porque si no quedarían debajo del mismo ojo. */
+        ojo(&c, &e, c.cx, c.oy, rx, ry, -1);
+        mejillas(&c, c.cx - rx * 102 / 100, c.cx + rx * 102 / 100,
+                 rx * 46 / 100, ry * 62 / 100);
+    } else {
+        ojo(&c, &e, c.cx - dx, c.oy, rx, ry, -1);
+        ojo(&c, &e, c.cx + dx, c.oy, rx, ry, +1);
+        mejillas(&c, c.cx - dx, c.cx + dx, rx, ry);
+    }
     cejas(&c, &e, c.cx - dx, c.cx + dx, ry);
     boca(&c, &e);
+    if (e.grietas) {
+        grietas(&c);
+    }
     adornos(&c, &e, (uint8_t)(set & (uint8_t)~RK_ADORNO_AURA), c.cx - dx, c.cx + dx, ry);
+    acabados(&c, set);
+    /* El agua tapa todo lo demás: está delante de la cara. */
+    if (e.agua) {
+        agua(&c);
+    }
 }
 
 static const rk_piel_t *piel_de(const rk_persona_t *p, uint8_t rareza)

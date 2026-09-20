@@ -20,11 +20,10 @@ El personaje y la carcasa son dos objetos distintos, a propósito:
 
 | Rooti | Archivo | Tamaño (mm) | Triángulos |
 | --- | --- | --- | --- |
-| Brote | `brote.stl` | 83.6 × 129.2 × 62.9 | 27052 |
-| Musgo | `musgo.stl` | 90.7 × 98.8 × 72.9 | 21696 |
-| Pinchito | `pinchito.stl` | 93.4 × 106.3 × 61.9 | 25292 |
-| Bulbo | `bulbo.stl` | 87.7 × 115.8 × 64.1 | 21776 |
-| Champi | `champi.stl` | 87.1 × 118 × 83.1 | 32312 |
+| Kip | `kip.stl` | 81.9 × 140.9 × 71.9 | 35344 |
+| Nori | `nori.stl` | 86 × 116 × 80 | 33188 |
+| Blink | `blink.stl` | 86.8 × 132.9 × 74 | 33368 |
+| Plum | `plum.stl` | 85.9 × 121.1 × 72.8 | 29432 |
 
 Las mallas son cerradas y con las normales hacia afuera (volumen con signo
 positivo), así que un laminador las acepta sin reparaciones. Si querés

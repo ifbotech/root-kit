@@ -3,7 +3,7 @@
 Cada ROOTKIT sale de la caja con dos cosas grabadas que no vienen en el
 firmware: su **secreto** (16 bytes al azar, de donde salen el token con el
 que habla con la nube y el código de su QR) y su **Rooti** (la figura que
-lleva puesta: Brote, Musgo, Pinchito, Bulbo o Champi). Y la nube tiene que
+lleva puesta: Kip, Nori, Blink, Plum o Blink). Y la nube tiene que
 conocerlo de antemano: en producción, una placa que no pasó por acá **no
 entra** (`ROOTLAB_TOFU=emulador`).
 
@@ -12,7 +12,7 @@ entra** (`ROOTLAB_TOFU=emulador`).
 ```bash
 set ROOTLAB_ADMIN_CLAVE=...       # la del servidor; nunca en la línea de comandos
 ~/.platformio/penv/Scripts/python tools/fabrica.py --puerto COM5 \
-    --persona brote --lote L2609 --nube https://ifbotech.com/rootkit --flashear
+    --persona kip --lote L2609 --nube https://ifbotech.com/rootkit --flashear
 ```
 
 1. **Flashea** el firmware (`--flashear`, con PlatformIO; se puede saltear si
@@ -38,10 +38,10 @@ en CI).
 Una línea por el puerto serie, a 115200:
 
 ```
-FABRICA {"secreto":"3a917c05ee4218b69d602fc3710e845b","persona":"brote","lote":"L2609"}
+FABRICA {"secreto":"3a917c05ee4218b69d602fc3710e845b","persona":"kip","lote":"L2609"}
   -> {"fabrica":true,"grabado":true}
 FABRICA?
-  -> {"fabrica":true,"id":"A1B2C3D4E5F6","persona":"brote","lote":"L2609","codigo":"K7Q2M9XA","fw":"0.6.0","vinculado":false}
+  -> {"fabrica":true,"id":"A1B2C3D4E5F6","persona":"kip","lote":"L2609","codigo":"K7Q2M9XA","fw":"0.6.0","vinculado":false}
 ```
 
 El aparato valida: secreto de 32 hexadecimales y que no sea todo ceros, un

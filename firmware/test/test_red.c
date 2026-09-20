@@ -126,7 +126,7 @@ static void test_armar_sync(void)
     yo.fw = "0.5.0";
     yo.placa = "c3-supermini";
     yo.pantalla = "st7735-128";
-    yo.persona = "brote";
+    yo.persona = "kip";
     yo.codigo = "K7Q2M9XA";
     yo.estado = "SIN_VINCULO";
     yo.epoca = 3u;
@@ -195,7 +195,7 @@ static void test_armar_sync(void)
 static void test_parsear(void)
 {
     static const char *BUENA =
-        "{\"ok\":true,\"vinculado\":true,\"revelado\":true,\"persona\":\"pinchito\","
+        "{\"ok\":true,\"vinculado\":true,\"revelado\":true,\"persona\":\"blink\","
         "\"rareza\":\"epico\",\"nombre\":\"Rulo\",\"especie\":{\"id\":\"monstera\",\"nombre\":\"Monstera deliciosa\","
         "\"suelo_min\":25,\"suelo_max\":60,\"temp_min\":180,\"temp_max\":300,"
         "\"hr_min\":50,\"lux_min\":1000,\"lux_max\":15000,\"dificultad\":45},"
@@ -206,7 +206,7 @@ static void test_parsear(void)
 
     CHECK_TRUE("una respuesta buena se entiende", rk_nube_parsear(BUENA, &r));
     CHECK_TRUE("vinculado y revelado", r.vinculado && r.revelado);
-    CHECK_STR("persona", "pinchito", r.persona);
+    CHECK_STR("persona", "blink", r.persona);
     CHECK_TRUE("con la piel que salio del cofre", r.hay_rareza && r.rareza == RK_RAREZA_EPICA);
     CHECK_STR("nombre", "Rulo", r.nombre);
     CHECK_TRUE("con especie", r.hay_especie);

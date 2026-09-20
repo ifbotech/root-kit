@@ -1,49 +1,58 @@
-/* persona.h — los Rooties: cinco personajes botánicos y sus tres pieles.
+/* persona.h — los Rooties: cuatro personajes y sus tres pieles.
  *
  * LA FIGURA ES EL PERSONAJE; EL COFRE ES LA PIEL
  *
  * Cada ROOTKIT es un Rooti de verdad: una figura impresa en 3D que es su
  * cuerpo, con la pantalla puesta donde va la cara. Qué Rooti es lo decide la
  * figura que viene en la caja, y la fábrica lo graba en la NVS del aparato
- * ("brote"). Nada en el software lo sortea: la persona ya lo descubrió al
- * abrir la caja, y un cofre que le dijera otra cosa sería confuso.
+ * ("kip"). Nada en el software lo sortea: la persona ya lo descubrió al abrir
+ * la caja, y un cofre que le dijera otra cosa sería confuso.
  *
  * Lo que sí se sortea, una sola vez, es la PIEL: al abrir el cofre en la app
- * sale la rareza (común 70 %, rara 25 %, épica 5 %), y con ella una de las
- * tres paletas de ese personaje. La nube la guarda con la planta y se la
- * manda al aparato en el sync ("rareza": "epico"); la pantalla de la maceta
- * se pinta con esos colores desde ese momento.
+ * sale la rareza (común 70 %, rara 25 %, épica 5 %). La nube la guarda con la
+ * planta y se la manda al aparato en el sync ("rareza": "epico").
  *
- * ESTILO: JUGUETES DE VINILO BRILLANTES (la escuela de Ooblets)
+ * LA RAREZA ES UN ACABADO, NO OTRO PERSONAJE
  *
- * Cuerpos de formas simples y gorditas, de colores vivos y claros, con UN
- * rasgo que manda arriba (hojas, sombrero, flor, brote, esporas). Ojos
- * grandes y oscuros con brillos blancos y una media luna más clara abajo,
- * mejillas sonrosadas, bocas chicas y dulces. Sin contorno negro.
+ * Las tres pieles de un Rooti comparten su paleta: la que le dio la artista, y
+ * es parte de quién es. Lo que cambia es el ACABADO —el brillo de la rara, el
+ * fuego, el cristal, el oro o el metal de la épica—, elegido para que vaya con
+ * el carácter de cada uno. Una épica se reconoce en movimiento, no por ser de
+ * otro color: así el personaje sigue siendo el mismo y el premio se nota igual.
+ *
+ * EL ELENCO
+ *
+ *   kip    el piloto audaz: cresta de tres rulos, cejas tupidas, ojos
+ *          rasgados de ámbar. Impetuoso y dramático.
+ *   nori   la crítica sofisticada: corte bob, pecas, ojos almendrados de
+ *          pupila grande. Juzga en silencio.
+ *   blink  el cíclope optimista: dos cuernitos y UN ojo enorme dorado.
+ *          Ajeno al peligro, y siempre sale ileso.
+ *   plum   la berenjenita empática: cuerpo de gota con su cabito, ojos
+ *          grandes y húmedos. Un cachorro leal.
  *
  * LA CARA VA PINTADA SOBRE EL CUERPO
  *
- * El fondo de la pantalla ES el color del cuerpo (`fondo` == `piel`): la
- * cara no se ve como una pantallita pegada sino como ojos pintados sobre el
- * personaje, igual que en el 3D de la app, donde esta misma cara se proyecta
- * sobre la superficie del cuerpo. Por eso los cuerpos son claros aunque
- * sean vivos: sobre ellos tiene que leerse un ojo oscuro a un metro
+ * El fondo de la pantalla ES el color del cuerpo (`fondo` == `piel`): la cara
+ * no se ve como una pantallita pegada sino como ojos pintados sobre el
+ * personaje, igual que en el 3D de la app. Por eso el cuerpo es claro aunque
+ * sea vivo: sobre él tiene que leerse un ojo oscuro a un metro
  * (test/test_persona.c lo mide).
  *
  * LA PANTALLA PONE LA CARA; LA APP DIBUJA EL CUERPO EN 3D
  *
- * El aparato sólo dibuja la cara (art/face.c). El cuerpo entero —hojas,
- * patitas, sombrero— lo pone la figura impresa en la mesa y, en el teléfono,
- * el modelo 3D de root-lab/public/lib/rooti3d/, con los colores de esta
- * tabla: `piel` es el cuerpo y `acento` lo de arriba.
+ * El aparato sólo dibuja la cara (art/face.c). El cuerpo entero —la cresta, el
+ * flequillo, los cuernitos, el cabito— lo pone la figura en la mesa y, en el
+ * teléfono, el modelo 3D de root-lab/public/lib/rooti3d/, con los colores de
+ * esta tabla: `piel` es el cuerpo y `acento` lo de arriba.
  *
  * ARTE COMO DATOS
  *
- * Cada fila es un personaje y cada número se puede ajustar sin tocar
- * lógica: proporciones de los ojos, el tipo de brillo, la boca, las mejillas
- * y las tres pieles. Los colores van en hexadecimal (RK_HEX), igual que los
- * entrega la artista. root-lab lee esta misma tabla para las paletas de la
- * app (tools/sincronizar-firmware.mjs): hay una sola fuente de verdad.
+ * Cada fila es un personaje y cada número se puede ajustar sin tocar lógica:
+ * proporciones de los ojos, el tipo de brillo, la boca, las mejillas y las
+ * tres pieles. Los colores van en hexadecimal (RK_HEX), igual que los entrega
+ * la artista. root-lab lee esta misma tabla para las paletas de la app
+ * (tools/sincronizar-firmware.mjs): hay una sola fuente de verdad.
  */
 #ifndef ROOTKIT_PERSONA_H
 #define ROOTKIT_PERSONA_H
@@ -68,6 +77,9 @@ typedef enum {
     RK_OJOS_REDONDOS = 0,   /* grandes y abiertos: el caso base            */
     RK_OJOS_MEDIALUNA,      /* párpados relajados a media altura: "u u"    */
     RK_OJOS_ARCO,           /* contento, en arco "^ ^", y guiña            */
+    RK_OJOS_RASGADOS,       /* corte angular, la punta de afuera arriba    */
+    RK_OJOS_ALMENDRA,       /* almendrados de esquinas rectas, pupila gran */
+    RK_OJOS_UNICO,          /* uno solo, enorme y centrado: el cíclope     */
     RK_OJOS_COUNT
 } rk_familia_ojos_t;
 
@@ -83,6 +95,7 @@ typedef enum {
     RK_CEJA_NINGUNA = 0,
     RK_CEJA_FINA,           /* un trazo corto y suave                       */
     RK_CEJA_FLOTANTE,       /* dos óvalos redondeados, separados del ojo    */
+    RK_CEJA_GRUESA,         /* tupidas y largas: aguantan cualquier gesto   */
     RK_CEJA_COUNT
 } rk_ceja_t;
 
@@ -93,6 +106,9 @@ typedef enum {
     RK_BOCA_GATO,           /* ":3", la boca de gato                        */
     RK_BOCA_DIENTECITO,     /* sonrisa abierta con un dientito asomando     */
     RK_BOCA_D,              /* ":D", abierta y alegre, con lengua           */
+    RK_BOCA_LADEADA,        /* media sonrisa torcida, de piloto canchero    */
+    RK_BOCA_SOBRIA,         /* una línea corta que apenas se curva          */
+    RK_BOCA_SIERRA,         /* dientes de tiburón: la mueca del cíclope     */
     RK_BOCA_ESTILO_COUNT
 } rk_boca_estilo_t;
 
@@ -111,6 +127,14 @@ typedef enum {
 #define RK_ADORNO_AURA      0x02u   /* un anillo que respira en el borde   */
 #define RK_ADORNO_CORONA    0x04u   /* corona dorada arriba de los ojos    */
 #define RK_ADORNO_LUCES     0x08u   /* luces que suben: bioluminiscencia   */
+/* Los ACABADOS: lo que distingue a una piel rara o épica cuando comparte la
+ * paleta con la común. Cada uno va con el carácter de su personaje —el fuego
+ * con el piloto, el cristal con la crítica, el oro con el cíclope— y es una
+ * animación, no un color: por eso una piel épica se reconoce en movimiento. */
+#define RK_ADORNO_FUEGO     0x10u   /* llamitas que lamen el borde de abajo */
+#define RK_ADORNO_CRISTAL   0x20u   /* facetas frías y un destello que cruza */
+#define RK_ADORNO_ORO       0x40u   /* barrido dorado, como metal pulido    */
+#define RK_ADORNO_METAL     0x80u   /* reflejo duro que baja por la cara    */
 
 /* Una piel: los cinco colores de la paleta y lo que trae de regalo. */
 typedef struct {

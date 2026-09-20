@@ -642,3 +642,32 @@ STL, pero como referencia de forma.
 **La lección, que es más general:** una restricción de fabricación aplicada
 demasiado arriba en la cadena no limita el resultado, lo achata. La restricción
 va donde se fabrica.
+
+### Los cinco Rooties botánicos
+
+**Antes:** cinco personajes que eran plantas —un brote, un musgo, un cactus,
+un bulbo y un hongo—, cada uno con tres pieles de paletas distintas.
+
+**Qué la tumbó:** aparecieron los personajes de Rocío, que son gente: un
+piloto, una crítica, un cíclope optimista y una berenjenita empática. Un
+personaje con una actitud se quiere más que una planta simpática, y en una
+pantalla de 128 × 128 una actitud se comunica con dos cejas, mientras que un
+cactus necesita que le veas las espinas.
+
+**Qué se llevó puesto:** las cinco carcasas, las quince pieles y las quince
+paletas de la app. Los aparatos de la primera tanda y los de los botánicos
+pasan a los nuevos por la tabla `LEGADO` de `server/cofre.mjs`; nadie pierde
+su colección, se traduce.
+
+### Una paleta distinta por rareza
+
+**Antes:** cada piel de un Rooti tenía su propia paleta. La común de un
+personaje y su épica podían ser de colores completamente distintos.
+
+**Qué la tumbó:** el personaje se disolvía. Si el Brote común era verde y el
+épico dorado, ¿de qué color es el Brote? La paleta es parte de quién es un
+personaje, igual que su cara.
+
+**Qué se hizo:** la rareza pasa a ser un ACABADO —fuego, acero, cristal, oro,
+aura— animado sobre la misma paleta. Se reconoce en movimiento, no en una
+captura, y eso encima lo hace sentir más premio.
