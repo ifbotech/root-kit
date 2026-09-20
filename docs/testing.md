@@ -1,8 +1,9 @@
 # Pruebas
 
 ```bash
-make test        # 2008 comprobaciones del firmware, sin placa ni SDL
-make verify      # lo que corre CI: pruebas y referencias visuales al día
+make test        # 2225 comprobaciones del firmware, sin placa ni SDL
+make verify      # lo que corre CI: pruebas, referencias visuales y sustrato
+make pcb         # verifica el sustrato impreso y regenera lo que sale de él
 make placa       # compila el producto (c3-144) y el banco (devkit-144)
 ```
 
@@ -23,7 +24,26 @@ flujo completo de punta a punta.
 | `pantalla del QR` | 19 | Que el QR dibujado se lea módulo por módulo (en 128×128 y en un lienzo más grande), también con la URL del VPS |
 | `identidad y vinculo` | 91 | SHA-256 y HMAC con vectores oficiales, código y token, el flujo completo del enlace y sus caminos feos |
 | `nube` | 98 | JSON hostil o cortado, el cuerpo del pedido, respuestas incoherentes que no se aplican; a qué URL se le puede mandar el token (sólo `https://` exacto en el producto, sin usuario ni caracteres raros) |
+| `sustrato y placa.h` | 217 | Que el sustrato impreso y el firmware digan lo mismo: cada GPIO en su red, los analógicos en el ADC1, el toque en un pin que despierta, los tres pines de arranque en alto, el 1-Wire y su pull-up en el mismo riel, el divisor del riel, y las trampas del banco (ADC2, ext0, pines sólo de entrada) |
 | `ota y fabrica` | 104 | Versiones, hex y base64; manifiestos hostiles o a medias; cuándo se baja una versión (batería, tres intentos, volver atrás) y el arranque a prueba; el cuerpo del sync con `ota` y `lote`; la línea de fábrica: secretos cortos o en cero, Rooties que no existen, lotes raros, el log que no es una orden |
+
+## El sustrato también se verifica, aparte
+
+`make test` cruza el sustrato con `placa.h`, pero la **geometría** de la PCB
+impresa se verifica en Python, porque es geometría:
+
+```bash
+python3 tools/pcb.py --verificar     # y dentro de `make verify` y de CI
+```
+
+Revisa que ninguna canaleta quede a menos de 0,8 mm de otra (dos
+extrusiones: menos que eso no se imprime), que cada red quede en **una sola
+pieza** contando pistas y puentes, que nada de cobre entre en la ventana, los
+recortes o los tornillos, que se respete la zona libre de la antena y que el
+texto grabado no muerda una pista. Y CI falla si los archivos que salen del
+dato —la plantilla de corte, el diagrama de conexiones y `test/redes.h`— no
+están commiteados al día, por la misma razón que `golden.h`: una plantilla
+vieja se imprime igual de bien y arma una placa que no anda.
 
 ## Las pruebas que valen más que su tamaño
 

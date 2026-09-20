@@ -15,12 +15,18 @@ framerate— no para desarrollar.
 | WSLg | driver x11, `DISPLAY=:0` | Mostrar esa ventana en Windows |
 | clang + lld | 18 | `make wasm`: el renderer para la app |
 | PlatformIO | 6.1+ | Compilar y flashear las placas (`pip install platformio`) |
-| Python | 3.10+ | Convertir capturas |
+| Python | 3.10+ | Convertir capturas, la estación de fábrica y el sustrato (`tools/pcb.py`) |
+| OpenSCAD | 2021.01+ | Exportar el STL del sustrato. Sólo para `make pcb`: el resto se genera sin él |
 | Node | 20+ | root-lab: la app, la nube y el emulador |
 
 Las pruebas y las capturas **no necesitan SDL**: el Makefile lo detecta con
 `pkg-config` y compila el simulador sin ventana si no está. Sólo `make sim` lo
 pide.
+
+**OpenSCAD tampoco es obligatorio.** `make pcb` verifica el sustrato y
+regenera la plantilla, el diagrama de conexiones y la netlist con Python solo;
+si OpenSCAD no está, avisa y deja el STL como estaba. En Windows está en
+`C:\Program Files\OpenSCAD\openscad.exe` y se usa por línea de comandos.
 
 ```bash
 cd /mnt/c/Users/ifbar/Documents/rootkit/firmware

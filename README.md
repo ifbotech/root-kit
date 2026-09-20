@@ -61,12 +61,15 @@ https://ifbotech.com/rootkit/emulador/).
 Se **actualiza solo por aire**, con firmware firmado, y sale de **fábrica**
 con su identidad grabada: [docs/ota.md](docs/ota.md) y
 [docs/fabrica.md](docs/fabrica.md). Detalle de pines, consumo y lista de
-compras: [docs/hardware.md](docs/hardware.md).
+compras: [docs/hardware.md](docs/hardware.md). La placa en sí —un sustrato
+impreso en 3D con canaletas y cinta de cobre— está en
+[docs/pcb.md](docs/pcb.md), y cómo se arma una unidad, en
+[docs/armado.md](docs/armado.md).
 
 ## Empezar
 
 ```bash
-make test         # 2008 comprobaciones del firmware, sin placa
+make test         # 2225 comprobaciones del firmware, sin placa
 make sim          # los cinco Rooties en una ventana, en vivo
 make sheet        # 8 Rooties × 11 ánimos
 make transicion   # el cambio de ánimo, cuadro a cuadro
@@ -105,8 +108,9 @@ firmware/
   wasm/        el núcleo compilado para el navegador
   sim/ test/   simulador y pruebas
   third_party/ qrcodegen (MIT)
+hardware/pcb/  el sustrato impreso: el dato, el modelo y lo que se genera
 docs/          arquitectura, hardware, firmware, nube, roadmap, decisiones
-tools/         capturas y conversión de imágenes
+tools/         capturas, estación de fábrica y el generador del sustrato
 ```
 
 ## Documentación
@@ -116,6 +120,9 @@ tools/         capturas y conversión de imágenes
 | [roadmap.md](docs/roadmap.md) | **Checklist y roadmap**: qué está hecho y qué falta, por fase |
 | [arquitectura.md](docs/arquitectura.md) | Las tres piezas, el flujo y quién decide qué |
 | [hardware.md](docs/hardware.md) | Placa, pantalla, sensores, batería, carga y conexiones |
+| [pcb.md](docs/pcb.md) | **La PCB impresa**: el sustrato con canaletas, la cinta de cobre y lo que se verifica solo |
+| [conexiones.md](docs/conexiones.md) | El diagrama de conexiones, red por red (generado) |
+| [armado.md](docs/armado.md) | **Armar una unidad**: paso a paso, con los controles de multímetro |
 | [firmware.md](docs/firmware.md) | Cómo está armado, cómo compilar y qué hace al encender |
 | [nube.md](docs/nube.md) | El contrato con la nube, con vectores de prueba |
 | [ota.md](docs/ota.md) | Actualizaciones por aire firmadas, y qué pasa si una versión no anda |

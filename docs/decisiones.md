@@ -99,6 +99,38 @@ que la LiPo de 300 mAh y da siete veces más capacidad. Además, si la celda es
 reemplazable por el usuario desaparecen el TP4056 y el conector USB, y con ellos
 un agujero menos que sellar en un aparato que vive en tierra húmeda.
 
+**La placa del prototipo es un sustrato impreso con cinta de cobre.** No hay
+PCB comprada hasta la Fase 5. El sustrato se imprime en PETG con canaletas y
+las pistas son cinta de cobre soldada en cada unión. Sale del mismo dato que
+la netlist y la plantilla de corte, y se verifica solo: separaciones, anchos,
+conectividad, zona de antena. Detalle en [pcb.md](pcb.md).
+
+**Un solo núcleo para los cinco Rooties.** La carcasa cambia; lo de adentro
+es idéntico. El sustrato le pide a la carcasa un volumen de 78 × 116 × 45 mm
+y cuatro postes M2 en posiciones fijas; el resto es libre.
+
+**El DS18B20 va al riel fijo, no al conmutado.** Su pull-up de 1-Wire tiene
+que sostener GPIO8 —que es pin de arranque— en alto al encender, cuando el
+riel conmutado está apagado. Ponerlo en el conmutado obligaba a un pull-up en
+un riel y una sonda en otro, que es justo el camino parásito que se quería
+evitar. La sonda consume 1 µA en reposo: el 0,2 % del presupuesto diario. En
+el riel conmutado queda sólo el capacitivo, que es el que come 5 mA.
+
+**La luz de fondo se conmuta del lado alto.** En la mayoría de los módulos de
+1,44" el pin `BL` es el ánodo del LED, y ahí un N-MOSFET del lado de masa no
+hace nada. La etapa de dos transistores (N que tira de la compuerta de un P)
+funciona con `BL` como ánodo y también como entrada de control, y un selector
+de estaño la pasa al lado de masa si el módulo resulta ser al revés.
+
+**El USB de la SuperMini no sale al exterior, y se flashea con el
+interruptor apagado.** Con la celda puesta y el interruptor prendido, los
+5 V del USB de la SuperMini pueden llegar a la celda sin control de carga. Un
+diodo en serie lo resolvería a costa de 0,3 V, que a 3,5 V de celda es más de
+la mitad de la carga útil; un "diodo ideal" de verdad son dos MOSFET y un
+controlador, y eso es Fase 5. Mientras tanto: el orden de armado (se flashea
+antes de poner la celda), el interruptor como llave, y el aviso grabado en el
+plástico.
+
 **Prohibido el FC-28 / YL-69.** Resistivo: se consume por electrólisis en 3 a 6
 meses, y mide sales disueltas en vez de agua, así que fertilizar altera la
 lectura. El propio aviso admite las dos cosas.

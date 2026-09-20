@@ -101,6 +101,22 @@
   #define RK_TFT_BGR 0
 #endif
 
+/* Polaridad de la luz de fondo. Por defecto 0: el GPIO en alto enciende, que
+ * es lo que hace la etapa del sustrato (N-MOSFET que tira de la compuerta de
+ * un P-MOSFET del lado alto, docs/pcb.md). Si el modulo que llegue resulta
+ * tener el pin BL activo en bajo, se pone 1 desde platformio.ini y no se toca
+ * una linea de codigo. */
+#ifndef RK_TFT_BL_INVERTIDO
+  #define RK_TFT_BL_INVERTIDO 0
+#endif
+
+/* Velocidad de escritura del bus SPI de la pantalla. 40 MHz andan con las
+ * pistas cortas del sustrato; si la imagen sale con basura, se baja desde
+ * platformio.ini antes de tocar el hardware (docs/pcb.md, "El SPI"). */
+#ifndef RK_TFT_SPI_HZ
+  #define RK_TFT_SPI_HZ 40000000
+#endif
+
 /* Divisor del riel: dos resistencias iguales de 470k. Altas para que el
  * divisor gaste 4 uA y no 40; con 100 nF en el nodo el ADC lee estable. */
 #define RK_RIEL_R_ARRIBA  470000u
