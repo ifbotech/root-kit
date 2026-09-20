@@ -1,20 +1,31 @@
 # ROOTKIT
 
 Una maceta con sensores y una pantalla que muestra **dos cosas: un QR al
-principio y unos ojos después**. Cada ROOTKIT es uno de cinco **Rooties**
-botánicos —**Brote, Musgo, Pinchito, Bulbo y Champi**—: la **carcasa impresa
-en 3D** es el cuerpo, y la pantalla pone la cara, que reacciona a lo que
-necesita la planta. Todo lo demás —números, tareas, avisos,
-la colección de Rooties y la charla con tu planta— vive en **ROOTLAB**, la
-app del teléfono.
+principio y una cara después**. Cada ROOTKIT es uno de cuatro **Rooties**
+—**Kip** el piloto audaz, **Nori** la crítica, **Blink** el cíclope optimista
+y **Plum** la berenjenita—: la **carcasa impresa en 3D** es el cuerpo, y la
+pantalla pone la cara, que reacciona a lo que necesita la planta. Todo lo
+demás —números, tareas, avisos, la colección de Rooties y la charla con tu
+planta— vive en **ROOTLAB**, la app del teléfono.
 
-![Los cinco Rooties en los once ánimos](tools/preview/sheet.png)
+![Los cuatro Rooties en los once ánimos](tools/preview/sheet.png)
+
+Kip tiene cejas tupidas y ojos rasgados; Nori, ojos almendrados y pecas;
+Blink, UN ojo enorme; Plum, ojos de cachorro. Cuando la planta se ahoga el
+visor se le llena de agua hasta la mitad, y cuando el aire está seco la cara
+se cuartea.
 
 La figura define qué Rooti es; el cofre de la app sortea su **piel**: común
-(70 %), rara (25 %) o épica (5 %). La nube se la manda a la maceta y la cara
-se pinta con esa paleta:
+(70 %), rara (25 %) o épica (5 %). Las tres comparten la paleta del personaje
+—es parte de quién es— y lo que cambia es el **acabado**: el fuego de Kip, el
+acero y el cristal de Nori, el oro de Blink, el aura de Plum. La nube se la
+manda a la maceta y la cara se pinta con eso:
 
 ![Las tres pieles de cada Rooti](tools/preview/pieles.png)
+
+Para verlos a los cuatro juntos, en movimiento y con el cuerpo 3D: `npm start`
+en root-lab y abrir **`/elenco/`**. Las láminas de acá se regeneran con
+`make capturas`.
 
 Del primer encendido a la cara: el QR, los ojos dormidos mientras esperás el
 cofre, el despertar y la cara.
@@ -31,8 +42,8 @@ en un tercio de segundo, con un parpadeo en el medio.
 ![De contento a sediento, cuadro a cuadro](tools/preview/transicion.png)
 
 ROOTLAB se pinta con los colores de la piel que salió, y en el teléfono se ve
-el Rooti entero —el mismo cuerpo que se imprime, sin soportes— con la cara
-del firmware en su ventana, como una mascota que se acaricia y se cuida.
+el Rooti entero en 3D, con esta misma cara pintada encima, como una mascota
+que se acaricia y se cuida.
 
 ## Los repositorios
 
@@ -69,7 +80,7 @@ impreso en 3D con canaletas y cinta de cobre— está en
 ## Empezar
 
 ```bash
-make test         # 2225 comprobaciones del firmware, sin placa
+make test         # 2012 comprobaciones del firmware, sin placa
 make sim          # los cinco Rooties en una ventana, en vivo
 make sheet        # 8 Rooties × 11 ánimos
 make transicion   # el cambio de ánimo, cuadro a cuadro

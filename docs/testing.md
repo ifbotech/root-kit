@@ -1,13 +1,13 @@
 # Pruebas
 
 ```bash
-make test        # 2225 comprobaciones del firmware, sin placa ni SDL
+make test        # 2012 comprobaciones del firmware, sin placa ni SDL
 make verify      # lo que corre CI: pruebas, referencias visuales y sustrato
 make pcb         # verifica el sustrato impreso y regenera lo que sale de él
 make placa       # compila el producto (c3-144) y el banco (devkit-144)
 ```
 
-ROOTLAB (la app, la nube y el emulador) tiene sus propias 546 pruebas en
+ROOTLAB (la app, la nube y el emulador) tiene sus propias 543 pruebas en
 [root-lab](https://github.com/ifbotech/root-lab) (`npm test`), incluido el
 flujo completo de punta a punta.
 

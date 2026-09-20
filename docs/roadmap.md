@@ -158,7 +158,7 @@ la pantalla (sólo el QR y los ojos):
       administra, y se entra con un código de seis dígitos al email
 - [x] **Seis agentes**: cinco proponen mejoras en el vivero y el jardinero
       implementa la mejor los sábados, en una rama, con informe por correo
-- [x] 546 pruebas, y verificación de punta a punta contra producción
+- [x] 543 pruebas, y verificación de punta a punta contra producción
 - [x] En línea: https://ifbotech.com/rootkit/
 
 ### El servidor (VPS)
