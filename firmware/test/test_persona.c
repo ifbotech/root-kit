@@ -88,6 +88,15 @@ static void test_catalogo(void)
             snprintf(lbl, sizeof lbl, "%s %s: los ojos se leen sobre el fondo (%d)",
                      p->id, rk_rareza_id((rk_rareza_t)r), luma(pl->fondo) - luma(pl->ojos));
             CHECK_TRUE(lbl, luma(pl->fondo) - luma(pl->ojos) >= 120);
+            /* La cara va pintada sobre el cuerpo: el fondo de la pantalla es
+             * el color del cuerpo, o en el 3D de la app se vería un parche. */
+            snprintf(lbl, sizeof lbl, "%s %s: el fondo de la cara es el cuerpo",
+                     p->id, rk_rareza_id((rk_rareza_t)r));
+            CHECK_TRUE(lbl, pl->fondo == pl->piel);
+            /* Lo de arriba (hojas, sombrero, flor) se distingue del cuerpo. */
+            snprintf(lbl, sizeof lbl, "%s %s: el acento no es el cuerpo",
+                     p->id, rk_rareza_id((rk_rareza_t)r));
+            CHECK_TRUE(lbl, pl->acento != pl->piel);
         }
         snprintf(lbl, sizeof lbl, "%s: las tres pieles tienen fondos distintos", p->id);
         CHECK_TRUE(lbl, p->pieles[0].fondo != p->pieles[1].fondo &&

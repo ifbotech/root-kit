@@ -276,6 +276,18 @@ siempre es sobre azar pago— no aplica.
 **Nada de la palabra Tamagotchi en el marketing.** Es marca registrada de Bandai.
 El vocabulario propio — simbionte, criatura digital — es más distintivo igual.
 
+**Los Rooties son de la escuela del juguete de vinilo, no copias de nadie.**
+La referencia declarada para el elenco 3D es la de los juegos de
+criaturas-vegetales con cuerpos simples y colores saturados; Ooblets es el
+ejemplo evidente y sirvió de norte. Lo que se toma es el **lenguaje**: cuerpo
+gordito de una sola pieza, un rasgo botánico que manda arriba, patitas
+mínimas, cara pintada sobre el cuerpo y contorno oscuro. Lo que no se toma es
+ninguna silueta concreta: cada Rooti sale de una planta real, tiene su nombre,
+su cara —que es la del firmware, nuestra y anterior a todo esto— y su
+personalidad. La prueba práctica: si una figura se pareciera demasiado a una
+criatura existente, se cambia sin drama, porque una figura son treinta números
+en una tabla.
+
 ## Actualizarse y salir de fábrica
 
 **Las actualizaciones van firmadas, además de por HTTPS.** HTTPS prueba que
@@ -582,3 +594,51 @@ dibujarlos.
 arte generado y unas 200 líneas de blit sin un solo llamador, así que se
 borraron. Está anotado porque la tentación de dejar código muerto "por si
 vuelve" es exactamente cómo un repo se pudre.
+
+### Las siluetas 2D de los Rooties
+
+**Antes:** el cuerpo del Rooti en la app era un dibujo SVG —un contorno de
+puntos suavizado con Catmull-Rom, con relieves encima— y la carcasa impresa
+era un modelo aparte, que alguien iba a tener que dibujar en un CAD "a partir
+de" esa silueta.
+
+**Qué la tumbó:** dos cosas a la vez. La primera, que un contorno plano con
+sombreado pintado a mano se ve como lo que es, y el producto necesita que el
+personaje se vea como el juguete. La segunda, y más importante: **"a partir
+de" no es una relación verificable**. Las pruebas medían voladizos sobre una
+curva 2D que no era la pieza que iba a salir de la impresora, así que decían
+muy poco. Pasando el cuerpo a 3D, el modelo que gira en el teléfono y el STL
+que se lamina son el mismo archivo, y la prueba de voladizos mide los
+triángulos de verdad.
+
+**Qué costó:** un motor WebGL propio (no hay bibliotecas de terceros en la
+app), volver a diseñar las cinco figuras desde el perfil y descubrir en el
+camino unos cuantos errores que el 2D escondía —mallas con los triángulos
+invertidos, piezas que empezaban en el aire, un hueco de 10 mm para el TFT en
+el Bulbo—. El peso subió poco: las figuras son tablas de números y el shader
+tiene treinta líneas.
+
+**Qué se ganó además:** los STL dejaron de ser una tarea pendiente del
+roadmap. Se generan con `npm run carcasas`.
+
+### Que el personaje y la carcasa fueran la misma malla
+
+**Antes:** —y duró un día— el modelo 3D de la app era exactamente el STL de la
+carcasa. Sonaba bien: una sola fuente, y las pruebas de voladizo midiendo la
+pieza de verdad.
+
+**Qué la tumbó:** los personajes. Atar el diseño a que la figura saliera de una
+impresora sin soportes obliga a voladizos de 45°, base plana y nada que
+sobresalga; con esas reglas, los cinco Rooties quedaron cuerpos de revolución
+redondos, sin patitas separadas, sin bracitos que salieran del torso y sin
+sombrero. Correctos y sin gracia. El usuario lo dijo en una línea: *"se ve
+bastante igual que antes"*.
+
+**Qué se hizo:** separarlos. El personaje de la app se esculpe como campos de
+distancia fundidos (`esculpir.mjs`), sin ninguna regla de impresión, y la
+carcasa se diseña aparte en el CAD del hardware. De los modelos sale igual un
+STL, pero como referencia de forma.
+
+**La lección, que es más general:** una restricción de fabricación aplicada
+demasiado arriba en la cadena no limita el resultado, lo achata. La restricción
+va donde se fabrica.

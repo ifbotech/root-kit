@@ -7,7 +7,7 @@ make pcb         # verifica el sustrato impreso y regenera lo que sale de él
 make placa       # compila el producto (c3-144) y el banco (devkit-144)
 ```
 
-ROOTLAB (la app, la nube y el emulador) tiene sus propias 535 pruebas en
+ROOTLAB (la app, la nube y el emulador) tiene sus propias 546 pruebas en
 [root-lab](https://github.com/ifbotech/root-lab) (`npm test`), incluido el
 flujo completo de punta a punta.
 
@@ -121,9 +121,14 @@ transmisiones — pero también que no ahorre de más, que sería perder eventos
 **Que un aparato caído no acumule días sanos.** Es lo que impide que
 desenchufarlo haga crecer el vínculo gratis.
 
-**Que las siluetas se puedan imprimir.** En root-lab, `test/cuerpo.test.mjs`
-mide el voladizo de cada silueta sobre la curva dibujada (45° como máximo),
-la base plana, el centro de masa y que la ventana del TFT entre con su bisel.
+**Que las carcasas se puedan imprimir.** En root-lab,
+`test/rooti3d.test.mjs` recorre los triángulos de las cinco figuras —las
+mismas que salen en STL y que dibuja la app— y mide el voladizo de cada uno
+(45° como máximo), sin contar los que quedan escondidos dentro de otra pieza.
+Además: que ninguna pieza empiece en el aire, que las mallas estén del derecho
+(volumen con signo positivo), la base plana y ancha, el centro de masa abajo,
+y que la 18650 parada y el módulo del TFT entren de verdad, punto por punto,
+contra la geometría.
 
 **Que el mismo síntoma con distinta tierra dé causas distintas.** Hojas
 amarillas con la tierra encharcada, seca o en rango son tres problemas

@@ -130,7 +130,7 @@ la pantalla (sólo el QR y los ojos):
 - [x] Tablero: tareas del día, caras vivas, contadores, nivel y racha
 - [x] Detalle: medidores con rango, gráfico de 24 h / 48 h / 7 días,
       vínculo, especie, cuidados, pantalla siempre encendida, brillo
-- [x] Colección de Rooties con siluetas, paletas y logros
+- [x] Colección de Rooties en 3D, con paletas y logros
 - [x] Notificaciones push: por estado, con espera, calladas de noche
 - [x] Cuentas con email y contraseña: cada persona ve sólo sus plantas y
       entra desde cualquier teléfono
@@ -158,7 +158,7 @@ la pantalla (sólo el QR y los ojos):
       administra, y se entra con un código de seis dígitos al email
 - [x] **Seis agentes**: cinco proponen mejoras en el vivero y el jardinero
       implementa la mejor los sábados, en una rama, con informe por correo
-- [x] 535 pruebas, y verificación de punta a punta contra producción
+- [x] 546 pruebas, y verificación de punta a punta contra producción
 - [x] En línea: https://ifbotech.com/rootkit/
 
 ### El servidor (VPS)
@@ -339,18 +339,25 @@ Opciones de hardware y pines en [hardware.md](hardware.md#sonido).
 ## Fase 4 — Piloto con 20 Rooties
 
 - [ ] 20 unidades con carcasas de los cinco Rooties
-- [ ] **Modelar las cinco carcasas** a partir de las siluetas de
-      `root-lab/public/lib/cuerpo.mjs`, con la ventana biselada y la 18650
-      parada; imprimir una de cada una sin soportes. El núcleo pide un
-      volumen de **78 × 116 × 45 mm** ([pcb.md](pcb.md), "Lo que el sustrato
-      le pide a la carcasa")
-- [ ] **Decidir qué hace el Musgo**: el domo bajo y ancho no llega a 116 mm.
-      O se acuesta la celda, o lleva la LiPo plana 103450 y baja de seis
-      meses de autonomía a dos y medio
+- [x] **Modelar las cinco carcasas**: salen generadas del mismo modelo que
+      dibuja la app (`root-lab/public/lib/rooti3d/formas.mjs` → `npm run
+      carcasas` → [`carcasas/`](../carcasas/)), con la 18650 parada y el hueco
+      del módulo comprobados en cada commit
+- [ ] Imprimir una de cada una sin soportes y verificar el encastre real
+- [ ] Modelar en CAD, sobre esos STL, la tapa de abajo, los pilares del PCB y
+      los pasos de cable y sonda. Lo que el núcleo le pide a la carcasa
+      —volumen de **78 × 116 × 45 mm**, cuatro postes M2 en posiciones fijas,
+      profundidades y aberturas— está en [pcb.md](pcb.md), "Lo que el
+      sustrato le pide a la carcasa"
+- [ ] **Decidir qué hace el Musgo**: es el único de los cinco que no llega a
+      los 116 mm de alto que pide el núcleo con la 18650 parada. O se acuesta
+      la celda (necesita 78 mm de ancho interior, que un domo ancho sí
+      tiene), o lleva la LiPo plana 103450 y baja de seis meses de autonomía
+      a dos y medio
 - [ ] Estación de fábrica: grabar secreto y Rooti en NVS, imprimir la
       etiqueta con el código de respaldo
 - [ ] **Iterar el arte con Rocío**: ajustar caras y pieles
-      (`core/persona.c`), siluetas y relieves (`public/lib/cuerpo.mjs`), voces
+      (`core/persona.c`), figuras 3D (`public/lib/rooti3d/formas.mjs`), voces
       (`public/lib/voz.mjs`) y personalidades (`server/ficha.mjs`)
 - [ ] Medir: cuántos terminan el alta, dónde abandonan, cuántas
       notificaciones silencian, cuánto se usa la charla y cuánto cuesta
