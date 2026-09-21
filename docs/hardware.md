@@ -17,8 +17,8 @@ paso para armar una unidad, con los controles de multímetro, en
 | | ROOTKIT (el producto) | Banco de pruebas |
 |---|---|---|
 | Placa | ESP32-C3 SuperMini | ESP32 DevKit 30 pines |
-| Pantalla | TFT 1,44" 128×128 IPS (ST7735S), área activa 25,9 × 25,9 mm | la misma |
-| Sensores | suelo capacitivo, AHT20, BH1750, toque; DS18B20 opcional | los mismos |
+| Pantalla | TFT 1,44" 128×128 IPS (ST7735S), área activa 25,9 × 25,9 mm. **El sustrato v3.0 trae la tira de 9 pines de la de 2,2"**: ver "Inventario" | la misma |
+| Sensores | suelo capacitivo, AHT20 (o SHT21), BH1750, toque; DS18B20 opcional | los mismos |
 | Batería | **18650** de 2600–3500 mAh, parada, abajo (baja el centro de gravedad) | USB |
 | Carga | USB-C con TP4056 + protección + carga compartida | — |
 | Firmware | `pio run -e c3-144` | `pio run -e devkit-144` |
@@ -30,6 +30,74 @@ dos paneles duplicaba compilaciones, láminas y pruebas sin un producto
 detrás. El motor gráfico sigue escalando al lado corto del panel
 (`gfx/panel.h`), así que sumar otro tamaño algún día es agregar su bloque en
 `esp32/placa.h` y su clase en `esp32/pantalla.cpp`.
+
+---
+
+## Inventario: qué hay sobre la mesa, qué falta y qué sobra
+
+Estado al **21 de septiembre de 2026**, mirando las piezas que hay. Esta
+tabla es lo que decide si se puede armar una unidad completa hoy: **no se
+puede**, faltan cuatro cosas, y dos de ellas son baratas.
+
+### Lo que hay y sirve
+
+| Pieza | Qué es | Dónde entra | Cuidado |
+|---|---|---|---|
+| **ESP32-C3 SuperMini** | el cerebro | `U1`, 16 pines | Confirmar que la tira sea 2 × 8 a 2,54 mm y las filas a 15,24 |
+| **SHT21 / HTU21 / Si7021** (módulo azul, 4 pines) | aire: temperatura y humedad | `J_AIRE` | **El firmware habla AHT20 (0x38), no SHT21 (0x40)**: falta el driver. Ver abajo |
+| **Capacitivo de suelo v2.0.0** (placa negra larga) | humedad de la tierra | `J_SUELO`, 3 pines | Mirar que el chip diga **TLC555**, no NE555. Sellar el canto |
+| **HW-390** (placa negra chica, conector JST) | el mismo capacitivo, versión con JST | repuesto, o segunda unidad | Igual que el anterior |
+| **TFT 2,2" ILI9341 240 × 320 SPI** (placa roja, 9 pines) | la pantalla | `J_TFT`, 9 pines | **El firmware retiró este panel en la 0.6.0**: hay que volver a sumarlo. Ver abajo |
+| **Tiras de pines macho** | el montaje entero | todas las tiras | Es exactamente lo que la v3.0 necesita |
+| **Cable JST de 3 pines** | para el HW-390 | `J_SUELO` | |
+
+### Lo que falta para armar una unidad completa
+
+| Pieza | Para qué | Sin ella |
+|---|---|---|
+| **BH1750 (GY-302)** | luz, en lux reales | El Rooti no puede decir "tengo poca luz", que es una de las cuatro cosas que mide |
+| **TTP223** | el toque | No hay forma de despertar el aparato ni de prender la pantalla a mano |
+| **Módulo TP4056 USB-C con protección (6 pines)** | cargar la celda | Sólo funciona enchufado por el USB de la SuperMini |
+| **18650 de marca + portapilas** | la energía | ídem |
+| **Interruptor deslizante** | despachar el aparato apagado | Se puede vivir sin él en el prototipo |
+| **DS18B20 sumergible** | temperatura de la tierra | Es **opcional**: el firmware anda sin sonda |
+| **SMD 1206 y SOT-23** (ver la lista de compras) | los MOSFET, las resistencias y los capacitores del sustrato | Sin el AO3401 del riel conmutado, el capacitivo come 5 mA las 24 horas y la batería dura días, no meses |
+| **Cinta de cobre de 5 mm** y **filamento PETG** | el sustrato | |
+
+Las dos urgentes son el **BH1750** y el **TTP223**: son las dos que faltan
+para que el producto haga lo que promete, y entre las dos cuestan menos que
+la pantalla. El TP4056 y la celda se pueden postergar mientras se prueba
+enchufado.
+
+### Lo que sobra, y para qué podría servir
+
+| Pieza | Veredicto |
+|---|---|
+| **HC-SR04** (ultrasónico, 4 pines) | **No entra en el ROOTKIT.** Quiere 5 V, come ~15 mA mientras mide, necesita dos GPIO —y los trece del C3 ya están todos usados— y mide distancia, que no es ninguna de las cuatro magnitudes de una planta. La única idea razonable sería medir el nivel del agua en el plato, pero para eso un capacitivo de nivel es más chico, más barato y funciona mojado. **Guardarlo para otro proyecto.** |
+| **Módulo de micrófono** (placa roja con potenciómetro) | **No ahora, pero no tirarlo.** El roadmap tiene sonido en la Fase 2b, y es sonido de *salida* (el Rooti hace ruiditos), no de entrada. Un micrófono abre otra cosa: despertar al aparato con una palmada, sin tocarlo. Es una función de producto que hoy no existe, y ocuparía el GPIO que libera atar el CS de la pantalla a masa. **Anotado como idea, no como pieza del diseño.** |
+| **Módulo de fotorresistencia LDR** (placa con potenciómetro, salidas AO y DO) | **No como sensor de luz del producto**, y eso está decidido desde hace rato: un LDR no da lux sin calibrar cada unidad, y la biblioteca de especies de ROOTLAB está en lux. Pero **sí sirve de sustituto mientras no llega el BH1750**: su salida analógica se puede clavar donde va el capacitivo para tener *algo* de luz en el banco y probar la lógica de estados de ánimo. Es un parche de banco, no del producto. |
+
+### Las dos deudas de firmware que deja este inventario
+
+Ninguna es del sustrato —la placa v3.0 está bien para las dos— pero sin
+ellas los módulos que hay sobre la mesa no se pueden usar:
+
+1. **El sensor de aire.** El firmware inicializa y lee un **AHT20 en 0x38**
+   (`esp32/sensores_hw.cpp`, y la conversión en `nodo/sensores.c`). El módulo
+   que hay es un **SHT21/HTU21 en 0x40**, con otro protocolo: comandos 0xF3
+   (temperatura) y 0xF5 (humedad) en modo *no hold*, tres bytes por lectura
+   con su CRC-8, y las fórmulas `T = -46,85 + 175,72 · S/65536` y
+   `RH = -6 + 125 · S/65536`. Es un driver nuevo, pequeño y **testeable en el
+   escritorio** (la conversión es C puro, como la del AHT20). Recomendación:
+   agregarlo al lado del AHT20 y elegir cuál se compila desde
+   `platformio.ini`, no reemplazarlo.
+2. **El panel.** El ILI9341 de 2,2" existió hasta la 0.6.0 y se retiró a
+   propósito. Volver a sumarlo es su bloque en `esp32/placa.h`
+   (`RK_PANEL_ILI9341_240`, 240 × 320) y cambiar la clase del panel en
+   `esp32/pantalla.cpp`, que ya es LovyanGFX. El motor gráfico escala solo al
+   lado corto, así que la cara se dibuja igual. Recomendación: sumarlo como
+   **variante de banco** (`c3-22`, `devkit-22`) y dejar la de 1,44" como
+   producto hasta que haya carcasa.
 
 ---
 
@@ -189,6 +257,20 @@ que baje rápido al apagarlo, y un **100 nF** junto al borne del sensor.
   (103450 o 603450) con su plaquita de protección. El firmware no cambia.
 
 ### El circuito
+
+> **Desde el sustrato v3.0 esta etapa entera vive FUERA de la placa.** El
+> sustrato es una protoboard de interconexión y nada más: la energía le llega
+> por `J_PWR`, dos pines, ya conmutada por el interruptor. Todo lo que está
+> dibujado acá abajo —el TP4056, el SS34, el AO3401 de carga compartida, su
+> resistencia de compuerta y el interruptor— es un **arnés aparte**, que se
+> arma sobre el propio módulo TP4056 y se mete donde la carcasa tenga lugar.
+> No cambió ni un componente ni una conexión; cambió dónde vive. La razón es
+> que la carga es lo único del aparato que toca 5 V y un ampere, y sacarlo
+> del sustrato es lo que permitió bajar los rieles de 4 a 2,2 mm y usar un
+> solo rollo de cinta de 5 mm ([pcb.md](pcb.md), "La cinta manda").
+>
+> El divisor del riel (470 k / 470 k / 100 nF) **sí** sigue en el sustrato:
+> mide `J_PWR.VIN`, que es lo que entra después del interruptor.
 
 ```
                  USB-C 5 V
@@ -399,29 +481,32 @@ Por unidad. Los precios de pantalla son los de la cotización actual.
 | Cant. | Pieza | Nota |
 |---:|---|---|
 | 1 | ESP32-C3 SuperMini | o un ESP32 DevKit para el banco |
-| 1 | TFT 1,44" 128×128 IPS ST7735S | $9.000 |
+| 1 | TFT 2,2" ILI9341 240×320 SPI, 9 pines | la que entra en `J_TFT`. La de 1,44" tiene 8 pines y otro orden: **no entra** en esta tira |
 | 1 | Sensor capacitivo de suelo v2.0 | con TLC555 |
-| 1 | AHT20 | o AHT20+BMP280 |
+| 1 | SHT21 / HTU21 / Si7021 | o un AHT20; la tira de 4 pines les sirve a los dos, pero el firmware tiene que elegir |
 | 1 | BH1750 (GY-302) | |
 | 1 | DS18B20 sumergible con cable | opcional |
 | 1 | TTP223 | |
 | 1 | Módulo TP4056 USB-C con protección (6 pines) | |
 | 1 | 18650 de marca + portapila | |
-| 3 | AO3401 (P-MOSFET SOT-23) | carga compartida, riel de sensores y lado alto de la luz |
+| 2 | AO3401 (P-MOSFET SOT-23) | riel de sensores y lado alto de la luz. El de carga compartida ya no va en el sustrato |
 | 1 | AO3400 (N-MOSFET SOT-23) | etapa de la luz de fondo |
-| 1 | SS34 (Schottky SMA) | |
+| 1 | SS34 (Schottky SMA) | **fuera del sustrato**, en el arnés de carga |
+| 1 | AO3401 más | ídem, la carga compartida del arnés |
 | 2 | 470 kΩ 1206 | divisor del riel |
 | 1 | 4,7 kΩ 1206 | pull-up del 1-Wire |
-| 4 | 100 kΩ 1206 | compuerta de Q1, compuerta de Q2, purga del riel conmutado, nodo BL |
+| 3 | 100 kΩ 1206 | compuerta de Q2, purga del riel conmutado, compuerta de Q3 |
+| 1 | 0 a 100 Ω 1206 | `R11`, en serie con el pin LED de la pantalla: **medir el módulo** antes de elegir el valor |
 | 2 | 10 kΩ 1206 | reset de la pantalla y compuerta del P de la luz |
 | 2 | 100 nF 1206 | divisor y riel conmutado |
 | 1 | 100 nF 1206 | desacople de 3V3 |
 | 1 | 220–470 µF 6,3 V bajo ESR | picos de wifi |
 | 1 | interruptor deslizante | en la pared de la carcasa |
 | 1 | sustrato impreso en PETG | [pcb.md](pcb.md) |
-| — | cinta de cobre 6 mm y 20 mm | ~630 mm de cinta por unidad, contando pads |
-| — | cable de silicona AWG30 y AWG24 | 38 puentes |
-| 4 | tornillos M3 × 8 | sustrato a carcasa |
+| — | **cinta de cobre de 5 mm** | un solo rollo: ninguna canaleta pide más ancho ([pcb.md](pcb.md), "La cinta manda") |
+| — | cable de silicona AWG30 | 24 puentes |
+| 4 | tornillos M2 × 8 | sustrato a carcasa |
+| 8 | tiras de pines macho 2,54 mm | dos de 8 para el ESP32, y una por módulo |
 
 Si los módulos de I2C **no** traen sus pull-ups (casi todos los traen), dos
 4,7 kΩ más, soldadas entre los bornes `SCL`/`SDA` y el `VCC` de su propio

@@ -5,6 +5,7 @@
  * temperatura perfectamente creíble y perfectamente falsa.
  */
 #include <stddef.h>
+#include <string.h>
 #include "rk_test.h"
 #include "../nodo/sensores.h"
 #include "../nodo/historial.h"
@@ -56,6 +57,74 @@ static void test_aht20(void)
     b[6] = rk_crc8_aht(b, 6);
     CHECK_TRUE("ocupado no es una lectura", !rk_aht20_convertir(b, &t, &rh));
     CHECK_TRUE("NULL no explota", !rk_aht20_convertir(NULL, &t, &rh));
+}
+
+/* Arma la lectura de seis bytes del SHT21 para dos palabras crudas. */
+static void sht(uint8_t b[6], uint16_t st, uint16_t srh)
+{
+    b[0] = (uint8_t)(st >> 8);
+    b[1] = (uint8_t)st;
+    b[2] = rk_crc8_sht2x(b, 2);
+    b[3] = (uint8_t)(srh >> 8);
+    b[4] = (uint8_t)srh;
+    b[5] = rk_crc8_sht2x(&b[3], 2);
+}
+
+static void test_sht21(void)
+{
+    uint8_t b[6];
+    int16_t t = 0;
+    uint8_t rh = 0;
+    static const uint8_t BEEF[2] = { 0xBE, 0xEF };
+
+    /* Mismo polinomio que el AHT20 pero arrancando en 0x00: si alguien
+     * reusara rk_crc8_aht, este numero seria 0x92 y nada andaria. */
+    CHECK_HEX("crc8 del SHT2x de 0xBEEF", 0x13, rk_crc8_sht2x(BEEF, 2));
+
+    /* Los dos ejemplos de la hoja de datos del SHT21/HTU21D. */
+    sht(b, 0x68ACu, 0x7C80u);
+    CHECK_TRUE("una lectura buena convierte", rk_sht21_convertir(b, &t, &rh));
+    CHECK_INT("25,0 grados", 250, t);
+    CHECK_INT("55 %", 55, rh);
+
+    /* Los dos bits de abajo son de estado y no cambian la medicion. */
+    sht(b, 0x68ACu | 0x3u, 0x7C80u | 0x2u);
+    rk_sht21_convertir(b, &t, &rh);
+    CHECK_INT("los bits de estado no ensucian la temperatura", 250, t);
+    CHECK_INT("ni la humedad", 55, rh);
+
+    sht(b, 0u, 0u);
+    rk_sht21_convertir(b, &t, &rh);
+    CHECK_INT("el piso es -46,9 grados", -469, t);
+    CHECK_INT("y la humedad no baja de 0 %", 0, rh);
+
+    sht(b, 0xFFFCu, 0xFFFCu);
+    rk_sht21_convertir(b, &t, &rh);
+    CHECK_INT("el techo es 128,9 grados", 1289, t);
+    CHECK_INT("y la humedad no pasa de 100 %", 100, rh);
+
+    sht(b, 0x68ACu, 0x7C80u);
+    b[1] ^= 0x10u;
+    CHECK_TRUE("un bit dado vuelta no pasa el CRC", !rk_sht21_convertir(b, &t, &rh));
+    sht(b, 0x68ACu, 0x7C80u);
+    b[4] ^= 0x10u;
+    CHECK_TRUE("y tampoco del lado de la humedad",
+               !rk_sht21_convertir(b, &t, &rh));
+    CHECK_TRUE("NULL no explota", !rk_sht21_convertir(NULL, &t, &rh));
+
+    /* Y la telemetria tiene que salir igual con uno u otro sensor. */
+    {
+        rk_crudos_t c;
+        rk_telemetry_t tel;
+        memset(&c, 0, sizeof c);
+        sht(c.sht, 0x68ACu, 0x7C80u);
+        c.sht_leido = true;
+        rk_sensores_telemetria(&c, NULL, &tel);
+        CHECK_INT("la telemetria toma la temperatura del SHT21", 250, tel.temp_dc);
+        CHECK_INT("y su humedad", 55, tel.rh_pct);
+        CHECK_TRUE("y no marca falla de aire",
+                   (tel.fallas & RK_FALLA_AIRE) == 0u);
+    }
 }
 
 static void test_bh1750_y_riel(void)
@@ -287,6 +356,7 @@ void suite_sensores(void)
 {
     RK_SUITE("sensores e historial");
     test_aht20();
+    test_sht21();
     test_bh1750_y_riel();
     test_ds18b20();
     test_telemetria();

@@ -20,11 +20,19 @@
 //      plana de la estampadora queda separada del sustrato: la cinta se pega
 //      SOLO adentro de las canaletas y no sobre las paredes que las separan.
 //      Si las dos caras se tocaran, la cinta quedaría pegada en todos lados y
-//      habría que despegarla justo donde no hay que romperla.
+//      habría que despegarla justo donde no hay que romperla. En la v3 este
+//      número pasó de 0,4 a 1,0 mm: cuanto más entra la nervadura, más se
+//      estira la cinta sobre el filo de la canaleta y más cerca queda de
+//      cortarse sola ahí.
 //   3. LA NERVADURA ES MAS FINA QUE LA CANALETA. est_holgura_lateral por lado
 //      deja lugar para el espesor de la cinta doblada contra las dos paredes
-//      (0,07 mm) más la tolerancia de impresión. Si midiera exactamente lo
-//      mismo, no entraría.
+//      (0,07 mm) más la tolerancia de impresión. En la v3 bajó de 0,25 a
+//      0,15: es lo más cerca del corte limpio que se puede pedir con una
+//      boquilla de 0,6. No se puede llegar al corte de verdad —una matriz de
+//      corte para 0,06 mm de cobre pide unas micras de luz, y eso no sale de
+//      una impresora FDM—, así que la cinta se marca acá y se termina de
+//      separar LIJANDO la cara. Si la estampadora agarra y no baja, este es
+//      el número a subir, de a 0,05.
 //
 // El faldón perimetral centra la pieza sobre el sustrato: no hay que apuntar
 // a ojo. Entra 2,5 mm de los 3 mm de espesor del sustrato, así que nunca
@@ -99,8 +107,8 @@ module faldon() {
         }
 }
 
-// Alivio sobre la ventana y los recortes: ahí abajo no hay sustrato, y una
-// cara plana empujaría la cinta al vacío y la arrugaría.
+// Alivio sobre los recortes: ahí abajo no hay sustrato, y una cara plana
+// empujaría la cinta al vacío y la arrugaría.
 // El corte sale por encima de la cara para no dejar caras coplanares: dos
 // superficies exactamente a la misma altura son ambiguas y se le notan al
 // laminador antes que al ojo.
@@ -110,7 +118,6 @@ module alivio(x, y, a, h) {
 }
 
 module alivios() {
-    alivio(ventana[0], ventana[1], ventana[2], ventana[3]);
     for (r = recortes) alivio(r[0], r[1], r[2], r[3]);
 }
 

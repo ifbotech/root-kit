@@ -119,6 +119,14 @@ void sensores_iniciar(void)
     analogSetPinAttenuation(RK_PIN_RIEL_ADC, ADC_11db);
     Wire.begin(RK_PIN_SDA, RK_PIN_SCL, 100000);
 
+#if RK_AIRE_SHT21
+    /* SHT21/HTU21/Si7021: reset por software y a los 15 ms esta listo. Se
+     * queda con su configuracion de fabrica, 14 bits de temperatura y 12 de
+     * humedad, que es lo que asume el tiempo de espera de sensores_leer. */
+    const uint8_t sht_reset = 0xFE;
+    i2c_escribir(RK_I2C_SHT21, &sht_reset, 1);
+    delay(20);
+#else
     /* AHT20: si no reporta calibrado, se inicializa (0xBE 0x08 0x00). */
     uint8_t est = 0;
     if (i2c_leer(RK_I2C_AHT20, &est, 1) && !(est & 0x08)) {
@@ -126,6 +134,7 @@ void sensores_iniciar(void)
         i2c_escribir(RK_I2C_AHT20, init, 3);
         delay(10);
     }
+#endif
     /* BH1750: encendido. */
     const uint8_t on = 0x01;
     i2c_escribir(RK_I2C_BH1750, &on, 1);
@@ -139,15 +148,38 @@ void sensores_leer(rk_crudos_t *c)
 
     /* Mientras el capacitivo se estabiliza (~100 ms), se disparan las
      * mediciones de aire y luz, que también tardan. */
+    const uint8_t bh_una = 0x20;                    /* una lectura H-res */
+    bool bh_ok;
+#if RK_AIRE_SHT21
+    /* El SHT21 no mide las dos magnitudes de una: son dos conversiones, una
+     * detrás de la otra, en modo "no hold" (el bus queda libre mientras
+     * convierte). 14 bits de temperatura tardan 85 ms y 12 de humedad, 29;
+     * con 90 y 90 entran las dos en los mismos 180 ms que usaba el AHT20 y
+     * el resto de la secuencia no cambia. */
+    const uint8_t sht_t = 0xF3, sht_rh = 0xF5;
+    bool sht_ok = i2c_escribir(RK_I2C_SHT21, &sht_t, 1);
+    bh_ok = i2c_escribir(RK_I2C_BH1750, &bh_una, 1);
+    delay(90);
+    if (sht_ok && i2c_leer(RK_I2C_SHT21, c->sht, 3)) {
+        if (i2c_escribir(RK_I2C_SHT21, &sht_rh, 1)) {
+            delay(90);
+            c->sht_leido = i2c_leer(RK_I2C_SHT21, &c->sht[3], 3);
+        } else {
+            delay(90);
+        }
+    } else {
+        delay(90);
+    }
+#else
     const uint8_t aht_medir[3] = { 0xAC, 0x33, 0x00 };
     bool aht_ok = i2c_escribir(RK_I2C_AHT20, aht_medir, 3);
-    const uint8_t bh_una = 0x20;                    /* una lectura H-res */
-    bool bh_ok = i2c_escribir(RK_I2C_BH1750, &bh_una, 1);
+    bh_ok = i2c_escribir(RK_I2C_BH1750, &bh_una, 1);
     delay(180);
 
     if (aht_ok) {
         c->aht_leido = i2c_leer(RK_I2C_AHT20, c->aht, 7);
     }
+#endif
     if (bh_ok) {
         uint8_t b[2];
         if (i2c_leer(RK_I2C_BH1750, b, 2)) {

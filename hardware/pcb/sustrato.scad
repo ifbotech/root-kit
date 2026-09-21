@@ -15,14 +15,11 @@
 //
 // LA CARA DE ABAJO ES UN PLANO. Ni un escalon, ni un bolsillo, ni una repisa:
 // la cara que se imprime contra la cama es lisa de punta a punta, y todo lo
-// que la atraviesa —ventana, muesca de la antena, agujeros— la atraviesa
-// entera y recta. Habia dos cosas que no cumplian eso y las dos daban el
-// mismo problema: un voladizo hacia adentro que la impresora tenia que
-// puentear a ciegas sobre la primera capa. La repisa donde apoyaba la
-// pantalla (ahora la sostiene el marco de la carcasa, que es lo que ya hacia)
-// y el bolsillo del cargador (ahora el modulo apoya sobre la cara, 0,8 mm mas
-// arriba). Si alguna vez se vuelve a hundir algo en esta cara, vuelve el
-// problema.
+// que la atraviesa —la muesca de la antena, los agujeros— la atraviesa entera
+// y recta. Cualquier voladizo hacia adentro en esta cara es plastico que la
+// impresora tiene que tender a ciegas sobre la primera capa: sale colgando y
+// arruina la cara. Desde la v3 no hay ni ventana de pantalla ni bolsillo de
+// cargador, asi que no queda nada que pueda volver a hundirse aca.
 
 include <generado/sustrato_datos.scad>
 
@@ -74,14 +71,6 @@ module cuerpo() {
             square([sustrato_ancho, sustrato_alto]);
 }
 
-module ventana_pasante() {
-    // Recta y pasante, del mismo tamaño de arriba a abajo. La pantalla entra
-    // desde la cara de los módulos y la aprieta el marco de la carcasa contra
-    // el sustrato: es lo que ya la sostenía, la repisa no hacía falta.
-    translate([ventana[0], ventana[1], sustrato_esp / 2])
-        cube([ventana[2], ventana[3], sustrato_esp + 2 * eps], center = true);
-}
-
 module recortes_pasantes() {
     for (r = recortes)
         translate([r[0], r[1], sustrato_esp / 2])
@@ -116,7 +105,6 @@ module sustrato() {
         // canaletas y pads, hundidos desde arriba
         translate([0, 0, sustrato_esp - canaleta_prof])
             linear_extrude(canaleta_prof + eps) surcos2d();
-        ventana_pasante();
         recortes_pasantes();
         agujeros_de_pads();
         agujeros_de_tornillos();

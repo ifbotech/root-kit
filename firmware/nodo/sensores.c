@@ -45,6 +45,55 @@ bool rk_aht20_convertir(const uint8_t b[7], int16_t *temp_dc, uint8_t *rh_pct)
     return true;
 }
 
+uint8_t rk_crc8_sht2x(const uint8_t *b, int n)
+{
+    uint8_t crc = 0x00u;                  /* el del AHT20 arranca en 0xFF */
+    int i, k;
+
+    for (i = 0; i < n; i++) {
+        crc ^= b[i];
+        for (k = 0; k < 8; k++) {
+            crc = (crc & 0x80u) ? (uint8_t)((crc << 1) ^ 0x31u) : (uint8_t)(crc << 1);
+        }
+    }
+    return crc;
+}
+
+bool rk_sht21_convertir(const uint8_t b[6], int16_t *temp_dc, uint8_t *rh_pct)
+{
+    uint32_t st, srh;
+    int32_t cent, rh10;
+
+    if (b == NULL) {
+        return false;
+    }
+    if (rk_crc8_sht2x(b, 2) != b[2] || rk_crc8_sht2x(&b[3], 2) != b[5]) {
+        return false;
+    }
+    /* Los dos bits de abajo son de estado, no de medicion. */
+    st = (((uint32_t)b[0] << 8) | (uint32_t)b[1]) & 0xFFFCu;
+    srh = (((uint32_t)b[3] << 8) | (uint32_t)b[4]) & 0xFFFCu;
+
+    /* Se hace la cuenta en centesimas y recien al final se redondea a
+     * decimas: en decimas directas, 25,0 C salia 24,9. */
+    cent = (int32_t)(((uint64_t)17572u * st) >> 16) - 4685;
+    if (temp_dc != NULL) {
+        *temp_dc = (int16_t)((cent + (cent >= 0 ? 5 : -5)) / 10);
+    }
+    rh10 = (int32_t)(((uint64_t)1250u * srh) >> 16) - 60;
+    if (rh_pct != NULL) {
+        int32_t pct = (rh10 + 5) / 10;
+        if (pct < 0) {
+            pct = 0;                      /* la formula da -6 % en el cero */
+        }
+        if (pct > 100) {
+            pct = 100;                    /* y 118 % en el tope            */
+        }
+        *rh_pct = (uint8_t)pct;
+    }
+    return true;
+}
+
 uint32_t rk_bh1750_lux(uint16_t cuenta, uint8_t mtreg)
 {
     if (mtreg == 0u) {
@@ -153,7 +202,12 @@ void rk_sensores_telemetria(const rk_crudos_t *c, const rk_soil_cal_t *cal,
         }
     }
 
-    if (c->aht_leido && rk_aht20_convertir(c->aht, &out->temp_dc, &out->rh_pct)) {
+    /* El aire lo puede haber medido cualquiera de los dos sensores: el que
+     * este poblado en los crudos es el que hay en la placa. Para todo lo de
+     * mas arriba --el animo, la nube, el historial-- son lo mismo. */
+    if ((c->sht_leido && rk_sht21_convertir(c->sht, &out->temp_dc, &out->rh_pct))
+        || (c->aht_leido
+            && rk_aht20_convertir(c->aht, &out->temp_dc, &out->rh_pct))) {
         out->fallas &= (uint8_t)~RK_FALLA_AIRE;
     } else {
         out->temp_dc = 0;

@@ -9,11 +9,14 @@
  *
  *   RK_PANEL_ST7735_128     TFT 1,44" IPS 128x128, el de la ventana biselada
  *                           de las carcasas (área activa 25,9 x 25,9 mm)
+ *   RK_PANEL_ILI9341_240    TFT 2,2" 240x320, el de la tira de 9 pines
  *
- * El TFT de 2,2" (ILI9341, 240x320) fue el del primer prototipo y se retiró:
- * las carcasas son para el de 1,44", y mantener dos paneles duplicaba
- * compilaciones y pruebas sin producto detrás. Volver a sumar un panel es
- * agregar su bloque acá y su clase en pantalla.cpp (docs/decisiones.md).
+ * El de 2,2" fue el del primer prototipo, se retiró en la 0.6.0 y volvió en
+ * la 0.6.2 como VARIANTE DE BANCO, no como producto: es el panel que entra
+ * en la tira de nueve pines del sustrato v3.0 (docs/pcb.md), y es el que hay
+ * sobre la mesa. El producto sigue siendo el de 1,44" mientras las carcasas
+ * sean para él. El motor gráfico escala solo al lado corto del panel, así
+ * que la cara se dibuja igual en los dos.
  *
  * Por qué cada pin está donde está, y el esquema de conexión completo, en
  * docs/hardware.md. Lo que NO conviene mover sin leer eso:
@@ -81,8 +84,17 @@
   #define RK_PANTALLA_NOMBRE   "st7735-128"
   #define RK_TFT_W             128
   #define RK_TFT_H             128
+  /* El 1,44" usa la memoria de 132x162 del controlador. */
+  #define RK_TFT_MEM_W         132
+  #define RK_TFT_MEM_H         162
+#elif defined(RK_PANEL_ILI9341_240)
+  #define RK_PANTALLA_NOMBRE   "ili9341-240"
+  #define RK_TFT_W             240
+  #define RK_TFT_H             320
+  #define RK_TFT_MEM_W         240
+  #define RK_TFT_MEM_H         320
 #else
-  #error "Definir RK_PANEL_ST7735_128 (ver platformio.ini)"
+  #error "Definir RK_PANEL_ST7735_128 o RK_PANEL_ILI9341_240 (ver platformio.ini)"
 #endif
 
 /* Ajustes finos del panel que cambian entre lotes del mismo modelo. Si la
@@ -123,6 +135,15 @@
 #define RK_RIEL_R_ABAJO   470000u
 
 #define RK_I2C_AHT20   0x38
+#define RK_I2C_SHT21   0x40
 #define RK_I2C_BH1750  0x23
+
+/* Cuál de los dos sensores de aire hay en la placa. Los dos entran en la
+ * misma tira de cuatro pines del sustrato (VIN GND SCL SDA), así que el
+ * hardware no elige: elige esto. 0 = AHT20 (0x38), 1 = SHT21/HTU21/Si7021
+ * (0x40). Se pone desde platformio.ini. */
+#ifndef RK_AIRE_SHT21
+  #define RK_AIRE_SHT21 0
+#endif
 
 #endif /* ROOTKIT_PLACA_H */

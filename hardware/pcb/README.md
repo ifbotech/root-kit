@@ -1,8 +1,13 @@
 # El sustrato impreso
 
-El núcleo común de ROOTKIT: una placa de PETG impresa en 3D con canaletas,
-cinta de cobre pegada y soldada dentro de ellas, y los módulos montados
-encima. Uno solo para los cuatro Rooties.
+El núcleo común de ROOTKIT: una **protoboard impresa**. Una placa de PETG con
+canaletas, cinta de cobre de 5 mm dentro de ellas, y tiras de pines donde se
+**clavan** el ESP32, la pantalla y los sensores. Su única función es
+interconectarlos. Uno solo para los cuatro Rooties.
+
+Desde la v3.0 la placa **no** tiene ventana de pantalla, ni bolsillo de
+cargador, ni lugar para el USB: dónde va físicamente cada módulo lo decide la
+carcasa. El porqué de cada número está en [../../docs/pcb.md](../../docs/pcb.md).
 
 **Qué es cada archivo:**
 

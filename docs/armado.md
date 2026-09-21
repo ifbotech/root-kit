@@ -37,15 +37,17 @@ media.
 |---|---|
 | Soldador con punta fina, 260 °C | más caliente marca el PETG |
 | Estaño **Sn42Bi58** (138 °C) y flux | el común de 183 °C también va, con toques cortos |
-| Bisturí o trincheta con hoja nueva | la hoja gastada arruga la cinta |
+| Lija al agua de 400 y 600 y un taco plano | **es la herramienta que separa las pistas**: ver el paso 2 |
+| Bisturí o trincheta con hoja nueva | sólo para recortar la hoja de cinta al contorno |
 | **La estampadora impresa** | mete toda la cinta de una prensada (paso 2) |
 | Bruñidor o el mango de una cuchara | para presionar la cinta en la canaleta |
 | Multímetro con continuidad y prueba de diodo | |
 | **Fuente de laboratorio con límite de corriente** | no es opcional: es lo que reemplaza a la celda hasta el paso 11 |
 | Pinza de punta fina | para abrir las patas de los SOT-23 |
 | Alcohol isopropílico y cepillo | el flux que queda es una fuga |
-| Cinta de espuma de 1 mm | entre el sustrato y la pantalla |
-| Cable de silicona AWG30 y AWG24 | puentes de señal y de potencia |
+
+| Cable de silicona AWG30 | los 24 puentes |
+| Tiras de pines macho de 2,54 mm | dos de 8 para el ESP32 y una por módulo |
 
 ---
 
@@ -59,8 +61,15 @@ Se imprimen **dos piezas**:
 
 | Pieza | STL | Cómo |
 |---|---|---|
-| El sustrato | `generado/nucleo-sustrato.stl` | **PETG**, canaletas **hacia arriba**, sin soportes, boquilla **0,6**, capa 0,2, tres perímetros. 62 × 92 × 3 mm |
-| La estampadora | `generado/nucleo-estampadora.stl` | PETG o PLA, nervaduras **hacia arriba**, sin soportes, misma boquilla y capa. 67 × 97 × 7,5 mm |
+| El sustrato | `generado/nucleo-sustrato.stl` | **PETG**, canaletas **hacia arriba**, sin soportes, boquilla **0,6**, capa 0,2, tres perímetros. 68 × 92 × 3 mm |
+| La estampadora | `generado/nucleo-estampadora.stl` | PETG o PLA, nervaduras **hacia arriba**, sin soportes, misma boquilla y capa. 73 × 97 × 8,5 mm |
+
+> **Antes del sustrato entero, el cupón.** Media hora de impresora que
+> evita tirar cinco placas: un cuadrado de 40 mm con canaletas de 1,0 /
+> 1,4 / 2,2 mm a tres profundidades, y su estampadora con tres holguras
+> laterales. Ahí se contesta hasta dónde se puede hundir la canaleta sin
+> que la cinta se rompa en el piso, con cuánta luz entra la nervadura sin
+> agarrar, y cuánta lija hace falta. Ver [pcb.md](pcb.md).
 
 La estampadora es el negativo del sustrato y sirve para meter toda la cinta
 de una sola prensada ([pcb.md](pcb.md)). Se imprime una sola vez y sirve para
@@ -94,12 +103,6 @@ compensación de agujeros del laminador (*hole compensation* / *XY size
 compensation*) y reimprimí. Es el defecto más común con boquilla de 0,6 y
 arruina el paso 3 entero si se descubre tarde.
 
-> **La primera vez, antes del sustrato entero:** imprimir un cupón de prueba
-> de canaletas (40 × 40 mm con canaletas de 1,2 y 2,4 mm y agujeros de 1,4 y
-> 1,8 mm) y
-> confirmar que la cinta entra, se presiona y se corta contra la pared. Media
-> hora que evita tirar cinco sustratos.
-
 ---
 
 ## Paso 1 — Medir los módulos (antes de soldar nada)
@@ -122,26 +125,22 @@ módulo.
 - **Pita** → la placa une VBUS con 5V. La regla 1 rige siempre. Anotarlo.
 - **No pita** → la placa trae diodo. La regla 1 pasa a ser prolijidad.
 
-**1.c — Qué es el pin BL de la pantalla.** Multímetro en prueba de diodo,
-con el módulo **desconectado**:
+**1.c — El pin LED de la pantalla.** Multímetro en prueba de diodo, con el
+módulo **desconectado**: punta roja en `LED`, negra en `GND`. Si marca
+~2,8–3,2 V, `LED` es el ánodo de los LED de la luz de fondo, que es lo que
+el sustrato asume (lo conmuta un P-MOSFET del lado alto, Q4).
 
-| Punta roja | Punta negra | Si marca ~1,8–3 V | Conclusión |
-|---|---|---|---|
-| `BL` | `GND` | conduce | BL es el **ánodo** del LED → **lado alto** |
-| `VCC` | `BL` | conduce | BL es el **cátodo** → **lado bajo** |
+Después, con el tester en resistencia entre `LED` y `VCC` del módulo:
 
-- **Lado alto** (lo esperado): puente de estaño en `JP_BL` entre **C y A**.
-- **Lado bajo**: puente entre **C y B**, y **no** poblar Q4, R9 ni R10.
+- **Unos cientos de ohm** → el módulo ya trae su resistencia en serie:
+  poblar `R11` con **0 Ω**.
+- **Abierto o casi cero** → no la trae: poblar `R11` con **47–100 Ω**.
+  Empezar por 100 y bajar si la luz queda floja.
 
-**1.d — Dónde cae el área activa del panel.** Con el calibre, medir del
-borde del módulo **opuesto al conector** hasta el centro del cuadrado
-encendido... o, más simple, hasta cada borde del área activa. El diseño
-asume que el centro está a **14,0 mm**.
-
-> Si da otra cosa: corregir `sustrato.activa.y` en el JSON (`activa.y =`
-> `ventana.y − ventana.alto/2 + lo_medido`), correr `make pcb`, y pasarle el
-> número nuevo a quien modela las carcasas. **Es la cota que decide si la
-> cara del Rooti queda centrada en su ventana.**
+**1.d — El orden de los pines de cada módulo.** Es la medición que más
+importa de todas, porque los clones lo cambian entre lotes. Confirmar la
+serigrafía contra la tabla del paso 5, módulo por módulo. Si alguno no
+coincide, corregir su lista `pines` en el JSON y volver al paso 0.
 
 **1.e — El chip del capacitivo.** Mirar la serigrafía: tiene que decir
 **TLC555**. Si dice NE555, el sensor no arranca a 3,3 V y da lecturas planas:
@@ -149,54 +148,72 @@ se devuelve.
 
 ---
 
-## Paso 2 — La cinta, de una prensada
+## Paso 2 — La cinta: cubrir, prensar, lijar
 
 Se trabaja sobre la **cara de las canaletas**, con la plantilla al lado en la
 misma orientación (el texto grabado se lee derecho).
 
-1. **Cortar la hoja al contorno del sustrato.** Apoyar la cinta sobre el
-   sustrato cubriéndolo entero —si el rollo es más angosto que 72 mm, dos o
-   tres tiras solapadas 2 mm; el solape no molesta— y pasar el bisturí
-   alrededor del canto del sustrato, que hace de guía. Queda una hoja del
-   tamaño exacto de la placa, que es lo que necesita el faldón para cerrar.
-2. **Apoyar la hoja** con el adhesivo hacia abajo, sin presionar todavía:
-   sólo lo justo para que no se mueva.
-3. **Bajar la estampadora.** El faldón envuelve el borde del sustrato y la
-   centra sola. No hay que apuntar.
+El orden importa y no es el que parece. **No se corta cinta canaleta por
+canaleta**: se cubre la placa entera, se prensa todo de una vez, y recién
+entonces se separa lo que sobra **lijando**, no cortando. La cinta que queda
+1,2 mm por debajo de la cara, adentro de los canales, la lija no la toca.
+
+1. **Cubrir la cara entera de cinta.** Tiras del rollo de 5 mm, una al lado
+   de la otra, solapadas un milímetro, hasta que no quede ni un claro sobre
+   ninguna canaleta. No hay que apuntar a nada: lo que sobra se va a ir.
+2. **Recortar al contorno** pasando el bisturí alrededor del canto del
+   sustrato, que hace de guía. El faldón de la estampadora necesita el borde
+   limpio para cerrar.
+3. **Bajar la estampadora.** El faldón envuelve el borde y la centra sola. No
+   hay que apuntar.
 4. **Apretar parejo**, con las dos manos o —mejor— con una tabla y el peso
-   del cuerpo, quince segundos. Presión repartida, no un punto.
-5. **Levantar.** La cinta quedó metida en cada canaleta y tendida sobre las
-   paredes que las separan, marcada por el canto de cada una.
-6. **Recortar lo tendido**: pasar el bisturí por el canto de cada canaleta,
-   que ya está dibujado en la cinta, y levantar el sobrante. Sale en pedazos
-   grandes.
-7. **Repasar con el bruñidor** canaleta por canaleta, **desde el centro hacia
-   los bordes**, para que la cinta apoye contra el fondo.
-8. **Cada esquina y cada empalme lleva una gota de estaño.** El adhesivo no
+   del cuerpo, quince segundos. Presión repartida, no un punto. Las
+   nervaduras hunden la cinta al fondo de cada canaleta y la **marcan**
+   contra los dos bordes.
+5. **Levantar y lijar la cara**, al ras, con lija de 400 sobre un taco plano
+   y movimientos largos en las dos diagonales. El cobre que está apoyado
+   sobre las paredes entre canaletas se va; el que está adentro de los
+   canales, no. Terminar con 600 hasta que la cara se vea de PETG parejo, sin
+   islas de cobre entre canaletas.
+6. **Soplar y limpiar con alcohol.** El polvo de cobre de la lija es
+   conductor: si queda en el fondo de una canaleta no molesta, pero si queda
+   sobre una pared es exactamente el puente que se acaba de lijar.
+7. **Cada esquina y cada empalme lleva una gota de estaño.** El adhesivo no
    es una conexión. Toque corto: apoyar, estañar, retirar, contar hasta tres
    antes del siguiente.
 
-> **Si no tenés la estampadora** (o si se rompió una nervadura), se puede
-> hacer tramo por tramo: cortar un pedazo de cinta un poco más ancho que la
-> canaleta, apoyarlo, presionarlo con el bruñidor y recortar contra la pared
-> con el bisturí apoyado **en la pared, no en la cinta**. Son los mismos
-> 76 tramos, y media tarde en vez de veinte minutos.
+> **Por qué lijar y no cortar.** Hasta la v2.0 había que pasar el bisturí por
+> el canto de cada una de las 76 canaletas. Con canaletas de 1,2 mm de
+> profundidad y una nervadura que entra 1,0 mm más allá de la cara, la cinta
+> queda tan estirada sobre el borde que se rompe sola con la lija. Es una
+> operación de treinta segundos en vez de media tarde, y sobre todo: no
+> depende del pulso.
 
-**Control 2.a — continuidad de cada red.** Multímetro en continuidad. Para
-cada red de [conexiones.md](conexiones.md), tocar el nodo más lejano contra
-el más cercano de la lista: **tiene que pitar**. Las de masa se prueban
-contra `TP1`, que es el punto negro del tester de acá en adelante.
+> **Lo que la estampadora NO hace es cortar.** Una matriz de corte para
+> 0,06 mm de cobre trabaja con unas micras de luz entre punzón y matriz; una
+> boquilla de 0,6 mm da 0,15 mm. La nervadura marca; la lija corta.
 
-**Control 2.b — aislación entre rieles.** Con el tester en resistencia, y
+**Control 2.a — aislación entre canaletas vecinas.** Éste va **primero**,
+antes que el de continuidad, porque es el que dice si faltó lija. Tester en
+continuidad, recorriendo la plantilla: dos canaletas vecinas de redes
+distintas tienen que dar **abierto**. Si alguna pita, volver a lijar ese
+tramo.
+
+**Control 2.b — continuidad de cada red.** Para cada red de
+[conexiones.md](conexiones.md), tocar el nodo más lejano contra el más
+cercano de la lista: **tiene que pitar**. Las de masa se prueban contra
+`TP1`, que es el punto negro del tester de acá en adelante.
+
+**Control 2.c — aislación entre rieles.** Con el tester en resistencia, y
 **nada más soldado**:
 
 | Entre | Tiene que dar |
 |---|---|
-| `TP1` (GND) y `TP5` (3V3) | abierto |
-| `TP1` y `TP3` (VSYS) | abierto |
-| `TP1` y `TP4` (VINT) | abierto |
-| `TP3` y `TP4` | abierto (todavía no está el interruptor) |
-| `TP5` y `TP4` | abierto |
+| `TP1` (GND) y `TP3` (3V3) | abierto |
+| `TP1` y `TP2` (VIN) | abierto |
+| `TP1` y `TP4` (3V3S) | abierto |
+| `TP2` y `TP3` | abierto (todavía no está la SuperMini) |
+| `TP3` y `TP4` | abierto (todavía no está Q2) |
 
 Si alguno da un valor bajo, hay una rebaba de cinta o un puente de estaño.
 Se busca con lupa antes de seguir: después va a estar tapado por un módulo.
@@ -205,15 +222,22 @@ Se busca con lupa antes de seguir: después va a estar tapado por un módulo.
 
 ## Paso 3 — Los puentes de cable
 
-Los 38 de la tabla de [conexiones.md](conexiones.md), en ese orden, con cable
-de silicona **AWG30** (los de potencia, que la tabla marca, con **AWG24**).
+Los 24 de la tabla de [conexiones.md](conexiones.md), en ese orden, con cable
+de silicona **AWG30**.
 
 Van **por arriba** de la cinta, cruzando lo que tengan que cruzar, pegados al
 sustrato con una gota de cianoacrilato cada 15 mm para que no bailen.
 
-> **Los tres que dicen "rodeando" no van derecho.** El camino corto les
-> cruzaría la ventana de la pantalla, y ahí el cable quedaría apretado entre
-> el módulo y el plástico. La plantilla los dibuja por donde van: seguila.
+Catorce de los 24 son de masa y de 3V3, y eso es a propósito: en una sola
+cara de cobre las dos redes que tocan todo no se pueden cerrar sin cruces, y
+si alguien tiene que llevar un cable por arriba, que sea la masa —no tiene
+señal que degradar y, si hiciera falta, se refuerza con otro en paralelo—.
+Ninguna señal lleva puente salvo dos, `SCL` y `OW`, y las dos están
+explicadas en [pcb.md](pcb.md).
+
+> **Los que dicen "rodeando" no van derecho.** El camino corto les cruzaría
+> la muesca de la antena o un agujero de tornillo, y ahí el cable quedaría
+> apretado. La plantilla los dibuja por donde van: seguila.
 
 **Control 3.** Tachar cada puente de la lista al soldarlo y volver a hacer el
 **control 2.a completo**. Es el momento más fácil para olvidarse uno, y el
@@ -223,101 +247,120 @@ más barato para encontrarlo.
 
 ## Paso 4 — Los componentes chicos
 
-En este orden: resistencias y capacitores (1206), después el Schottky, después
-los MOSFET.
+En este orden: resistencias y capacitores (1206) y después los MOSFET. Son
+once piezas y todas viven en el sustrato; el Schottky y el MOSFET de carga
+compartida ya no están acá, se arman en el arnés del paso 6.
 
 - **1206**: flux, estañar un pad, apoyar con pinza, soldar el otro lado,
   rehacer el primero.
 - **SOT-23**: abrir las dos patas del mismo lado 0,2 mm con la pinza hasta
   que caigan en sus pads (están a 2,3 mm, no a 1,9). Soldar primero la pata
   sola del otro lado.
-- **C2** (el electrolítico de 220–470 µF) va **acostado**, con las patas
-  dobladas sobre sus pads. **Ojo con la polaridad**: la franja blanca va del
-  lado de masa, que es el pad de la izquierda mirando la plantilla.
+- **C2** (el electrolítico de 220–470 µF) va **parado**, con cada pata en su
+  agujero. **Ojo con la polaridad**: la franja blanca va del lado de masa,
+  que es `C2.1` en la plantilla.
 
-**Lo que NO se puebla** salvo que el paso 1 diga lo contrario: nada. Si el
-paso 1.c dio "lado bajo", **no** van Q4, R9 ni R10.
+**Lo que NO se puebla** salvo que el paso 1 diga lo contrario: nada. El
+valor de `R11` sí sale del paso 1.c.
 
 **Control 4 — los valores, otra vez.** Medir en la placa, con el tester en
 resistencia:
 
 | Entre | Esperado |
 |---|---|
-| `TP4` (VINT) y `TP1` (GND) | **940 kΩ ±10 %** (el divisor: 470 k + 470 k) |
-| `TP5` (3V3) y `TP1` | **> 100 kΩ** (si da menos, hay un corto o C2 al revés) |
-| `TP1` y el pad `G` de Q1 | **100 kΩ** (R3) |
-
-**Control 4.b — el selector de la luz.** Confirmar a ojo que `JP_BL` tiene el
-puente de estaño del lado que dijo el paso 1.c, y **sólo de ese lado**.
+| `TP2` (VIN) y `TP1` (GND) | **940 kΩ ±10 %** (el divisor: 470 k + 470 k) |
+| `TP3` (3V3) y `TP1` | **> 100 kΩ** (si da menos, hay un corto o C2 al revés) |
+| `TP1` y el pad `G` de Q3 | **100 kΩ** (R8) |
+| `TP3` y el pad `G` de Q2 | **100 kΩ** (R4) |
 
 ---
 
-## Paso 5 — Los bornes y los cables a los módulos
+## Paso 5 — Clavar los módulos
 
-Cada grupo de bornes lleva sus cables a su módulo. El largo se corta con el
-aparato armado en la mano, no antes; sobra siempre es mejor que falta.
+Desde el sustrato v3.0 no hay bornes ni cables: **cada módulo se clava**. Se
+le suelda su tira de pines macho, los pines pasan por los agujeros del
+sustrato, y se sueldan **del lado de las canaletas** contra la cinta.
 
-| Borne | Módulo | Cables |
+| Tira | Módulo | Pines |
 |---|---|---|
-| `J_TFT` | pantalla TFT 1,44" | 8, en el orden del conector: GND, VCC, SCL, SDA, RES, DC, CS, BL |
-| `J_AHT` | AHT20 | 4: VCC, GND, SCL, SDA |
-| `J_BH` | BH1750 | 4: VCC, GND, SCL, SDA (ADDR al aire) |
-| `J_TTP` | TTP223 | 3: VCC, GND, I/O |
-| `J_DS` | DS18B20 | 3: VDD rojo, GND negro, DQ amarillo. **No** en modo parásito |
-| `J_SUELO` | capacitivo | 3: VCC, GND, AOUT |
-| `J_TP` | TP4056 | 6 cortos: IN−, OUT−, B+, B−, OUT+, IN+ |
-| `J_CELDA` | portapilas | 2 de AWG24: + y − |
-| `J_SW` | interruptor | 2 |
+| `J_TFT` | TFT 2,2" ILI9341 | 9: VCC, GND, CS, RESET, DC, SDI, SCK, LED, SDO |
+| `J_AIRE` | SHT21 / HTU21 / Si7021 | 4: VCC, GND, SCL, SDA |
+| `J_LUZ` | BH1750 GY-302 | 5: VCC, GND, SCL, SDA, ADDR (al aire) |
+| `J_SUELO` | capacitivo de suelo | 3: AOUT, GND, VCC |
+| `J_TOQUE` | TTP223 | 3: IO, GND, VCC |
+| `J_TIERRA` | DS18B20 | 3: DQ amarillo, GND negro, VCC rojo. **No** en modo parásito |
+| `J_PWR` | arnés de la batería | 2: VIN, GND |
 
-**La pantalla.** Si el módulo vino con el header de 8 pines suelto en la
-bolsa, mejor: se sueldan los ocho cables directo a los pads y el conjunto
-queda 8 mm más fino. Si vino soldado, se desuelda o se sueldan los cables a
-las puntas de los pines.
+El mapa completo —el tamaño exacto de cada huella, y pin por pin de qué red
+es y contra qué pin del ESP32 queda— está en
+[conexiones.md](conexiones.md), sección "El mapa de montaje". Se genera del
+mismo dato que la placa, así que no puede contradecirla.
 
-> **Cuidado con el `J_TFT`.** Los bornes están rotulados con el nombre del
-> pin **del módulo**, no con el de la red. `SCL` del módulo es el SCK del
-> ESP32 y `SDA` es el MOSI: así es como vienen serigrafiados estos paneles.
-> Cable a cable, mirando los dos rótulos.
+> **Mirar la serigrafía del módulo ANTES de clavarlo.** Es el único paso de
+> esta guía que puede salir mal de una manera que no se arregla: los clones
+> cambian el orden de los pines entre lotes. El sustrato está hecho para los
+> órdenes de la tabla de arriba. Si alguno no coincide, **no se improvisa con
+> cables**: se corrige la lista `pines` de ese componente en
+> `hardware/pcb/nucleo.json`, se corre `make rutear && make pcb`, y la placa
+> se reordena sola. Son diez minutos y una impresión.
 
-> **Cuidado con `J_CELDA`.** El **negativo de la celda va al `B−` del
-> TP4056**, no a masa. Si se une a masa se puentean los MOSFET del DW01A y la
-> celda queda **sin protección de sobredescarga ni de cortocircuito**. Es el
-> error más caro de esta guía.
+> **Cuidado con `J_TFT`.** Los pines están rotulados con el nombre **del
+> módulo**, no con el de la red: `SDI` del módulo es el MOSI del ESP32 y
+> `SCK` es su SCK. Y `SDO` (el MISO) **queda al aire a propósito**: el
+> firmware nunca lee del panel.
 
-**Control 5.** Tester en continuidad: entre `J_CELDA.−` y `TP1` (GND) tiene
-que dar **abierto**. Si pita, está mal cableado: parar.
+> **El capacitivo tiene GND en el medio a propósito.** Si se clava al revés,
+> lo que se cruza son VCC y la salida analógica —que el ADC aguanta— y no la
+> alimentación del módulo.
+
+**Control 5.** Con el tester en continuidad y **antes** de soldar, apoyar
+cada módulo en su tira sin presionar y comprobar tres pines de cada uno
+contra el `TP` de su riel: `VCC` contra `TP3` (3V3), `GND` contra `TP1`. El
+`VCC` del capacitivo va contra `TP4` (3V3S), no contra `TP3`.
 
 ---
 
-## Paso 6 — El cargador
+## Paso 6 — El arnés de la batería
 
-El TP4056 apoya **sobre la cara plana** de los módulos, con su **USB-C
-mirando hacia el borde de abajo**. (En la v1.0 iba hundido en un bolsillo;
-se lo sacamos porque era un voladizo en la cara que se imprime contra la
-cama, y ahora el módulo queda 0,8 mm más afuera.) Se fija con dos gotas de cianoacrilato en
-las esquinas o con una gota de silicona caliente, y sus seis cables bajan por
-los agujeros a `J_TP`.
+Desde la v3.0 **la etapa de carga no vive en el sustrato**. Es un arnés
+aparte, que se arma sobre el propio módulo TP4056 y entra a la placa por los
+dos pines de `J_PWR`. El esquema completo está en
+[hardware.md](hardware.md), "Batería y carga"; en resumen:
 
-**Control 6 — la carga, sola, sin la celda ni el resto.**
+```
+   USB-C ─► TP4056+DW01A ─► OUT+ ─┬─ AO3401 (carga compartida) ─┐
+              B+/B− a la celda    │                              ├─ interruptor ─► J_PWR.VIN
+   5 V del USB ─► SS34 ───────────┘                              │
+   OUT− ──────────────────────────────────────────────────────────► J_PWR.GND
+```
 
-1. Interruptor **apagado**.
-2. Fuente de laboratorio a **3,7 V, límite 200 mA**, conectada a `J_CELDA.+`
-   (rojo) y `J_CELDA.−` (negro). Hace de celda.
-3. Enchufar el USB del cargador.
-4. El LED rojo del TP4056 se enciende: está cargando. El consumo de la fuente
-   debería ser negativo (le está entrando corriente) o ~0 si tu fuente no
-   absorbe.
-5. Medir `TP2` (celda protegida) contra `TP1`: **3,7 V**, lo que pusiste.
-6. Medir `TP3` (nodo de sistema) contra `TP1`: **4,5–4,7 V**. Son los 5 V del
-   USB menos el Schottky. **Si da 3,7 V, el D1 está al revés o el Q1 está
-   conduciendo cuando no debe.**
-7. Medir `TP4` (VINT) contra `TP1`: **0 V**, porque el interruptor está
-   apagado.
-8. Desenchufar el USB. `TP3` tiene que pasar a **3,7 V**: ahora el sistema
-   come de la "celda" por el Q1. **Si queda en 0, el Q1 no conduce**: mirá
-   su orientación (la pata sola es el drenador y va del lado de la celda).
+> **El negativo de la celda va al `B−` del TP4056**, no a masa. Si se une a
+> masa se puentean los MOSFET del DW01A y la celda queda **sin protección de
+> sobredescarga ni de cortocircuito**. Es el error más caro de esta guía, y
+> ahora ocurre fuera de la placa, donde no hay una canaleta que lo impida:
+> mirarlo dos veces.
 
-Este control prueba la carga compartida entera sin arriesgar nada.
+**Control 6 — el arnés, solo, sin la placa.**
+
+1. Interruptor **apagado**, `J_PWR` sin conectar a la placa.
+2. Fuente de laboratorio a **3,7 V, límite 200 mA**, en lugar de la celda
+   (rojo al `B+`, negro al `B−`).
+3. Enchufar el USB del cargador. El LED rojo del TP4056 se enciende.
+4. Medir el `OUT+` contra el `OUT−`: **3,7 V**, lo que pusiste.
+5. Medir el nodo de sistema (después del SS34 y el AO3401) contra `OUT−`:
+   **4,5–4,7 V**. Son los 5 V del USB menos el Schottky. **Si da 3,7 V, el
+   SS34 está al revés o el AO3401 conduce cuando no debe.**
+6. Medir la salida del interruptor: **0 V**, porque está apagado.
+7. Desenchufar el USB. El nodo de sistema tiene que pasar a **3,7 V**: ahora
+   come de la "celda" por el AO3401. **Si queda en 0, el AO3401 no conduce**:
+   mirá su orientación (la pata sola es el drenador y va del lado de la
+   celda).
+
+Este control prueba la carga compartida entera sin arriesgar la placa.
+
+**Control 6.b — el arnés contra la placa.** Con el arnés todavía sin celda y
+el interruptor apagado, conectar `J_PWR` y medir `TP2` (VIN) contra `TP1`:
+**0 V**. Prender el interruptor: `TP2` pasa a los 3,7 V de la fuente.
 
 ---
 
@@ -369,13 +412,13 @@ Si alguno da bajo, hay una pata puenteada. **No alimentar.**
 Todavía sin celda y sin sensores.
 
 1. Interruptor **apagado**. Sensores **desconectados**.
-2. Fuente a **3,8 V, límite 100 mA**, a `J_CELDA.+` / `J_CELDA.−`.
+2. Fuente a **3,8 V, límite 100 mA**, en lugar de la celda del arnés.
 3. **Prender el interruptor.**
 4. **Mirar el amperímetro de la fuente en ese instante.** Tiene que subir a
    **20–60 mA** y quedarse ahí. Si salta al límite de 100 mA, **apagar** y
    buscar el corto: la fuente acaba de salvar la placa.
-5. Medir `TP5` (3V3) contra `TP1`: **3,25–3,35 V**.
-6. Medir `TP4` (VINT) contra `TP1`: **3,8 V**, lo de la fuente.
+5. Medir `TP3` (3V3) contra `TP1`: **3,25–3,35 V**.
+6. Medir `TP2` (VIN) contra `TP1`: **3,8 V**, lo de la fuente.
 
 Recién ahora el aparato está vivo.
 
@@ -443,7 +486,8 @@ que aparecer el banner con la versión y `[almacen]` sin errores.
 **Recién ahora.**
 
 1. Interruptor **apagado**.
-2. Confirmar otra vez el **control 5**: `J_CELDA.−` contra `TP1`, abierto.
+2. Confirmar otra vez que el negativo de la celda, en el arnés, da abierto
+   contra `TP1`.
 3. Medir la celda con el tester: **3,2–4,1 V**. Si vino abajo de 2,5 V,
    descartarla.
 4. Poner la celda en el portapilas mirando la polaridad del portapilas, que
@@ -462,7 +506,7 @@ mirar la lectura. Así, cuando algo falla, se sabe qué.
 
 | Orden | Sensor | Qué tiene que pasar |
 |---:|---|---|
-| 1 | AHT20 | temperatura y humedad creíbles; comparar contra un termohigrómetro |
+| 1 | SHT21 (o AHT20) | temperatura y humedad creíbles; comparar contra un termohigrómetro. **Si no aparece en el log, es el driver**: el firmware habla con uno o con el otro según `-DRK_AIRE_SHT21` (ver `platformio.ini`) |
 | 2 | BH1750 | tapar con la mano: los lux caen a menos de 10 |
 | 3 | TTP223 | tocar: `[boton]` en el log, la pantalla se enciende |
 | 4 | DS18B20 | temperatura cerca de la del aire; con los dedos en la sonda sube |
@@ -474,7 +518,7 @@ riel de sensores prendido (durante una medición), medir su `AOUT` contra
 masa. **Tiene que dar menos de 2,5 V.** Por encima de eso el ADC del C3 a
 11 dB satura y el sensor pierde la mitad de su rango.
 
-> Si da más: soldar un divisor **100 k / 220 k** en los propios bornes de
+> Si da más: soldar un divisor **100 k / 220 k** en los propios pines de
 > `J_SUELO` (100 k en serie desde `AOUT`, 220 k de ahí a `GND`), y poner
 > `RK_SUELO_DIVISOR_NUM` = 220000 y `RK_SUELO_DIVISOR_DEN` = 320000 en
 > `esp32.promesas` del JSON para que quede escrito lo que hace la placa.
@@ -496,8 +540,8 @@ masa. **Tiene que dar menos de 2,5 V.** Por encima de eso el ADC del C3 a
 4. **Sellar el borde del capacitivo** con esmalte de uñas o epoxi: el canto
    de esa placa absorbe agua y en un mes la lectura deriva. Sellar también el
    circuito, no sólo el canto.
-5. Montar el sustrato en la carcasa con los cuatro **M3**, con la espuma de
-   1 mm entre el sustrato y la pantalla. La ventana es un hueco recto: el
+5. Montar el sustrato en la carcasa con los cuatro **M2**. La pantalla ya no
+   pasa por el sustrato: la sostiene la carcasa. El
    apoyo de la pantalla lo da el marco de la carcasa, no el sustrato.
 6. La junta del capacitivo **abajo**, y el cable **haciendo panza** para que
    el agua gotee antes de llegar a la placa.
@@ -540,4 +584,4 @@ unidad ___  fecha ______  sustrato v2.0
 | Sólo falla el DS18B20 | el pull-up de 4,7 k (R6), o la sonda en modo parásito |
 | El reposo da más de 200 µA | flux, LED de encendido, pull-ups duplicados. En ese orden |
 | Carga eterna, nunca termina | Q1 no conduce: el aparato está comiendo del cargador en vez del USB |
-| La celda se calienta cargando | **desconectar ya.** Q1 al revés, o `J_CELDA.−` unido a masa |
+| La celda se calienta cargando | **desconectar ya.** El AO3401 del arnés al revés, o el negativo de la celda unido a masa |

@@ -41,6 +41,29 @@
 bool rk_aht20_convertir(const uint8_t b[7], int16_t *temp_dc, uint8_t *rh_pct);
 uint8_t rk_crc8_aht(const uint8_t *b, int n);
 
+/* ---------------------------------------------------------------- SHT21 -- */
+/* El otro sensor de aire: SHT21 / HTU21D / Si7021, en 0x40. No es un
+ * reemplazo del AHT20 sino el que hay: son el mismo tipo de pieza, con la
+ * misma tira de cuatro pines (VIN GND SCL SDA) y otro protocolo.
+ *
+ * Se lee en modo "no hold": comando 0xF3 (temperatura) o 0xF5 (humedad), se
+ * espera la conversion --85 ms a 14 bits, 29 ms a 12-- y se leen tres bytes,
+ * MSB, LSB y CRC. Los dos bits de abajo del LSB son de estado y no son dato.
+ *
+ * `b` son los seis bytes en fila: los tres de temperatura y los tres de
+ * humedad. Las formulas son las de la hoja de datos:
+ *
+ *     T [C]  = -46,85 + 175,72 * S / 2^16
+ *     RH [%] =  -6    + 125    * S / 2^16
+ *
+ * y sus propios ejemplos --S = 0x68AC da 25,0 C y S = 0x7C80 da 54,8 %-- son
+ * los que estan en la prueba.
+ *
+ * OJO con el CRC: es el mismo polinomio que el del AHT20 (0x131) pero
+ * arranca en 0x00 y no en 0xFF, asi que no sirve la misma funcion. */
+bool rk_sht21_convertir(const uint8_t b[6], int16_t *temp_dc, uint8_t *rh_pct);
+uint8_t rk_crc8_sht2x(const uint8_t *b, int n);
+
 /* --------------------------------------------------------------- BH1750 -- */
 /* Modo alta resolución: lux = cuenta / 1,2 * (69 / MTreg). Con MTreg 69 (el
  * de fábrica) satura a 54.612 lux, que un sol directo de verano supera; la
@@ -73,6 +96,8 @@ typedef struct {
     uint8_t  n_suelo;          /* 0 = no se leyó                          */
     uint8_t  aht[7];
     bool     aht_leido;        /* el I2C contestó                         */
+    uint8_t  sht[6];           /* el otro sensor de aire: T y RH          */
+    bool     sht_leido;        /* sólo uno de los dos está poblado        */
     uint16_t bh1750;
     uint8_t  bh_mtreg;
     bool     bh_leido;

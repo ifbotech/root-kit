@@ -4,7 +4,7 @@
 Convierte la netlist y la posición de los módulos en canaletas. Lo que antes
 se dibujaba tramo por tramo a mano ahora sale de una búsqueda: cada red se
 rutea sobre una grilla que ya tiene marcado todo lo que no se puede pisar
-—el cobre de las otras redes, los agujeros, la ventana, los tornillos, la
+—el cobre de las otras redes, los agujeros, los recortes, los tornillos, la
 zona libre de la antena— y lo que no encuentra camino se declara **puente**
 de cable aislado, que es lo que haría un humano igual.
 
@@ -294,8 +294,6 @@ class Ruteador:
                 self.d_fuera[base + ix] = max(0.0, -d) / g.paso
 
         huecos = g.vacia()
-        v = s["ventana"]
-        g.marcar_rect(huecos, v["x"], v["y"], v["ancho"], v["alto"])
         for rec in s.get("recortes", []):
             g.marcar_rect(huecos, rec["x"], rec["y"], rec["ancho"], rec["alto"])
         for t in s.get("tornillos", []):
@@ -383,9 +381,13 @@ class Ruteador:
         holg = reglas["holgura_canaleta"]
         marg = reglas["margen_borde"]
         paso = g.paso
-        # Una celda de más de margen: la grilla mide al centro de la celda y
-        # el cobre de verdad llega hasta el borde.
-        u_otros = (ancho / 2.0 + holg + sep) / paso + 1.0
+        # Celda y media de margen, no una. La grilla mide al centro de la
+        # celda y el cobre llega hasta el borde, y eso se paga DOS veces:
+        # media celda por el redondeo de la pista que se esta ruteando y otra
+        # media por el de la que ya esta puesta. Con una celda sola el
+        # ruteador entregaba pistas que el verificador rechazaba por 0,15 mm,
+        # que es justo el tamano de ese error.
+        u_otros = (ancho / 2.0 + holg + sep) / paso + 1.5
         u_hueco = (ancho / 2.0 + sep) / paso + 1.0
         u_borde = (ancho / 2.0 + marg) / paso
         u_ant = self.libre_antena / paso + 1.0
@@ -564,7 +566,14 @@ class Ruteador:
                            "puntos": [list(q) for q in pts], "fija": True})
             self._marcar_pista(red, pts, ancho)
 
-        for red in n.d["orden_redes"]:
+        # El ORDEN importa muchisimo: el que rutea primero se queda con el
+        # lugar. Con la masa y el 3V3 adelante —que tienen quince nodos cada
+        # una y se desparraman por toda la placa— las señales llegaban tarde y
+        # se iban casi todas a puente. Al reves, las señales (dos o tres nodos
+        # cada una, caminos cortos) entran primero y los rieles se acomodan
+        # despues, que es lo que hace un ruteador a mano. `orden_ruteo` es ese
+        # orden; `orden_redes` sigue siendo el de la documentacion.
+        for red in (n.d.get("orden_ruteo") or n.d["orden_redes"]):
             info = n.d["redes"][red]
             nodos = [nd for nd in info["nodos"] if nd in self.pads_celdas]
             if len(nodos) < 2:
@@ -707,13 +716,11 @@ def rutear_y_guardar(n, destino, paso=0.20, coste_giro=12, charla=True):
         "puentes": puentes,
     }
     os.makedirs(os.path.dirname(destino), exist_ok=True)
-    # newline="
-" a proposito: sin eso, en Windows el archivo sale con
+    # newline="\n" a proposito: sin eso, en Windows el archivo sale con
     # CRLF y el repo marca los generados como modificados aunque el ruteo
     # sea identico, con lo que CI pide "correr make pcb y commitear" por
     # un cambio que no existe.
-    with open(destino, "w", encoding="utf-8", newline="
-") as f:
+    with open(destino, "w", encoding="utf-8", newline="\n") as f:
         json.dump(doc, f, ensure_ascii=False, indent=1)
         f.write("\n")
     return pistas, puentes, informe

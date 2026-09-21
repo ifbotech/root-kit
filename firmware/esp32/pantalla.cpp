@@ -4,8 +4,17 @@
 #define LGFX_USE_V1
 #include <LovyanGFX.hpp>
 
+/* El panel concreto es lo único que cambia entre las dos variantes: el bus,
+ * la luz de fondo y todo lo de abajo son iguales. Las medidas de memoria
+ * salen de placa.h, que es donde vive el panel de cada variante. */
+#if defined(RK_PANEL_ILI9341_240)
+typedef lgfx::Panel_ILI9341 PanelDelRootkit;
+#else
+typedef lgfx::Panel_ST7735S PanelDelRootkit;
+#endif
+
 class PanelRootkit : public lgfx::LGFX_Device {
-    lgfx::Panel_ST7735S _panel;
+    PanelDelRootkit _panel;
     lgfx::Bus_SPI   _bus;
     lgfx::Light_PWM _luz;
 
@@ -35,9 +44,8 @@ public:
             cfg.pin_busy = -1;
             cfg.panel_width = RK_TFT_W;
             cfg.panel_height = RK_TFT_H;
-            /* El 1,44" usa la memoria de 132x162 del controlador. */
-            cfg.memory_width = 132;
-            cfg.memory_height = 162;
+            cfg.memory_width = RK_TFT_MEM_W;
+            cfg.memory_height = RK_TFT_MEM_H;
             cfg.offset_x = RK_TFT_OFS_X;
             cfg.offset_y = RK_TFT_OFS_Y;
             cfg.offset_rotation = 0;

@@ -51,6 +51,41 @@ app.
 
 ## Hardware
 
+**La PCB impresa es una protoboard, no el chasis (v3.0).** Hasta la v2.0 el
+sustrato hacía dos trabajos: interconectar y sostener. Tenía la ventana por
+donde asomaba la pantalla, el bolsillo del cargador y el hueco del USB. Eso
+ataba su tamaño y su forma a decisiones de carcasa que todavía no están
+tomadas, y ponía un agujero de 28 × 38 mm en el medio de la placa por el que
+no podía pasar ninguna pista. Desde la v3.0 el sustrato **sólo interconecta**:
+cada módulo se clava por su tira de pines y después vive donde la carcasa
+quiera. Se pagó con que la carcasa ahora tiene que sostener la pantalla por su
+cuenta, y se cobró en las tres cosas que importaban: el montaje es clavar ocho
+módulos, los puentes de cable bajaron de 38 a 24, y la placa dejó de depender
+de una carcasa que no existe.
+
+**La cinta de cobre es de 5 mm y eso fija el ancho de las pistas.** Una
+canaleta de ancho `a` y profundidad `p` necesita `a + 2p` de cinta para
+forrarse. Con la profundidad en 1,2 mm —que es lo que hace que la estampadora
+casi corte la cinta contra el borde— el ancho máximo de canaleta es 2,6 mm. Se
+eligió respetarlo en vez de agrandar la canaleta y usar dos rollos: ahora
+**todo sale de un solo rollo de 5 mm**. Se puede porque el cargador salió del
+sustrato y por la placa ya no pasa un ampere sino los 350 mA de pico del wifi,
+que sobre 2,2 mm de cinta caen 5 mV.
+
+**La etapa de carga salió del sustrato.** El TP4056, el SS34, el MOSFET de
+carga compartida y el interruptor viven ahora en un arnés que se arma sobre el
+propio módulo cargador y entra a la placa por dos pines. No cambió ni un
+componente: cambió dónde vive. Es lo que permitió bajar los rieles de 4 a
+2,2 mm, y de paso saca los 5 V y el ampere de una placa que se arma a mano.
+
+**El estampador marca; la lija corta.** Una matriz de corte para 0,06 mm de
+cobre trabaja con unas micras de luz entre punzón y matriz; una boquilla de
+0,6 mm da 0,15 mm, cincuenta veces más. Así que la nervadura hunde la cinta y
+la marca contra el borde de la canaleta, y lo que separa las pistas de verdad
+es **lijar la cara** al ras después de prensar. Se eligió eso en vez de
+recortar canaleta por canaleta con bisturí, que era el paso más largo y el más
+dependiente del pulso de todo el armado.
+
 **Pantalla: TFT 1,44" 128×128 IPS, ST7735, SPI.** Área activa 25,9 × 25,9 mm.
 ARS 9.160. Es IPS, tiene el pin de retroiluminación accesible para PWM, y su
 controlador tiene librería madura. Cinco GPIO para la pantalla, que es lo que
@@ -511,6 +546,16 @@ rig dibuja en cualquiera, porque los rasgos se miden en centésimas del ancho.
 Una variante grande es un cambio de configuración, no un rediseño.
 
 ### El TFT de 2,2" del prototipo
+
+> **Revisada de nuevo, 21/09/2026.** Volvió, pero no como producto. El
+> sustrato v3.0 tiene una tira de **nueve** pines, que es la del ILI9341 de
+> 2,2" —la pantalla que hay sobre la mesa—; la de 1,44" tiene ocho y otro
+> orden, así que no entra en esa tira. El firmware la soporta otra vez desde
+> la 0.6.2 como **variante de banco** (`c3-22`, `devkit-22`), que es lo que
+> autoriza la nota de abajo: "sumar un panel es agregar su bloque en placa.h
+> y su clase en pantalla.cpp". Cuál de las dos es el producto se decide
+> cuando haya carcasa. Lo de abajo sigue siendo válido para esa decisión.
+
 
 **Antes:** dos variantes de hardware con el mismo firmware: el ROOTKIT con
 TFT de 2,2" (ILI9341, 240×320) y el "mini" de 1,44", cada una para el C3 y

@@ -254,10 +254,14 @@ class Nucleo:
 
     # -- geometria del sustrato ---------------------------------------------
     def huecos(self):
-        """Aberturas pasantes: la ventana de la pantalla y los recortes."""
+        """Aberturas pasantes: los recortes y los agujeros de tornillo.
+
+        La ventana de la pantalla era un hueco aparte, con su clave propia en
+        el dato y su modulo propio en el SCAD. Desde la v3 no hay ventana —la
+        pantalla se clava en su tira de pines y vive donde la carcasa quiera—
+        y el unico recorte que queda, la muesca de la antena, ya entraba por
+        la lista generica. Un caso especial menos en cinco archivos."""
         out = []
-        v = self.sustrato["ventana"]
-        out.append(("ventana", rect_esquinas(v["x"], v["y"], v["ancho"], v["alto"])))
         for r in self.sustrato.get("recortes", []):
             out.append((r["id"], rect_esquinas(r["x"], r["y"], r["ancho"], r["alto"])))
         for t in self.sustrato.get("tornillos", []):
@@ -276,6 +280,7 @@ class Nucleo:
         self._v_rotulos()
         self._v_agujeros()
         self._v_puentes()
+        self._v_cinta()
         self._v_estampadora()
         return self.errores
 
@@ -502,11 +507,10 @@ class Nucleo:
     def _v_puentes(self):
         """Un puente es un cable por la cara de los modulos, y ahi hay cosas.
 
-        Si va de punta a punta cruzando la ventana, pasa justo por donde entra
-        la pantalla: al apretarla queda el cable atrapado entre el modulo y el
-        plastico. Lo mismo con la muesca de la antena y con los tornillos. El
-        cable se puede rodear a mano, claro, pero entonces no es el cable que
-        dice el dato, y la guia de armado quedaria mintiendo."""
+        Si cruza la muesca de la antena o un agujero de tornillo, el cable
+        queda apretado entre el plastico y lo que pase por ahi. El cable se
+        puede rodear a mano, claro, pero entonces no es el cable que dice el
+        dato, y la guia de armado quedaria mintiendo."""
         for pu in self.puentes:
             a, b = self.pads.get(pu["de"]), self.pads.get(pu["a"])
             if not a or not b:
@@ -571,6 +575,39 @@ class Nucleo:
                         "una canaleta de %s pasa por el agujero de %s"
                         % (pista.red, nodo))
                     break
+
+    def _v_cinta(self):
+        """Ninguna canaleta puede pedir mas cinta de la que trae el rollo.
+
+        El rollo es de 5 mm y es lo que hay. Una canaleta de ancho `a` y
+        profundidad `p` no se forra con `a` milimetros de cinta: la cinta
+        tiene que bajar por una pared, cubrir el piso y subir por la otra,
+        asi que hacen falta `a + 2p`. Con canaletas de 0,8 mm de hondo eso
+        casi no se notaba; con las de 1,2 mm de la v3 manda el diseño entero,
+        y es lo que fija el ancho maximo de pista.
+
+        Se mira el ancho de la CANALETA (pista + holgura), no el de la pista,
+        porque la canaleta es el pozo que la cinta tiene que forrar. Y se
+        miran tambien los pads, que son canaletas cuadradas."""
+        r = self.reglas
+        cinta = r.get("cinta_ancho")
+        if not cinta:
+            return
+        prof = r["prof_canaleta"]
+        holgura = r["holgura_canaleta"]
+        anchos = {}
+        for p in self.pistas:
+            anchos.setdefault(p.ancho, "la pista de %s" % p.red)
+        for nodo, pad in sorted(self.pads.items()):
+            anchos.setdefault(pad.w, "el pad %s" % nodo)
+            anchos.setdefault(pad.h, "el pad %s" % nodo)
+        for a in sorted(anchos):
+            pide = a + holgura + 2.0 * prof
+            if pide > cinta + 1e-9:
+                self.errores.append(
+                    "%s mide %.1f mm: su canaleta pide %.2f mm de cinta "
+                    "(%.1f de ancho + 2 x %.1f de hondo) y el rollo tiene %.1f"
+                    % (anchos[a], a, pide, a + holgura, prof, cinta))
 
     def _v_estampadora(self):
         """La estampadora es el negativo del sustrato: las mismas canaletas pero
@@ -667,10 +704,6 @@ def gen_scad(n):
          "canaleta_prof  = %.2f;" % n.reglas["prof_canaleta"],
          "canaleta_holg  = %.2f;" % n.reglas["holgura_canaleta"],
          "radio_borde    = %.2f;" % s.get("radio_borde", 2.0)]
-    v = s["ventana"]
-    L.append("// [centro x, centro y, ancho, alto]")
-    L.append("ventana = [%.2f, %.2f, %.2f, %.2f];"
-             % (v["x"], v["y"], v["ancho"], v["alto"]))
     L.append("")
     L.append("// [ancho, [[x,y], ...]]")
     L.append("canaletas = [")
@@ -753,10 +786,6 @@ def gen_svg(n):
     L.append('<rect x="0" y="0" width="%.2f" height="%.2f" rx="%.2f" fill="none" '
              'stroke="#000000" stroke-width="0.3"/>'
              % (W, H, s.get("radio_borde", 2.0)))
-    v = s["ventana"]
-    L.append('<rect x="%.2f" y="%.2f" width="%.2f" height="%.2f" fill="#f2f2f2" '
-             'stroke="#000000" stroke-width="0.25"/>'
-             % (v["x"] - v["ancho"] / 2, v["y"] - v["alto"] / 2, v["ancho"], v["alto"]))
     for r in s.get("recortes", []):
         L.append('<rect x="%.2f" y="%.2f" width="%.2f" height="%.2f" fill="#f2f2f2" '
                  'stroke="#000000" stroke-width="0.25"/>'
@@ -766,10 +795,6 @@ def gen_svg(n):
         L.append('<circle cx="%.2f" cy="%.2f" r="%.2f" fill="#f2f2f2" '
                  'stroke="#000000" stroke-width="0.25"/>'
                  % (t["x"], t["y"], t["d"] / 2.0))
-    a = s["activa"]
-    L.append('<rect x="%.2f" y="%.2f" width="%.2f" height="%.2f" fill="none" '
-             'stroke="#8a6d3b" stroke-width="0.25" stroke-dasharray="1 1"/>'
-             % (a["x"] - a["lado"] / 2, a["y"] - a["lado"] / 2, a["lado"], a["lado"]))
     for c in n.d["componentes"]:
         h = n.huellas[c["huella"]]
         if "contorno" not in h:
@@ -868,6 +893,7 @@ def gen_conexiones(n):
         L.append("| **%s** | %s | %s | %s |"
                  % (c["ref"], c["desc"], c.get("donde", "—"), c.get("como", "—")))
     L.append("")
+    L.append(_mapa_de_montaje(n))
     L.append("## Los puentes de cable")
     L.append("")
     L.append("Una sola cara de cobre: donde dos redes tendrían que cruzarse, una")
@@ -875,9 +901,8 @@ def gen_conexiones(n):
     L.append("sueldan **después** de la cinta y **antes** de los módulos.")
     L.append("")
     L.append("Los que dicen **rodeando** no van de punta a punta: el camino")
-    L.append("derecho les cruzaría la ventana de la pantalla y el cable quedaría")
-    L.append("apretado entre el módulo y el plástico. La plantilla los dibuja por")
-    L.append("donde van.")
+    L.append("derecho les cruzaría la muesca de la antena o un tornillo. La")
+    L.append("plantilla los dibuja por donde van.")
     L.append("")
     L.append("| # | Red | De | A | Cable | Largo aprox. | |")
     L.append("|---:|---|---|---|---|---:|---|")
@@ -923,11 +948,84 @@ def gen_conexiones(n):
         L.append("| %.1f mm | %.0f mm |" % (ancho, largo))
         total += largo
     L.append("")
-    L.append("Son **%.0f mm de cinta por unidad**, contando los pads. Con un 40 %% de"
+    L.append("Son **%.0f mm de cinta por unidad**, contando los pads. Todo sale"
              % total)
-    L.append("recortes y errores, un rollo de 6 mm y otro de 20 mm alcanzan para")
-    L.append("más de diez unidades.")
+    L.append("de **un solo rollo de %.0f mm**: ninguna canaleta pide más ancho que"
+             % n.reglas["cinta_ancho"])
+    L.append("ése (el porqué, en [pcb.md](pcb.md), «La cinta manda»). Con un 40 % de")
+    L.append("recortes y errores, un rollo de 20 m alcanza para más de cien")
+    L.append("unidades.")
     return "\n".join(L) + "\n"
+
+
+def _mapa_de_montaje(n):
+    """El mapa para clavar: dónde entra cada módulo y qué pin es cada pin.
+
+    Es el documento que se mira con el soldador en la mano. Para cada módulo
+    que se clava: el tamaño exacto de su huella, cuántos pines tiene, a qué
+    paso, y pin por pin de qué red es y contra qué pin del ESP32 queda.
+    Sale del mismo dato que la plantilla, así que no puede contradecirla."""
+    esp32 = None
+    for c in n.d["componentes"]:
+        if c["huella"] == "esp32c3":
+            esp32 = c["ref"]
+    # Para cada red, con qué pin del ESP32 queda unida.
+    gpio_de_red = {}
+    for pin in n.d["esp32"]["pines"]:
+        gpio_de_red[pin["red"]] = "IO%d" % pin["gpio"]
+    for red in ("GND", "3V3"):
+        if red in n.d["redes"]:
+            gpio_de_red.setdefault(red, red)
+
+    L = ["## El mapa de montaje", "",
+         "Todo se **clava**: cada módulo trae su tira de pines macho, los pines",
+         "pasan por los agujeros y se sueldan del lado de las canaletas. No hay",
+         "un solo cable suelto entre el ESP32 y los sensores —para eso está el",
+         "sustrato—, salvo los puentes de la sección siguiente.", "",
+         "| Módulo | Huella | Pines | Paso | Tamaño de la huella | Centro |",
+         "|---|---|---:|---|---|---|"]
+    clavables = [c for c in n.d["componentes"]
+                 if n.huellas[c["huella"]].get("contorno")]
+    for c in clavables:
+        h = n.huellas[c["huella"]]
+        L.append("| **%s** | `%s` | %d | %s | %.1f × %.1f mm | (%.1f, %.1f)%s |"
+                 % (c["ref"], c["huella"], len(h["pads"]),
+                    h.get("paso", "2,54 mm"), h["contorno"][0], h["contorno"][1],
+                    c["pos"][0], c["pos"][1],
+                    "" if not c.get("rot") else ", girado %d°" % c["rot"]))
+    L.append("")
+    for c in clavables:
+        h = n.huellas[c["huella"]]
+        nombres = c.get("pines") or h.get("pines")
+        L.append("### %s — %s" % (c["ref"], c.get("desc", c["huella"])))
+        L.append("")
+        if h.get("modulo"):
+            m = h["modulo"]
+            L.append("Módulo de **%.1f × %.1f × %.1f mm**. %s"
+                     % (m[0], m[1], m[2], h.get("nota", "")))
+            L.append("")
+        L.append("| # | Pin del módulo | Red | Queda unido a |")
+        L.append("|---:|---|---|---|")
+        for i, nombre in enumerate(nombres, 1):
+            nodo = "%s.%s" % (c["ref"], nombre)
+            pad = n.pads.get(nodo)
+            red = pad.red if pad else "—"
+            info = n.d["redes"].get(red, {})
+            otros = [x for x in info.get("nodos", []) if x != nodo]
+            if not otros:
+                otros_txt = "*nada: se deja al aire*"
+            else:
+                otros_txt = ", ".join("`%s`" % x for x in otros)
+            marca = gpio_de_red.get(red)
+            # En la tabla del propio ESP32 el "(U1.IO5)" sobra: la fila ya es
+            # ese pin. En las de los modulos es justo lo que se quiere saber.
+            if marca and esp32 and c["ref"] != esp32 and red not in ("GND", "3V3"):
+                red_txt = "**%s** (%s.%s)" % (red, esp32, marca)
+            else:
+                red_txt = "**%s**" % red
+            L.append("| %d | `%s` | %s | %s |" % (i, nombre, red_txt, otros_txt))
+        L.append("")
+    return "\n".join(L)
 
 
 def triangulos(stl):

@@ -2,9 +2,35 @@
 
 El ROOTKIT no lleva una placa de circuito impreso comprada: lleva un
 **sustrato de PETG impreso en 3D con canaletas**, y las pistas son **cinta de
-cobre** pegada dentro de esas canaletas y soldada en cada unión. Encima van
-los módulos: el ESP32, la pantalla, el cargador y los bornes de todo lo que
-vive repartido por la carcasa.
+cobre** pegada dentro de esas canaletas y soldada en cada unión.
+
+## Qué es esta placa, y qué no (v3.0)
+
+Es una **protoboard impresa**. Su única función es que el ESP32, la pantalla
+y los sensores se **claven** en ella —cada uno por su tira de pines— y queden
+interconectados. Nada más.
+
+Hasta la v2.0 esta placa era además el chasis del producto: tenía la ventana
+por donde asomaba la pantalla, el bolsillo donde se acostaba el cargador y el
+hueco del USB. Eso ataba el tamaño y la forma de la placa a decisiones de
+carcasa que todavía no están tomadas, y llenaba el centro del sustrato con un
+agujero de 28 × 38 mm por el que no podía pasar ninguna pista. En la v3.0 se
+fue todo eso:
+
+| | v2.0 | v3.0 |
+|---|---|---|
+| Rol | chasis + interconexión | **sólo interconexión** |
+| Ventana de la pantalla | 28,6 × 37,6 mm, pasante | **no hay**: la pantalla se clava y vive donde diga la carcasa |
+| Hueco del USB / cargador | sí | **no hay**: la etapa de carga es un arnés externo de dos cables |
+| Cómo se monta un módulo | bornes y cables sueltos | **tira de pines, clavada** |
+| Cinta de cobre | dos rollos (6 y 20 mm) | **un solo rollo de 5 mm** |
+| Canaleta | 0,8 mm de hondo | **1,2 mm** |
+| Nervadura de la estampadora | sobresale 0,4 mm, 0,25 de luz | **sobresale 1,0 mm, 0,15 de luz** |
+| Puentes de cable | 38 | **24**, y ninguno en una señal del SPI |
+
+Lo que se gana: el montaje es clavar ocho módulos. Lo que se pierde: la placa
+ya no sostiene nada, así que **la carcasa tiene que sostenerla a ella y a la
+pantalla**. Eso está anotado en "Lo que el sustrato le pide a la carcasa".
 
 Es el **núcleo común**: uno solo para los cuatro Rooties. La carcasa cambia
 (es decisión de arte); lo de adentro es igual.
@@ -46,12 +72,25 @@ con la geometría, que es más fuerte. Un ruteo desfasado deja una red en dos
 pedazos o dos canaletas demasiado juntas, y el verificador lo dice.
 
 **Por qué un ruteador y no seguir a mano.** Las 51 pistas de la v1.0 se
-dibujaron una por una. Eso funciona hasta que cambia algo de fondo —y acá
-cambiaron tres cosas a la vez: la boquilla de 0,6, los pads escalonados del
-C3 y una placa 24 % más chica—, y entonces hay que redibujarlas todas.
-Teniendo el ruteador, achicar la placa es cambiar dos números y volver a
-correrlo. Es la misma idea de siempre: el dato en el medio, el resto
-generado.
+dibujaron una por una. Eso funciona hasta que cambia algo de fondo, y desde
+entonces cambió todo dos veces: primero la boquilla de 0,6 y los pads
+escalonados, y después el rol entero de la placa. Redibujar ochenta pistas a
+mano cada vez no es un plan. Teniendo el ruteador, mover un módulo es cambiar
+dos números y volver a correrlo. Es la misma idea de siempre: el dato en el
+medio, el resto generado.
+
+**El orden en que se rutea es parte del diseño.** `orden_ruteo`, en el JSON,
+es la lista de redes en el orden en que el ruteador las resuelve, y no es el
+mismo orden en que se documentan. El que entra primero se queda con el lugar,
+así que van primero las **señales** —dos o tres nodos cada una, caminos
+cortos, ningún lugar alternativo— y al final los **rieles**, que tienen
+quince nodos y se acomodan por donde queda. Al revés, con la masa adelante,
+la masa se desparramaba por toda la placa y las señales llegaban tarde: la
+mitad del SPI terminaba en puente. Sólo cambiar ese orden sacó nueve
+puentes. Dentro del abanico del SPI el orden es de **adentro hacia afuera**:
+la línea que tiene que llegar al pin más bajo del C3 corre más pegada al
+módulo, así que va primero; si entra primero la de afuera, tapa el carril de
+adentro.
 
 **Por qué así.** Un sustrato dibujado a ojo se desincroniza del firmware en
 el segundo cambio de pin, y nadie se entera hasta que hay una placa armada
@@ -75,40 +114,42 @@ sustrato entero antes de que exista:
 | Ninguna canaleta queda a menos de 0,8 mm de otra | `tools/pcb.py` |
 | Ancho mínimo por clase de red | ídem |
 | Cada red queda en **una sola pieza** (pistas + puentes) | ídem |
-| Nada de cobre en la ventana, los recortes ni los tornillos | ídem |
+| Nada de cobre en los recortes ni sobre los tornillos | ídem |
 | Nada de cobre nuestro en la zona libre de la antena | ídem |
 | El texto grabado no muerde ninguna canaleta | ídem |
 | Ningún agujero es más chico de lo que la boquilla puede sacar | ídem |
 | Entre dos agujeros queda pared de plástico suficiente | ídem |
 | Ninguna canaleta pasa por el agujero de otra red | ídem |
-| Ningún puente cruza la ventana, la muesca ni un tornillo | ídem |
+| Ningún puente cruza la muesca de la antena ni un tornillo | ídem |
+| Ninguna canaleta pide más cinta de la que trae el rollo de 5 mm | ídem |
 | La cara que se imprime contra la cama **es un plano** | sobre el STL, en `make pcb` |
 | Ninguna nervadura de la estampadora queda más fina de lo que imprime | `tools/pcb.py` |
 | La estampadora **entra** en el sustrato sin tocarlo | `encaje.scad`, con OpenSCAD |
 | La estampadora **llega al fondo** de las canaletas | ídem |
 
-Son 217 comprobaciones en C y catorce reglas geométricas en Python. Lo que
+Son 217 comprobaciones en C y quince reglas geométricas en Python. Lo que
 **no** verifica: que el módulo que llegue tenga los pines donde dice el JSON.
 Eso se mide, y está en [armado.md](armado.md), paso 1.
 
-Tres de esas reglas nacieron de una placa impresa de verdad, mirándola: los
-agujeros salían tapados, había una repisa colgando en la cara de abajo y
-algún puente cruzaba la ventana. Las tres están ahora del lado de la máquina,
-y cada una tiene su control negativo —se le devuelve el defecto y la regla
-tiene que saltar— porque una prueba que nunca falló no demostró nada.
+Cuatro de esas reglas nacieron de una placa impresa de verdad, mirándola: los
+agujeros salían tapados, había una repisa colgando en la cara de abajo, algún
+puente cruzaba un hueco, y la cinta no alcanzaba a forrar las canaletas más
+anchas. Las cuatro están ahora del lado de la máquina, y cada una tiene su
+control negativo —se le devuelve el defecto y la regla tiene que saltar—
+porque una prueba que nunca falló no demostró nada.
 
 ## El sustrato
 
 | | |
 |---|---|
 | Material | **PETG** (o ASA). PLA no: se ablanda a ~60 °C, y acá se suelda encima y el aparato vive al sol de una ventana |
-| Medidas | **62 × 92 × 3,0 mm** (la v1.0 medía 72 × 104: 24 % menos de placa) |
+| Medidas | **68 × 92 × 3,0 mm** |
 | Boquilla / altura de capa | **0,6 mm** / 0,2 mm, 3 perímetros |
 | Soportes | **ninguno**, y no por poco: no hay un solo voladizo (ver "La base plana") |
 | Orientación | la cara de las canaletas **hacia arriba**; la cara plana en la cama |
-| Canaletas | **0,8 mm de profundidad**, 0,3 mm más anchas que la cinta |
+| Canaletas | **1,2 mm de profundidad**, 0,3 mm más anchas que la pista |
 | Pared entre canaletas | **0,8 mm mínimo** |
-| Agujeros | 1,4 mm los pines del C3, 1,8 mm los bornes, 3,2 mm los tornillos |
+| Agujeros | 1,4 mm todas las tiras de pines, 1,8 mm el electrolítico, 2,4 mm los tornillos M2 |
 | Relleno | 25 % basta; lo que importa son los perímetros |
 
 **Por qué 0,8 mm de profundidad.** La canaleta hace dos cosas: guía la cinta
@@ -126,6 +167,50 @@ contra la pared. Es lo que hace que dos unidades salgan iguales.
 **Por qué 3,0 mm de espesor.** Debajo de una canaleta quedan 2,2 mm, por
 encima de la pared mínima de 1,6 mm de [carcasas.md](carcasas.md), y es lo
 que necesita un agujero de 1,4 mm para guiar un pin derecho.
+
+### La cinta manda
+
+El rollo de cinta de cobre mide **5 mm de ancho**, y eso no se negocia: es
+lo que hay. De ahí sale, por aritmética, casi todo el resto del diseño.
+
+Una canaleta de ancho `a` y profundidad `p` **no se forra con `a` milímetros
+de cinta**. La cinta tiene que bajar por una pared, cubrir el piso y subir
+por la otra: necesita `a + 2p`. Con las canaletas de 0,8 mm de hondo de la
+v2.0 eso casi no se notaba; con las de 1,2 mm de la v3.0 manda todo:
+
+```
+    ancho de canaleta + 2 x profundidad <= 5,0 mm
+                     a + 2 x 1,2        <= 5,0
+                                      a <= 2,6 mm
+```
+
+Y como la canaleta es la pista más `holgura_canaleta` (0,3 mm), la pista más
+ancha posible es de **2,3 mm**. El riel de potencia quedó en **2,2** y la
+señal en **1,4** (se rutean a 1,0; ver "Los anchos"). El verificador
+`_v_cinta` lo comprueba pista por pista y pad por pad, así que no se puede
+volver a dibujar una pista de 4 mm sin que la máquina lo diga.
+
+**¿Y no es poco 2,2 mm para un riel?** Antes no lo hubiera sido: por la v2.0
+pasaba el ampere de carga del TP4056. En la v3.0 el cargador vive fuera del
+sustrato, así que la corriente más grande que cruza esta placa son los
+**350 mA de pico del wifi**. Sobre 2,2 × 0,035 mm de cobre eso da 0,22 mΩ por
+milímetro; los 70 mm más largos de riel son 15 mΩ, o sea **5 mV** de caída en
+el peor instante. No se mide con un tester de mano.
+
+**El otro premio: un solo rollo.** Con la pista más ancha en 2,2 mm, todas
+las canaletas de la placa se forran con cinta de 5 mm. Se terminó el rollo de
+20 mm para los rieles y el de 6 mm para las señales, y con él se terminaron
+los empalmes entre cintas de distinto ancho.
+
+> **Lo que no se puede pedir: que la cinta se corte sola.** El objetivo de
+> hundir la canaleta a 1,2 mm y hacer que la nervadura sobresalga 1,0 mm es
+> que el filo de la nervadura contra el borde de la canaleta **marque** la
+> cinta hasta casi cortarla. Casi. Una matriz de corte de verdad, para 0,06 mm
+> de cobre, trabaja con unas pocas micras de luz entre punzón y matriz; una
+> boquilla de 0,6 mm da 0,15 mm en el mejor día, que son cincuenta veces más.
+> Así que la cinta se marca acá y **se termina de separar lijando la cara**:
+> después de prensar, una lija al ras deja el cobre sólo dentro de los
+> canales. Ese es el proceso, y el diseño está hecho para él.
 
 ### La boquilla de 0,6 manda
 
@@ -146,39 +231,76 @@ además angosta la placa), los del condensador radial de 1,2 a 1,8, y los
 tornillos de 2,4 a **3,2**. El único que no pudo crecer tanto es el del C3, y
 tiene su propia sección.
 
-### Los pads escalonados del C3
+### Las tiras de pines, y de qué lado sale cada pad
 
-El SuperMini tiene los pines a **2,54 mm** y eso no se negocia. Hagamos la
-cuenta de lo que hay que meter entre dos pines vecinos: el agujero, el anillo
-de cobre alrededor, la holgura de la canaleta y la pared hasta el pad de al
-lado. Con una boquilla de 0,6 el agujero solo ya pide 1,4 mm, y no queda nada
-para el resto. **Un pad con su agujero adentro no entra a 2,54 mm.** No es
-cuestión de dibujarlo mejor: no da la aritmética.
+Todo se **clava**: cada módulo trae su tira de pines macho, los pines pasan
+por los agujeros del sustrato y se sueldan del otro lado, contra la cinta.
+Ocho módulos, ocho tiras, ningún cable entre el ESP32 y los sensores.
 
-La salida es correr el pad **al costado del agujero** en vez de alrededor, e
-ir alternando: un pin tira su pad para afuera, el siguiente para adentro. Así
-el paso entre dos pads del mismo lado pasa a ser 5,08 mm y sobra lugar.
+El paso es **2,54 mm** y eso no se negocia. Hagamos la cuenta de lo que hay
+que meter entre dos pines vecinos: el agujero, el anillo de cobre alrededor,
+la holgura de la canaleta y la pared hasta el pad de al lado. Con una
+boquilla de 0,6 el agujero solo ya pide 1,4 mm, y no queda nada para el
+resto. **Un pad con su agujero adentro no entra a 2,54 mm.** No es cuestión
+de dibujarlo mejor: no da la aritmética.
+
+La salida es correr el pad **al costado del agujero** en vez de alrededor. El
+pad queda **tangente al agujero**: la cinta llega justo hasta el borde, el
+pin asoma, y al soldar se le arrima la punta contra la cinta que tiene al
+lado, sin doblar nada. Es un movimiento distinto al de un pad con anillo, y
+está explicado en [armado.md](armado.md), paso 3.
 
 ```
-   afuera   agujero   adentro
-   ┌────┐     ( )
-   │pad │─────┤ │              IO5   el pad toca el borde del agujero
-   └────┘     ( )
-              ( )     ┌────┐
-              │ │─────│pad │    IO6   el siguiente va para el otro lado
-              ( )     └────┘
+     agujero   pad
+       ( )   ┌────┐
+       │ │───│pad │──────────►  la canaleta sale para ESTE lado, y sólo
+       ( )   └────┘             para este lado
 ```
 
-El pad queda **tangente al agujero**: la cinta llega justo hasta el borde. Al
-soldar, el pin asoma por el agujero y se le arrima la punta del soldador
-contra la cinta que tiene al lado; no hay que doblarlo. Es un movimiento
-distinto al de un pad con anillo, y está explicado en
-[armado.md](armado.md), paso 3.
+**De qué lado va cada pad es una decisión de diseño, no de estética.** Un pad
+sólo puede sacar su canaleta hacia su lado. Así que el lado de cada pin se
+elige mirando adónde va esa red: los pines de alimentación miran hacia los
+rieles y los de señal miran hacia el ESP32. En el JSON eso es la lista
+`lados` de cada huella, un `+1` o un `-1` por pin.
 
-Con eso el agujero del C3 pudo ir de 1,0 a **1,4 mm** (+40 %) dejando 1,14 mm
-de pared entre agujeros vecinos, que es lo que la regla pide.
+Es el cambio que más puentes sacó, y se descubrió por el lado feo. La v2.0
+escalonaba los pads a los dos lados —uno afuera, el siguiente adentro— para
+ganar paso. Parecía prolijo, pero dejaba **la mitad de los pads adentro de la
+huella**, y desde ahí la canaleta sólo podía salir por un pasillo central de
+9 mm: ocho redes peleando por tres carriles. De ahí salía la mayoría de los
+38 puentes de la v2.0. Con los pads elegidos por destino, las nueve líneas de
+la pantalla salen cada una para su lado y **ninguna señal del SPI lleva
+puente**.
 
-### La base plana
+```
+   J_TFT, la pantalla de 9 pines, vista desde las canaletas:
+
+        CS    DC  SDI  SCK          ▲  hacia el ESP32 (fila izquierda)
+        ┌┐    ┌┐  ┌┐   ┌┐
+     ───●●────●●──●●───●●───        la línea de agujeros, a 2,54 mm
+      ┌┐  ┌┐    ┌┐        ┌┐
+      VCC GND  RESET     LED SDO    ▼  hacia los rieles y la etapa de luz
+```
+
+**Y el orden de los pines decide de qué lado va el módulo.** Los cuatro hilos
+del SPI salen de la pantalla en el orden CS, DC, SDI, SCK, y entran al C3 por
+su fila izquierda en el orden CS, DC, MOSI, SCK de abajo hacia arriba. Si la
+tira se monta **girada 180°**, esos dos órdenes coinciden y las cuatro
+canaletas suben en paralelo sin cruzarse ni una vez. Montada al derecho, se
+cruzan las cuatro. Es un `"rot": 180` en el JSON y vale cuatro puentes.
+
+**Cuánto mide el pad: 1,0 × 2,2 mm.** El 1,0 es a lo largo de la tira y es el
+número delicado. Entre dos pads vecinos a 2,54 mm quedan 1,54 mm, y del eje
+de una canaleta al pad de al lado, 2,04 mm. Con pads de 1,2 mm eran 1,94, y
+el ruteador pide 1,90: pasaba por cinco centésimas. Dos de las cuatro líneas
+del SPI **no encontraban camino ni con la placa vacía**, y desde afuera
+parecía un problema de congestión. Medio milímetro de margen en una regla
+que se evalúa sobre una grilla de 0,2 mm no es margen.
+
+Con eso el agujero pudo ir de 1,0 a **1,4 mm** (+40 %) dejando 1,14 mm de
+pared entre agujeros vecinos, que es lo que la regla pide.
+
+### La base plana### La base plana
 
 La cara que se imprime contra la cama **es un plano**. Ni un escalón, ni un
 bolsillo, ni una repisa: todo lo que la atraviesa la atraviesa entero y
@@ -189,9 +311,8 @@ techo mirando hacia abajo a media altura, que la impresora tiene que tender
 en el aire sobre la primera capa. Sale colgando y arruina la cara.
 
 - **La repisa de la ventana** (0,9 mm hacia adentro, a 1,4 mm de la cama).
-  Era para que la pantalla apoyara. Pero la pantalla ya la sujetaba el marco
-  de la carcasa: el sustrato solo la posiciona. Se fue, y la ventana es ahora
-  un hueco recto.
+  Era para que la pantalla apoyara. En la v2.0 se fue la repisa y en la v3.0
+  se fue la ventana entera: la pantalla se clava en su tira de pines.
 - **El bolsillo del cargador** (27 × 14 mm hundidos 0,8 mm). Era para que el
   TP4056 quedara más al ras. Se fue: el módulo apoya sobre la cara, 0,8 mm
   más arriba, y la carcasa tiene lugar de sobra.
@@ -214,25 +335,24 @@ Todas las coordenadas de la plantilla se leen **desde la cara de las
 canaletas**: de frente al ROOTKIT, la X crece hacia la izquierda. Está escrito
 en la plantilla para que nadie la use espejada.
 
-### La ventana de la pantalla
+### Ya no hay ventana
 
-La ventana es un **hueco recto y pasante**, del mismo tamaño de arriba a
-abajo. La pantalla entra desde el frente y la carcasa la aprieta contra el
-marco de su propia ventana ([carcasas.md](carcasas.md)): el sustrato no la
-sujeta, la **posiciona**. Entre la cara del sustrato y el módulo va una tira
-de **espuma de 1 mm**, que absorbe la tolerancia del espesor del panel y
-evita apretar el vidrio contra dos apoyos rígidos. La repisa que había en la
-v1.0 hacía ese trabajo y además un voladizo: ver "La base plana".
+Hasta la v2.0 el sustrato tenía un hueco pasante de 28,6 × 37,6 mm por donde
+asomaba la pantalla, y la cota más delicada de todo el producto era dónde
+caía el área activa del panel dentro de su módulo: de ahí salía dónde iba la
+ventana de la carcasa, y era la única medida que no se podía verificar sin
+tener el módulo en la mano.
 
-> **A medir con el módulo en la mano: dónde cae el área activa.** El módulo
-> es de 28 × 37 mm y el área activa, de 25,9 × 25,9. Los 11 mm que sobran
-> **no están repartidos en partes iguales**: casi todos están del lado del
-> conector de 8 pines. El JSON asume que el centro del área activa queda a
-> **14 mm del borde opuesto al conector** (`sustrato.activa`), y de ahí sale
-> dónde va la ventana de la carcasa. Es la cota más importante de todo el
-> producto y es la única que no se puede verificar sin el módulo: si sale
-> distinta, se corrige el número en el JSON, se corre `make pcb`, y la
-> carcasa se centra en el rectángulo punteado de la plantilla.
+Eso se fue entero. La pantalla se clava en `J_TFT` por sus nueve pines y
+después va donde la carcasa quiera; el sustrato ya no la posiciona. Además
+de sacar una incógnita, devolvió **1.075 mm² en el centro de la placa** por
+donde ahora pasan pistas.
+
+Como efecto secundario desapareció un caso especial que estaba escrito en
+cinco archivos: `nucleo.json` tenía una clave `ventana` aparte de la lista
+genérica `recortes`, y `pcb.py`, `ruteo.py`, `sustrato.scad` y
+`estampadora.scad` la trataban por separado. El único recorte que queda —la
+muesca de la antena— ya entraba por la lista genérica.
 
 ## Las pistas
 
@@ -240,22 +360,27 @@ Cinta de cobre adhesiva de 0,035–0,07 mm. Anchos:
 
 | Clase | Ancho | Dónde |
 |---|---:|---|
-| Rieles de potencia | **2,4 mm** | masa, 3V3, VINT, el nodo de sistema |
-| Señal | **1,2 mm** | SPI, I2C, control |
+| Rieles de potencia | **2,2 mm** | masa, 3V3, 3V3S, VIN |
+| Señal | **1,0 mm** | SPI, I2C, control |
 | Ramal de aterrizaje | el del pad | el último tramo, cuando el pad es más angosto que el riel |
 
-**Riel ancho, ramal fino.** Un riel de 2,4 mm que baja a un pad de 1,2 mm de
-un SOT-23 pasa por fuerza a 1,7 mm del pad de al lado, que está a 2,3: no
+Los dos números los fija la cinta de 5 mm (ver "La cinta manda"): más ancho
+que 2,3 mm no se puede forrar con una canaleta de 1,2 mm de hondo. El de
+señal bajó de 1,2 a 1,0 por una razón distinta y más tonta: con 1,2 mm el eje
+de una canaleta quedaba a 1,94 mm del pad vecino y el ruteador pide 1,90, así
+que dos líneas del SPI no encontraban camino **ni con la placa vacía**.
+
+**Riel ancho, ramal fino.** Un riel de 2,2 mm que baja a un pad de 1,2 mm de
+un SOT-23 pasa por fuerza a 1,6 mm del pad de al lado, que está a 2,3: no
 entra. Pero angostar el tramo entero estrangularía el riel. Así que cada
 recorrido se **parte**: mientras aguanta va ancho, y la punta que entra al
 pad va del ancho del pad. Es lo que se hacía a mano, y ahora lo hace el
 ruteador solo.
 
 **La corriente no es el problema; la resistencia tampoco.** Una pista de
-1,4 mm × 0,035 mm tiene 0,35 mΩ por milímetro: los 17 mm de abanico que
-salen del pin 5V son 6 mΩ, o **2 mV al pico de wifi de 350 mA**. Lo que
-manda el ancho es el ancho mínimo que se puede cortar a mano contra una
-pared impresa.
+1,0 mm × 0,035 mm tiene 0,49 mΩ por milímetro y un riel de 2,2, 0,22: los
+70 mm más largos de riel son 15 mΩ, o **5 mV al pico de wifi de 350 mA**. Lo
+que manda el ancho es la cinta, no el cobre.
 
 **Las uniones se sueldan, siempre.** El adhesivo de la cinta es conductor
 "de a ratos": sirve para pegar, no para conducir. Cada empalme entre dos
@@ -265,15 +390,19 @@ flux la cinta no se despega ni el PETG se deforma; con estaño común
 punta a 260 °C, no más.
 
 **Masa.** No hay plano de masa: no se puede con una cara y cinta cortada a
-mano. Lo que hay es una **barra de masa** de 2,4 mm que recorre el perímetro
-y entra por los costados de la ventana. Cada borne tiene su pad de masa
-sobre ella o a un tramo corto.
+mano. Lo que hay es una **barra de masa** de 2,2 mm que recorre el perímetro
+y sube por los dos costados. Cada tira tiene su pin de masa sobre ella o a un
+tramo corto, y los pines de masa de las tiras de sensor miran todos **hacia
+afuera**, hacia la barra, mientras los de señal miran hacia adentro, hacia el
+ESP32 (ver "Las tiras de pines").
 
-**Los cinco sensores comparten la línea de masa.** Los cinco bornes de sensor
-(`J_AHT`, `J_BH`, `J_SUELO`, `J_TTP`, `J_DS`) están puestos a la **misma
-altura**, así que sus pines de GND caen todos sobre la misma recta y la barra
-los junta de una pasada en vez de ir a buscarlos de a uno. No es casualidad
-ni estética: alinearlos sacó tres puentes de la placa.
+**La masa es la que paga los puentes.** De los 24 puentes de la v3.0, diez
+son de masa y cuatro de 3V3: son las dos redes con quince y diecisiete nodos
+repartidos por toda la placa, y en una sola cara eso no se cierra sin cruces.
+Se eligió a propósito que los pague la masa: un cable de masa es el más
+inofensivo de todos —no tiene señal que degradar, no importa por dónde vaya,
+y si hiciera falta se puede reforzar con otro en paralelo—. Todas las señales
+quedaron en cobre.
 
 ### El SPI
 
@@ -286,38 +415,44 @@ código — antes de sospechar del hardware.
 ### Los puentes
 
 Una sola cara de cobre significa que algunos cruces no se pueden evitar. Se
-resuelven con **cable aislado fino (AWG30) por arriba**: 38 puentes, todos
+resuelven con **cable aislado fino (AWG30) por arriba**: 24 puentes, todos
 listados en [conexiones.md](conexiones.md) y dibujados en la plantilla con
 línea azul de puntos. No hay ninguno que no esté en esa lista, y la prueba de
 conectividad los cuenta: si falta uno, la red queda en dos pedazos y el
 verificador lo dice por nombre.
 
-**Tres de ellos van rodeando.** El cable de un puente corre por la cara de
-los módulos, que es donde entra la pantalla. Un puente que fuera derecho de
-punta a punta cruzaría la ventana y quedaría **apretado entre el módulo y el
-plástico**. Los tres a los que les pasa eso llevan su camino anotado en el
-dato y dibujado en la plantilla, y hay una regla que no deja que aparezca un
-cuarto por descuido.
+**De 38 a 24.** La v2.0 tenía 38. Los catorce que se fueron salieron de tres
+cambios, y vale la pena saber cuál dio cuánto porque no es intuitivo:
 
-**De 28 a 38, y de dónde salen los diez.** La v1.0 tenía 28. El precio está
-medido, corriendo el mismo ruteador sobre las dos plantas:
-
-| | Puentes |
+| Cambio | Puentes |
 |---|---:|
-| v1.0, ruteada a mano, 72 × 104 | 28 |
-| v2.0 (boquilla 0,6, agujeros grandes, pads escalonados) a 72 × 104 | **35** |
-| v2.0 a 62 × 92 | **38** |
+| v2.0, 62 × 92, pads escalonados, masa primero | 38 |
+| Sacar la ventana y clavar todo en tiras de pines | 31 |
+| Elegir de qué lado sale cada pad, y girar la pantalla 180° | 27 |
+| Rutear las señales primero y los rieles al final | 24 |
 
-O sea: **siete puentes los pusieron los agujeros** —crecer un agujero y
-escalonar un pad come lugar de ruteo— y **tres, achicar la placa un 24 %**.
-Achicar sale casi gratis; lo caro es que los pines entren. Son diez cables
-finos más, unos quince minutos de mesa, contra una placa que se imprime y se
-arma.
+Lo que **no** dio nada fue agrandar la placa: entre 56 × 78 y 68 × 92 el
+ruteador entregó el mismo número. El problema nunca fue el lugar, fue la
+topología —de qué lado sale cada pad y en qué orden entra cada red—. Es
+tentador resolver una placa apretada agrandándola; acá no habría servido.
 
-Dos de ellos son de potencia y van con **cable más grueso (AWG24)**: el nodo
-de sistema al interruptor y el de la celda protegida al MOSFET de carga
-compartida. Ahí el cable es mejor conductor que la cinta, así que no se
-pierde nada.
+**Los catorce que quedan son de masa y de 3V3** (diez y cuatro). Los otros
+diez están repartidos de a uno o dos en redes chicas, y dos de ellos son
+deliberados:
+
+- **SCL.** El C3 trae SDA en una fila de pines y SCL en la otra, así que el
+  bus I2C nace partido en dos mitades de la placa. Una de las dos tiene que
+  cruzar sí o sí; cruza SCL, que es la que menos cuesta.
+- **OW.** El 1-Wire sale de GPIO8, que está en el medio de la fila izquierda,
+  justo detrás del abanico de cuatro líneas del SPI. Cualquier camino hacia
+  abajo cruza ese abanico. Se prefirió un cable de 1-Wire —una señal lenta,
+  de 15 kbit/s, con pull-up— antes que meter un cruce en el SPI de 40 MHz.
+
+**Ninguno cruza un hueco.** El cable de un puente corre por la cara de los
+módulos. Si fuera derecho por encima de la muesca de la antena o de un
+agujero de tornillo, quedaría apretado. Hay una regla que no deja que eso
+pase por descuido: los que tienen que rodear llevan su camino anotado en el
+dato y dibujado en la plantilla.
 
 ### La antena
 
@@ -374,21 +509,44 @@ un pad que en el sustrato está en *x* se imprime en *(ancho − x)* y al
 voltear la pieza vuelve a caer en *x*. Es un error que no se ve mirando el
 modelo —la pieza imprime igual de bien— y por eso tiene su propia prueba.
 
-**La nervadura sobresale 0,4 mm más de lo que hunde la canaleta.** Al
+**La nervadura sobresale 1,0 mm más de lo que hunde la canaleta.** Al
 apretar, la punta toca el fondo y la cara plana de la estampadora queda
-**0,4 mm separada** de la cara del sustrato. Ese aire es el que hace que la
-cinta se pegue *sólo adentro de las canaletas* y no sobre las paredes que las
-separan. Si las dos caras se tocaran, la cinta quedaría pegada en todos lados
-y habría que despegarla justo donde no hay que romperla. Con la canaleta más
-profunda de la v2.0, la nervadura mide **1,2 mm de alto**.
+**1,0 mm separada** de la cara del sustrato. Ese aire hace dos cosas. La
+primera, de siempre: que la cinta se pegue *sólo adentro de las canaletas* y
+no sobre las paredes que las separan —si las dos caras se tocaran, la cinta
+quedaría pegada en todos lados y habría que despegarla justo donde no hay que
+romperla—. La segunda es nueva en la v3.0: cuanto más entra la nervadura, más
+se estira la cinta sobre el filo de la canaleta y más cerca queda de
+**cortarse ahí sola**. Con la canaleta de 1,2 mm, la nervadura mide **2,2 mm
+de alto**.
 
-**La nervadura es 0,25 mm más fina por lado.** Ahí entran el espesor de la
+De 0,4 a 1,0 hay un efecto colateral que hay que acordarse de seguir: el
+faldón perimetral, que es lo que centra la pieza sobre el sustrato, envuelve
+el borde desde la cara de la estampadora hacia abajo. Si la cara queda 1,0 mm
+más arriba, el faldón engancha 1,0 mm menos. Por eso `faldon_alto` pasó de
+2,5 a **3,5 mm**: sigue entrando los mismos 2,5 mm en los 3 mm de espesor del
+sustrato, y sigue sin apoyar en la mesa.
+
+**La nervadura es 0,15 mm más fina por lado.** Ahí entran el espesor de la
 cinta doblada contra las dos paredes (0,035 mm cada una) y la tolerancia de
-impresión. Si midiera exactamente lo mismo que la canaleta, no entraría. La
-nervadura más fina de todo el juego mide **1,00 mm** —la de las pistas de
-señal— y el verificador falla si alguna baja de 0,95. Con boquilla de 0,6 esa
-nervadura es una extrusión generosa; con la holgura de 0,3 de la v1.0
-hubiera quedado en 0,9 y demasiado endeble para empujar cinta.
+impresión. Era 0,25 hasta la v2.0; bajarlo a 0,15 es acercar el filo de la
+nervadura al borde de la canaleta todo lo que una boquilla de 0,6 permite.
+La nervadura más fina de todo el juego mide **1,15 mm** —la de las pistas de
+señal— y el verificador falla si alguna baja de 0,95.
+
+> **Si la estampadora agarra y no baja, el número a subir es ése**, de a
+> 0,05. Es el único parámetro del juego que depende de cómo salga la
+> impresora, y por eso está solo en el JSON (`estampadora.holgura_lateral`)
+> en vez de repartido por la geometría.
+
+**No corta: marca.** Conviene decirlo con números para no esperar lo que no
+va a pasar. Una matriz de corte para chapa de 0,06 mm trabaja con una luz
+entre punzón y matriz de unas pocas micras. Acá la luz es de 150 micras, unas
+cincuenta veces más. Así que la nervadura **marca** la cinta contra el borde
+de la canaleta, la adelgaza y la deja lista para romperse ahí; el corte de
+verdad lo hace **la lija**, después, al ras de la cara. Lo que la estampadora
+tiene que garantizar es que la cinta esté *bien hundida y bien marcada* en
+todo el recorrido, y eso sí lo hace de una prensada.
 
 ### Cómo se comprueba que entra
 
@@ -413,17 +571,31 @@ igual de bien— salta con **3600**. No es una prueba que pase sola.
 
 ### Cómo se usa
 
-En [armado.md](armado.md), paso 2. En resumen: se corta la hoja de cinta
-contra el borde del sustrato (el propio sustrato hace de guía), se apoya, se
-baja la estampadora hasta que el faldón envuelve el borde, y se aprieta
-parejo. Después se levanta y se recorta lo que quedó tendido sobre las
-paredes, que ya viene marcado por el canto de cada canaleta.
+En [armado.md](armado.md), paso 2. Son cuatro movimientos:
+
+1. **Se cubre la cara entera de cinta**, tira al lado de tira, sin dejar
+   claros sobre ninguna canaleta. No hace falta apuntar: lo que sobra se va
+   a ir lijado. Las tiras del rollo de 5 mm se pisan un milímetro entre sí.
+2. **Se prensa con la estampadora**, hasta que el faldón envuelve el borde y
+   se hace tope. Las nervaduras hunden la cinta al fondo de cada canaleta y
+   la marcan contra los dos bordes.
+3. **Se levanta y se lija la cara**, al ras, con lija fina sobre un taco
+   plano. El cobre de la superficie —el que está apoyado sobre las paredes
+   entre canaletas— se va; el que está 1,2 mm más abajo, adentro de los
+   canales, no lo toca la lija. Ahí es donde se separan de verdad las pistas.
+4. **Se controla con el tester**, canaleta contra canaleta vecina: tiene que
+   dar abierto. Si alguna da continuidad, faltó lija en ese tramo.
+
+Ese orden —cubrir todo, prensar, lijar— es lo que hace que no haya que
+cortar cinta con bisturí ni apuntar tramo por tramo, que era lo que se hacía
+hasta la v2.0.
 
 > **La prueba en seco no es opcional.** Antes de poner la cinta, apoyar la
 > estampadora sobre el sustrato vacío: tiene que bajar hasta que el faldón
 > envuelva el borde, sin resistencia. Si hace tope antes, está al revés o la
-> impresión salió con las nervaduras gordas. **Nunca forzar**: las nervaduras
-> de 1,0 mm se parten.
+> impresión salió con las nervaduras gordas —y con 0,15 mm de luz por lado
+> eso es más probable que antes: ver `estampadora.holgura_lateral`—.
+> **Nunca forzar**: las nervaduras se parten.
 
 ## Humedad, fugas y barniz
 
@@ -611,50 +783,47 @@ depósito son 34 mAh de una celda de 3000: poco, pero gratis.
 
 ## Lo que el sustrato le pide a la carcasa
 
-Para que Rocío pueda modelar las cinco alrededor del mismo núcleo:
+Ahora es al revés que antes. Hasta la v2.0 el sustrato posicionaba la
+pantalla y el cargador, y la carcasa se acomodaba a eso. En la v3.0 el
+sustrato sólo se pide a sí mismo: **cuatro tornillos y aire**. Todo lo demás
+—dónde va la pantalla, dónde el capacitivo, dónde la celda— lo decide la
+carcasa, y los módulos llegan hasta ahí clavados en sus tiras de pines y con
+el cable que haga falta.
 
 | Cota | Valor |
 |---|---|
-| Sustrato | **62 × 92 × 3,0 mm**, cuatro tornillos M3 a 3,5 mm de cada esquina |
-| Postes de la carcasa | Ø2,4 mm, a (3,5, 3,5), (58,5, 3,5), (3,5, 88,5) y (58,5, 88,5) desde la esquina inferior izquierda, mirando el frente en espejo |
-| Profundidad hacia el frente | 5 mm hasta el vidrio de la pantalla; 10 mm donde está la SuperMini |
-| Profundidad hacia atrás | 6 mm libres para la cinta, los puentes y las soldaduras |
-| Centro del área activa de la pantalla | 24,7 mm desde el borde de abajo del sustrato, centrado a lo ancho |
-| Apoyo de la pantalla | **lo da la carcasa**, no el sustrato: la ventana es un hueco recto |
-| Cargador TP4056 | apoya **sobre** la cara plana (ya no hay bolsillo): 0,8 mm más de altura que en la v1.0 |
-| Antena | 10 mm de aire arriba y a los costados, sin metal |
-| USB del cargador | en el borde de abajo, mirando abajo y atrás |
+| Sustrato | **68 × 92 × 3,0 mm** |
+| Postes de la carcasa | **M2**, Ø2,4 mm, a (3, 11), (65, 11), (3, 81) y (65, 81) desde la esquina inferior izquierda, mirando la cara de las canaletas |
+| Aire hacia la cara de los módulos | **12 mm**: 4 de la SuperMini más su tira de pines, y lugar para los conectores que se claven |
+| Aire hacia la cara de las canaletas | **6 mm** para la cinta, los 24 puentes y las soldaduras |
+| Antena | 10 mm de aire arriba y a los costados, sin metal, y la muesca del sustrato despejada |
+| Pantalla TFT 2,2" | módulo de **56 × 40 × 11 mm**; se clava en `J_TFT` y queda parada sobre el sustrato. Su ventana la define la carcasa |
+| Capacitivo de suelo | **98 × 23 × 1,5 mm**, sale por abajo, junta abajo y el cable haciendo panza |
+| Celda 18650 + portapilas | **75 × 21 × 19 mm**, parada, en compartimento **separado** |
+| Cargador TP4056 + interruptor | fuera del sustrato, en su propio bolsillo; llegan al sustrato con dos cables a `J_PWR` |
 | USB de la SuperMini y botón BOOT | accesibles abriendo la carcasa, no desde afuera |
-| Interruptor | en la pared, con dos cables a `J_SW` |
-| Compartimento de la celda | **separado**, detrás del sustrato, 75 × 21 × 19 mm, parada |
 
-**Volumen mínimo del producto: unos 68 × 104 × 45 mm**, contra los
-78 × 116 × 45 de la v1.0. Con la 18650 parada detrás del sustrato, el centro
-de masa queda a ~42 % de la altura: dentro de lo que pide
-[carcasas.md](carcasas.md).
+> **Los cuatro tornillos son provisorios.** Están puestos donde no estorban
+> al ruteo, no donde convenga a una carcasa que todavía no existe. Cuando
+> Rocío modele las de Kip, Nori, Blink y Plum, lo más probable es que haya
+> que moverlos: son cuatro números en `sustrato.tornillos` y un `make pcb`.
+> Lo que **no** se puede mover sin pensarlo es meterlos en las esquinas: un
+> agujero en una esquina, con su aire de 0,8 mm, tapa justo la franja por
+> donde los dos rieles dan la vuelta, y eso se paga en puentes de masa.
 
-> **Por qué se achicó, y qué queda por confirmar.** La razón original fue un
-> personaje del elenco anterior —un domo bajo y ancho que no podía medir
-> 116 mm de alto sin dejar de ser un domo— y la disyuntiva entre acostar la
-> celda o pasar a una LiPo plana con un tercio de autonomía. Ese elenco ya no
-> existe: ahora son **Kip, Nori, Blink y Plum**, y sus cuerpos son otros. La
-> decisión de achicar sigue siendo buena por sí sola (24 % menos de placa,
-> ~104 mm de alto de producto), pero **la comprobación hay que rehacerla**
-> contra las carcasas nuevas cuando se modelen: ninguno de los cuatro tiene
-> todavía una carcasa, y el personaje de la app no sirve de referencia porque
-> es otro objeto ([carcasas.md](carcasas.md)).
-
-> **Esto cambia lo que Rocío tiene modelado.** Las cotas de arriba son
-> distintas a las de la v1.0: la placa es más chica, los postes se movieron y
-> los tornillos pasaron de M2 a M3. Las carcasas no se tocaron desde acá —son
-> de ella— pero hay que avisarle antes de que modele sobre las viejas.
+> **Esto cambia lo que Rocío tiene modelado.** La placa es más grande que la
+> v2.0 (68 × 92 contra 62 × 92), los postes se movieron y los tornillos
+> volvieron a M2. Y sobre todo: **ya no hay ventana de pantalla en el
+> sustrato**, así que la carcasa tiene que sostener el panel por su cuenta.
+> Hay que avisarle antes de que modele sobre las viejas.
 
 ## Lo que se probó de verdad, y lo que no
 
 **Probado (corre en CI, en cada commit):**
 
-- La geometría entera: separaciones, anchos, conectividad de las 26 redes,
-  bordes, tornillos, ventana, recortes, zona de antena, rótulos.
+- La geometría entera: separaciones, anchos, conectividad de las 23 redes,
+  bordes, tornillos, recortes, zona de antena, rótulos.
+- Que ninguna canaleta pide más cinta de la que trae el rollo de 5 mm.
 - Que `placa.h` y la netlist dicen lo mismo, pin por pin, en las dos placas.
 - Que el STL sale de OpenSCAD sin errores y que los generados están al día.
 
@@ -662,16 +831,28 @@ de masa queda a ~42 % de la altura: dentro de lo que pide
 todo esto está en [armado.md](armado.md) y en la Fase 2 del
 [roadmap](roadmap.md):
 
-1. **Una pieza de prueba de canaletas antes que el sustrato entero**: un
-   cupón de 40 × 40 mm con canaletas de 1,2 / 1,4 / 2,4 / 3,0 mm y paredes de
-   0,8 y 1,0, para confirmar que la cinta entra, se corta contra la pared y
-   la pared sale de dos extrusiones. Es media hora y evita imprimir cinco
-   sustratos mal.
+1. **Una pieza de prueba antes que el sustrato entero**: un cupón de
+   40 × 40 mm con canaletas de 1,0 / 1,4 / 2,2 mm a 1,0 / 1,2 / 1,4 mm de
+   profundidad, y su estampadora con `holgura_lateral` de 0,15 / 0,20 / 0,25.
+   Ahí se contestan de una vez las tres preguntas que quedan abiertas del
+   proceso: **hasta dónde se puede hundir la canaleta sin que la cinta se
+   rompa en el piso** en vez de en el borde, **con cuánta luz lateral entra
+   la nervadura** sin agarrar, y **cuánta lija hace falta** para que dos
+   canaletas vecinas den abierto. Es una hora de impresora y evita imprimir
+   cinco sustratos mal.
 2. **Una unión soldada de prueba**: Sn42Bi58 sobre cinta pegada en PETG, y
    tirar. Si el PETG se marca, bajar la punta o pasar a remaches.
-3. La huella de la SuperMini contra la placa real (paso 1 del armado).
-4. Dónde cae el área activa del panel.
-5. Qué es el pin BL.
+3. La huella de la SuperMini contra la placa real (paso 1 del armado): las
+   dos filas de ocho a 2,54 mm y a 15,24 mm entre filas, y si la tira está
+   corrida 0,76 mm del centro hacia el USB.
+4. **El orden de los pines de cada módulo.** Es lo que hay que mirar antes de
+   clavar nada, porque los clones cambian el orden entre lotes: el SHT21
+   (VIN GND SCL SDA), el capacitivo (AOUT GND VCC), el TTP223 (IO GND VCC) y
+   la TFT de 2,2" (VCC GND CS RESET DC SDI SCK LED SDO). Si alguno no
+   coincide, se corrige la lista `pines` de ese componente en el JSON y se
+   corre `make pcb`: la placa se reordena sola.
+5. Qué es el pin LED de la TFT de 2,2": si ya trae resistencia en serie,
+   `R11` se puebla con 0 Ω; si va directo a los LED, con 47–100 Ω.
 6. Si el pin 5V de la SuperMini está unido a su VBUS.
 7. Cuánto mide el capacitivo seco: si pasa de **2,5 V**, la lectura se
    satura en el ADC del C3 a 11 dB. Remedio: un divisor 100 k / 220 k
@@ -683,8 +864,8 @@ todo esto está en [armado.md](armado.md) y en la Fase 2 del
 
 ## Preguntas abiertas para Iñaki
 
-Las tres están diseñadas en una dirección y siguen adelante con ella; cambiar
-de idea es editar el JSON y correr `make pcb`.
+Todas están diseñadas en una dirección y el diseño sigue adelante con ella;
+cambiar de idea es editar el JSON y correr `make pcb`.
 
 1. **¿Un USB o dos?** Se diseñó con dos (el del cargador afuera, el de la
    SuperMini adentro) y la regla del interruptor. Recomendación: uno solo en
@@ -692,8 +873,19 @@ de idea es editar el JSON y correr `make pcb`.
 2. **¿Celda reemplazable por el usuario?** Se diseñó con carga USB-C y celda
    de servicio. Recomendación: dejarlo así y corregir `decisiones.md`, que
    quedó viejo.
-3. **¿Algún Rooti necesita LiPo plana en vez de 18650?** Se diseñó el núcleo
-   para 18650. La pregunta quedó planteada para un personaje que ya no está
-   en el elenco; hay que volver a hacérsela a Kip, Nori, Blink y Plum cuando
-   tengan carcasa. Recomendación: 18650 para todos, y LiPo plana sólo si
-   alguna silueta no llega a los ~104 mm de alto.
+3. **¿La pantalla del producto pasa a ser la de 2,2"?** El sustrato de la
+   v3.0 tiene una tira de **nueve** pines, que es la de la TFT de 2,2"
+   ILI9341 240 × 320 —la que hay sobre la mesa—. La de 1,44" del producto
+   tiene ocho y otro orden: **no entra en esta tira**. El firmware retiró el
+   ILI9341 en la 0.6.0 y hay que volver a sumarlo como variante (es su bloque
+   en `placa.h` y su clase en `pantalla.cpp`). Recomendación: mantener la de
+   1,44" como producto y la de 2,2" como **banco**, y decidir cuál es el
+   producto recién cuando haya carcasa. Si la respuesta es "la de 1,44"",
+   esta tira pasa a ocho pines y es un cambio de tres líneas en el JSON.
+4. **¿El sensor de aire pasa a ser el SHT21?** El firmware habla AHT20 en
+   0x38; el módulo que hay es un SHT21/HTU21/Si7021 en 0x40, con otro
+   protocolo. La tira de cuatro pines les sirve a los dos —VIN GND SCL SDA—
+   así que el sustrato no toma partido, pero el firmware sí tiene que elegir.
+   Recomendación: agregar el SHT21 como segundo driver seleccionable desde
+   `platformio.ini`, no reemplazar al AHT20.
+5. **¿Los tornillos van donde están?** Ver la nota de la sección anterior.
