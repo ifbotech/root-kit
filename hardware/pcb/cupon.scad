@@ -17,9 +17,29 @@
 //      si la pared minima de 0,8 mm sobrevive a esa lija. El ultimo par de
 //      cada grupo esta separado por exactamente 0,8 mm.
 //
-// De yapa, la fila de ocho agujeros de 1,4 mm a 2,54 de paso de abajo: es la
-// huella de una tira de pines y dice si con boquilla de 0,6 los agujeros
-// salen abiertos y si la pared de 1,14 mm entre dos vecinos se sostiene.
+// De yapa, la fila de ocho agujeros de abajo: es la huella de una tira de
+// pines, a 2,54 mm de paso, y va de 1,3 a 2,0 mm de a una decima. Dice cual
+// es el diametro mas chico por el que el pin entra SOLO, que no es el mismo
+// que el diametro con el que el agujero se ve abierto.
+//
+// ---------------------------------------------------------------------------
+// RESULTADO DE LA PRIMERA CORRIDA (21/09/2026, PETG, boquilla 0,6, capa 0,2)
+//
+//   Profundidad y luz: gano la combinacion del CENTRO, 1,2 mm de hondo con
+//   0,20 mm de luz por lado. Con 1,0 la cinta no se marca lo suficiente
+//   contra el borde; con 1,4 empieza a romperse en el piso. Con 0,15 la
+//   nervadura agarra y la pieza no baja del todo; con 0,25 la cinta queda
+//   floja contra el borde y la lija no la corta pareja. Los dos numeros
+//   estan ahora en nucleo.json.
+//
+//   Agujeros: en esa corrida los ocho eran del MISMO diametro, 1,4 mm --no
+//   habia gradiente, era un error de este archivo-- y por tres de ellos el
+//   pin no entraba y por los otros cinco entraba perfecto. Ese es justamente
+//   el hallazgo: a 1,4 mm nominal el agujero esta en el filo y lo decide la
+//   variacion normal de la impresora, porque un agujero impreso sale dos o
+//   tres decimas mas chico que el dibujado. El sustrato paso a 1,7 mm. La
+//   fila de ahora, con gradiente de verdad, es la que confirma ese numero.
+// ---------------------------------------------------------------------------
 //
 //   make cupon     exporta los dos STL
 //
@@ -78,8 +98,11 @@ function x_canaleta(g, i) =
     + (i > 2 ? anchos[2] + paredes[2] : 0)
     + (i > 3 ? anchos[3] + paredes[3] : 0);
 
-// La fila de agujeros de una tira de pines.
-agujero_d    = 1.4;
+// La fila de agujeros de una tira de pines: mismo paso que una tira de
+// verdad, y el diametro creciendo de a una decima. El primero es el mas
+// chico. El sustrato usa 1,7, que es el quinto.
+agujero_d0   = 1.3;
+agujero_paso_d = 0.1;
 agujero_paso = 2.54;
 agujero_n    = 8;
 agujero_y    = 2.6;
@@ -116,7 +139,16 @@ module canaletas_de(g) {
 module agujeros_de_tira() {
     for (k = [0 : agujero_n - 1])
         translate([agujero_x0 + k * agujero_paso, agujero_y, -eps])
-            cylinder(d = agujero_d, h = cupon_esp + 2 * eps);
+            cylinder(d = agujero_d0 + k * agujero_paso_d,
+                     h = cupon_esp + 2 * eps);
+    // Los dos extremos rotulados, para no tener que contar con el calibre.
+    for (r = [[agujero_x0 - 4.2, agujero_d0],
+              [agujero_x0 + (agujero_n - 1) * agujero_paso + 4.2,
+               agujero_d0 + (agujero_n - 1) * agujero_paso_d]])
+        translate([r[0], agujero_y, cupon_esp - 0.4])
+            linear_extrude(0.4 + eps)
+                text(str(r[1]), size = 2.0, halign = "center",
+                     valign = "center", font = "Liberation Sans:style=Bold");
 }
 
 module rotulos_de_profundidad() {

@@ -2,7 +2,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="144.00mm" height="118.00mm" viewBox="0 0 144.00 118.00">
 <title>ROOTKIT — plantilla 1:1 de la cinta de cobre</title>
 <rect width="100%" height="100%" fill="#ffffff"/>
-<text x="10" y="7" font-family="sans-serif" font-size="3.0">ROOTKIT — sustrato v3.0, cara de las canaletas (la de atras del producto)</text>
+<text x="10" y="7" font-family="sans-serif" font-size="3.0">ROOTKIT — sustrato v3.1, cara de las canaletas (la de atras del producto)</text>
 <g stroke="#000000" stroke-width="0.2" fill="none">
 <path d="M 10 112.00 h 50 M 10 112.00 v -2.5 M 35 112.00 v -1.5 M 60 112.00 v -2.5"/>
 </g>
@@ -18,10 +18,10 @@
 <g transform="translate(10,104.00) scale(1,-1)">
 <rect x="0" y="0" width="68.00" height="92.00" rx="2.00" fill="none" stroke="#000000" stroke-width="0.3"/>
 <rect x="29.50" y="83.17" width="9.00" height="9.00" fill="#f2f2f2" stroke="#000000" stroke-width="0.25"/>
-<circle cx="3.00" cy="11.00" r="1.20" fill="#f2f2f2" stroke="#000000" stroke-width="0.25"/>
-<circle cx="65.00" cy="11.00" r="1.20" fill="#f2f2f2" stroke="#000000" stroke-width="0.25"/>
-<circle cx="3.00" cy="81.00" r="1.20" fill="#f2f2f2" stroke="#000000" stroke-width="0.25"/>
-<circle cx="65.00" cy="81.00" r="1.20" fill="#f2f2f2" stroke="#000000" stroke-width="0.25"/>
+<circle cx="3.00" cy="11.00" r="1.35" fill="#f2f2f2" stroke="#000000" stroke-width="0.25"/>
+<circle cx="65.00" cy="11.00" r="1.35" fill="#f2f2f2" stroke="#000000" stroke-width="0.25"/>
+<circle cx="3.00" cy="81.00" r="1.35" fill="#f2f2f2" stroke="#000000" stroke-width="0.25"/>
+<circle cx="65.00" cy="81.00" r="1.35" fill="#f2f2f2" stroke="#000000" stroke-width="0.25"/>
 <polygon points="23.48,64.75 44.52,64.75 44.52,87.25 23.48,87.25" fill="none" stroke="#9aa0a6" stroke-width="0.25" stroke-dasharray="1.5 1"/>
 <polygon points="24.66,32.90 3.34,32.90 3.34,27.10 24.66,27.10" fill="none" stroke="#9aa0a6" stroke-width="0.25" stroke-dasharray="1.5 1"/>
 <polygon points="46.96,51.10 53.04,51.10 53.04,56.90 46.96,56.90" fill="none" stroke="#9aa0a6" stroke-width="0.25" stroke-dasharray="1.5 1"/>
@@ -31,19 +31,19 @@
 <polygon points="66.58,46.90 55.42,46.90 55.42,41.10 66.58,41.10" fill="none" stroke="#9aa0a6" stroke-width="0.25" stroke-dasharray="1.5 1"/>
 <polygon points="46.96,31.10 53.04,31.10 53.04,36.90 46.96,36.90" fill="none" stroke="#9aa0a6" stroke-width="0.25" stroke-dasharray="1.5 1"/>
 <rect x="25.00" y="78.25" width="18.00" height="14.00" fill="none" stroke="#c62828" stroke-width="0.25" stroke-dasharray="2 1"/>
-<path d="M 23.60 68.80 L 23.28 68.80 L 19.40 68.80 L 19.40 64.55 L 19.40 32.80" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 19.40 32.80 L 19.08 31.80" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 23.60 71.40 L 23.28 71.40 L 14.40 71.40 L 14.40 64.55 L 14.40 32.80" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 14.40 32.80 L 14.00 31.80" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 23.60 79.00 L 23.28 79.00 L 11.40 79.00 L 11.40 64.55 L 11.40 32.80" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 11.40 32.80 L 11.46 31.80" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 23.60 81.60 L 23.28 81.60 L 8.80 81.60 L 8.80 64.55 L 8.80 32.80" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 8.80 32.80 L 8.92 31.80" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 23.60 66.00 L 23.28 66.00 L 22.20 66.00 L 22.20 64.55 L 22.20 32.60 L 23.28 32.60 L 26.80 32.60 L 26.80 13.40 L 23.28 13.40 L 12.80 13.40 L 12.80 11.40" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 23.40 68.80 L 23.28 68.80 L 19.40 68.80 L 19.40 64.55 L 19.40 33.00" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 19.40 33.00 L 19.08 31.95" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 23.40 71.40 L 23.28 71.40 L 14.40 71.40 L 14.40 64.55 L 14.40 33.00" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 14.40 33.00 L 14.00 31.95" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 23.40 79.00 L 23.28 79.00 L 11.40 79.00 L 11.40 64.55 L 11.40 33.00" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 11.40 33.00 L 11.46 31.95" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 23.40 81.60 L 23.28 81.60 L 8.80 81.60 L 8.80 64.55 L 8.80 33.00" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 8.80 33.00 L 8.92 31.95" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 23.40 66.00 L 23.28 66.00 L 22.20 66.00 L 22.20 64.55 L 22.20 32.80 L 23.28 32.80 L 27.00 32.80 L 27.00 13.40 L 23.28 13.40 L 12.80 13.40 L 12.80 11.40" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
 <path d="M 12.80 11.40 L 12.30 10.50" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
 <path d="M 11.40 10.00 L 9.60 10.00" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
 <path d="M 9.60 10.00 L 9.15 10.60" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 16.40 27.20 L 16.40 25.00" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 16.40 27.00 L 16.40 25.00" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
 <path d="M 16.40 25.00 L 17.30 24.00" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
 <path d="M 7.40 20.00 L 5.00 20.00 L 5.00 20.40" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
 <path d="M 5.00 20.40 L 4.00 21.30" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
@@ -52,132 +52,130 @@
 <path d="M 10.00 15.60 L 11.40 15.60" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
 <path d="M 11.40 15.60 L 12.30 16.50" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
 <path d="M 5.00 25.20 L 5.20 25.20" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 5.20 25.20 L 6.40 25.20 L 6.40 27.20" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 6.40 27.20 L 6.38 28.20" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 5.20 25.20 L 6.40 25.20 L 6.40 27.00" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 6.40 27.00 L 6.38 28.05" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
 <path d="M 6.80 24.80 L 9.00 24.80" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
 <path d="M 9.00 24.80 L 10.00 24.00" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 44.40 66.00 L 44.72 66.00 L 47.00 66.00" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 47.00 66.00 L 47.46 65.80" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 44.40 68.80 L 44.72 68.80 L 51.40 68.80 L 51.40 66.60 L 55.20 66.60 L 55.20 64.55 L 55.20 62.60" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 55.20 62.60 L 56.00 61.70" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 44.40 71.40 L 44.72 71.40 L 53.40 71.40 L 53.40 71.00" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 44.60 66.00 L 44.72 66.00 L 47.00 66.00" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 47.00 66.00 L 47.46 65.95" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 44.60 69.00 L 44.72 69.00 L 51.40 69.00 L 51.40 66.80 L 55.40 66.80 L 55.40 64.55 L 55.40 62.60" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 55.40 62.60 L 56.00 61.70" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 44.60 71.40 L 44.72 71.40 L 53.40 71.40 L 53.40 71.00" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
 <path d="M 53.40 71.00 L 54.30 70.00" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
 <path d="M 54.80 71.00 L 54.80 73.00 L 62.80 73.00 L 62.80 69.80" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
 <path d="M 62.80 69.80 L 62.80 69.60" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
 <path d="M 62.80 69.60 L 63.40 69.15" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 52.20 46.60 L 58.00 46.60" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 58.00 46.60 L 58.46 45.80" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 47.00 54.80 L 47.00 50.80 L 45.00 50.80" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 52.20 46.80 L 58.00 46.80" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 58.00 46.80 L 58.46 45.95" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 47.00 55.00 L 47.00 50.80 L 45.00 50.80" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
 <path d="M 45.00 50.80 L 44.72 50.66 L 44.00 50.30" fill="none" stroke="#2f6f4f" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 60.00 67.40 L 60.00 65.00" fill="none" stroke="#b04a1e" stroke-width="1.20" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 60.00 65.00 L 60.00 64.55 L 60.00 64.00" fill="none" stroke="#b04a1e" stroke-width="2.20" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 61.00 63.00 L 61.00 61.00 L 62.40 61.00 L 62.40 60.60 L 63.00 60.60 L 63.00 60.40 L 64.00 60.40" fill="none" stroke="#b04a1e" stroke-width="1.90" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 64.00 60.40 L 65.00 60.30" fill="none" stroke="#b04a1e" stroke-width="1.90" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 55.40 83.80 L 55.20 83.80" fill="none" stroke="#b04a1e" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 55.20 83.80 L 55.00 83.80 L 55.00 87.45 L 55.00 88.20 L 62.00 88.20" fill="none" stroke="#b04a1e" stroke-width="2.20" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 62.00 88.20 L 63.00 88.00" fill="none" stroke="#b04a1e" stroke-width="2.20" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 53.80 84.60 L 44.72 84.60 L 44.40 84.60" fill="none" stroke="#b04a1e" stroke-width="2.20" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 44.40 84.60 L 43.42 84.13" fill="none" stroke="#b04a1e" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 44.40 79.00 L 44.72 79.00 L 62.40 79.00 L 62.40 75.40 L 66.00 75.40 L 66.00 66.60 L 64.00 66.60" fill="none" stroke="#b04a1e" stroke-width="1.20" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 64.00 66.60 L 63.40 66.85" fill="none" stroke="#b04a1e" stroke-width="1.20" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 52.60 53.20 L 52.60 58.80 L 44.72 58.80 L 44.40 58.80 L 44.40 54.60" fill="none" stroke="#b04a1e" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 44.40 54.60 L 44.00 53.70" fill="none" stroke="#b04a1e" stroke-width="1.90" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 43.00 53.80 L 40.40 53.80 L 40.40 45.20 L 43.40 45.20 L 43.40 43.00 L 43.60 43.00" fill="none" stroke="#b04a1e" stroke-width="2.20" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 43.60 43.00 L 43.80 43.00" fill="none" stroke="#b04a1e" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 43.80 43.00 L 44.19 42.20" fill="none" stroke="#b04a1e" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 42.60 42.20 L 41.70 42.00" fill="none" stroke="#b04a1e" stroke-width="1.90" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 60.00 67.40 L 60.00 65.00" fill="none" stroke="#b04a1e" stroke-width="1.40" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 60.00 65.00 L 60.00 64.55 L 60.00 64.00" fill="none" stroke="#b04a1e" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 61.00 63.00 L 61.80 63.00 L 61.80 60.60 L 64.00 60.60" fill="none" stroke="#b04a1e" stroke-width="1.40" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 64.00 60.60 L 65.00 60.30" fill="none" stroke="#b04a1e" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 55.40 83.60 L 55.20 83.60" fill="none" stroke="#b04a1e" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 55.20 83.60 L 54.80 83.60 L 54.80 87.45 L 54.80 88.40 L 62.00 88.40" fill="none" stroke="#b04a1e" stroke-width="2.20" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 62.00 88.40 L 63.00 88.00" fill="none" stroke="#b04a1e" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 53.80 84.60 L 44.72 84.60 L 44.60 84.60" fill="none" stroke="#b04a1e" stroke-width="2.20" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 44.60 84.60 L 43.57 84.13" fill="none" stroke="#b04a1e" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 44.60 79.00 L 44.72 79.00 L 62.40 79.00 L 62.40 75.40 L 66.00 75.40 L 66.00 66.60 L 64.00 66.60" fill="none" stroke="#b04a1e" stroke-width="1.20" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 64.00 66.60 L 63.40 66.85" fill="none" stroke="#b04a1e" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 52.80 53.00 L 52.80 59.00 L 44.72 59.00 L 44.40 59.00 L 44.40 54.60" fill="none" stroke="#b04a1e" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 44.40 54.60 L 44.00 53.70" fill="none" stroke="#b04a1e" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 43.00 53.80 L 40.40 53.80 L 40.40 45.20 L 43.20 45.20 L 43.20 42.60 L 43.60 42.60" fill="none" stroke="#b04a1e" stroke-width="2.20" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 43.60 42.60 L 43.80 42.60" fill="none" stroke="#b04a1e" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 43.80 42.60 L 44.19 42.05" fill="none" stroke="#b04a1e" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 42.60 41.60 L 41.70 42.00" fill="none" stroke="#b04a1e" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
 <path d="M 39.40 45.60 L 35.40 45.60" fill="none" stroke="#b04a1e" stroke-width="2.20" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 35.40 45.60 L 34.50 46.00" fill="none" stroke="#b04a1e" stroke-width="2.20" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 33.60 45.00 L 33.60 39.00 L 27.00 39.00" fill="none" stroke="#b04a1e" stroke-width="2.20" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 27.00 39.00 L 26.00 38.00" fill="none" stroke="#b04a1e" stroke-width="2.20" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 24.20 27.20 L 24.20 25.00 L 23.28 25.00 L 21.60 25.00" fill="none" stroke="#b04a1e" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 21.60 25.00 L 20.70 24.00" fill="none" stroke="#b04a1e" stroke-width="1.90" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 35.40 45.60 L 34.50 45.85" fill="none" stroke="#b04a1e" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 33.60 44.80 L 33.60 39.00 L 27.00 39.00" fill="none" stroke="#b04a1e" stroke-width="2.20" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 27.00 39.00 L 26.00 38.00" fill="none" stroke="#b04a1e" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 24.20 27.00 L 24.20 25.00 L 23.28 25.00 L 21.60 25.00" fill="none" stroke="#b04a1e" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 21.60 25.00 L 20.70 24.00" fill="none" stroke="#b04a1e" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
 <path d="M 20.80 23.00 L 20.80 17.40 L 16.60 17.40" fill="none" stroke="#b04a1e" stroke-width="2.20" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 16.60 17.40 L 15.70 16.50" fill="none" stroke="#b04a1e" stroke-width="1.90" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 43.60 41.80 L 43.60 28.60 L 44.72 28.60 L 53.00 28.60 L 53.00 31.20" fill="none" stroke="#b04a1e" stroke-width="2.20" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 53.00 31.20 L 52.54 32.20" fill="none" stroke="#b04a1e" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 53.00 33.20 L 66.00 33.20 L 66.00 41.20" fill="none" stroke="#b04a1e" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 66.00 41.20 L 66.08 42.20" fill="none" stroke="#b04a1e" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 50.00 51.20 L 50.00 49.20 L 55.00 49.20 L 55.00 49.40" fill="none" stroke="#b04a1e" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 55.00 49.40 L 56.00 50.30" fill="none" stroke="#b04a1e" stroke-width="1.90" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 57.00 50.20 L 59.60 50.20 L 59.60 53.40" fill="none" stroke="#b04a1e" stroke-width="2.20" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 59.60 53.40 L 60.00 54.30" fill="none" stroke="#b04a1e" stroke-width="1.90" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 47.20 41.20 L 47.20 39.20 L 63.20 39.20 L 63.20 41.20" fill="none" stroke="#b04a1e" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 63.20 41.20 L 63.54 42.20" fill="none" stroke="#b04a1e" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 28.40 49.00 L 28.40 45.00 L 27.00 45.00" fill="none" stroke="#b04a1e" stroke-width="2.20" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 27.00 45.00 L 26.00 44.00" fill="none" stroke="#b04a1e" stroke-width="2.20" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 16.60 17.40 L 15.70 16.50" fill="none" stroke="#b04a1e" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 43.60 41.40 L 43.60 28.40 L 44.72 28.40 L 53.00 28.40 L 53.00 31.00" fill="none" stroke="#b04a1e" stroke-width="2.20" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 53.00 31.00 L 52.54 32.05" fill="none" stroke="#b04a1e" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 53.00 33.00 L 66.00 33.00 L 66.00 41.00" fill="none" stroke="#b04a1e" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 66.00 41.00 L 66.08 42.05" fill="none" stroke="#b04a1e" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 59.60 53.40 L 59.60 50.20 L 57.00 50.20" fill="none" stroke="#b04a1e" stroke-width="2.20" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 57.00 50.20 L 56.00 50.30" fill="none" stroke="#b04a1e" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 47.20 41.00 L 47.20 39.00 L 63.20 39.00 L 63.20 41.00" fill="none" stroke="#b04a1e" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 63.20 41.00 L 63.54 42.05" fill="none" stroke="#b04a1e" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 28.40 49.20 L 28.40 45.00 L 27.00 45.00" fill="none" stroke="#b04a1e" stroke-width="2.20" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 27.00 45.00 L 26.00 44.00" fill="none" stroke="#b04a1e" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
 <path d="M 37.40 41.00 L 37.40 10.20 L 23.28 10.20 L 16.60 10.20" fill="none" stroke="#b04a1e" stroke-width="2.20" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 16.60 10.20 L 15.70 10.50" fill="none" stroke="#b04a1e" stroke-width="1.90" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 16.60 10.20 L 15.70 10.50" fill="none" stroke="#b04a1e" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
 <path d="M 15.20 9.60 L 15.20 7.40 L 6.60 7.40 L 6.60 10.00" fill="none" stroke="#b04a1e" stroke-width="1.20" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
-<path d="M 6.60 10.00 L 6.85 10.60" fill="none" stroke="#b04a1e" stroke-width="1.20" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
+<path d="M 6.60 10.00 L 6.85 10.60" fill="none" stroke="#b04a1e" stroke-width="1.00" stroke-linecap="square" stroke-linejoin="miter" opacity="0.85"/>
 <polygon points="59.00,53.35 61.00,53.35 61.00,55.25 59.00,55.25" fill="#b04a1e" stroke="#000000" stroke-width="0.12"/>
 <polygon points="59.00,56.75 61.00,56.75 61.00,58.65 59.00,58.65" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
-<polygon points="28.40,48.90 30.60,48.90 30.60,51.10 28.40,51.10" fill="#b04a1e" stroke="#000000" stroke-width="0.12"/>
-<circle cx="29.50" cy="50.00" r="0.90" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
-<polygon points="33.40,44.90 35.60,44.90 35.60,47.10 33.40,47.10" fill="#b04a1e" stroke="#000000" stroke-width="0.12"/>
-<circle cx="34.50" cy="46.00" r="0.90" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
+<polygon points="28.40,49.05 30.60,49.05 30.60,51.25 28.40,51.25" fill="#b04a1e" stroke="#000000" stroke-width="0.12"/>
+<circle cx="29.50" cy="50.15" r="1.05" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
+<polygon points="33.40,44.75 35.60,44.75 35.60,46.95 33.40,46.95" fill="#b04a1e" stroke="#000000" stroke-width="0.12"/>
+<circle cx="34.50" cy="45.85" r="1.05" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
 <polygon points="37.35,41.00 39.25,41.00 39.25,43.00 37.35,43.00" fill="#b04a1e" stroke="#000000" stroke-width="0.12"/>
 <polygon points="40.75,41.00 42.65,41.00 42.65,43.00 40.75,43.00" fill="#b04a1e" stroke="#000000" stroke-width="0.12"/>
 <polygon points="64.00,51.35 66.00,51.35 66.00,53.25 64.00,53.25" fill="#b04a1e" stroke="#000000" stroke-width="0.12"/>
 <polygon points="64.00,54.75 66.00,54.75 66.00,56.65 64.00,56.65" fill="#b04a1e" stroke="#000000" stroke-width="0.12"/>
-<polygon points="46.23,41.10 47.23,41.10 47.23,43.30 46.23,43.30" fill="#b04a1e" stroke="#000000" stroke-width="0.12"/>
-<circle cx="46.73" cy="42.20" r="0.70" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
-<polygon points="48.77,44.70 49.77,44.70 49.77,46.90 48.77,46.90" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
-<circle cx="49.27" cy="45.80" r="0.70" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
-<polygon points="51.31,44.70 52.31,44.70 52.31,46.90 51.31,46.90" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
-<circle cx="51.81" cy="45.80" r="0.70" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
-<polygon points="43.69,41.10 44.69,41.10 44.69,43.30 43.69,43.30" fill="#b04a1e" stroke="#000000" stroke-width="0.12"/>
-<circle cx="44.19" cy="42.20" r="0.70" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
-<polygon points="56.42,43.30 55.42,43.30 55.42,41.10 56.42,41.10" fill="#9aa0a6" stroke="#000000" stroke-width="0.12"/>
-<circle cx="55.92" cy="42.20" r="0.70" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
-<polygon points="64.04,43.30 63.04,43.30 63.04,41.10 64.04,41.10" fill="#b04a1e" stroke="#000000" stroke-width="0.12"/>
-<circle cx="63.54" cy="42.20" r="0.70" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
-<polygon points="61.50,46.90 60.50,46.90 60.50,44.70 61.50,44.70" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
-<circle cx="61.00" cy="45.80" r="0.70" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
-<polygon points="58.96,46.90 57.96,46.90 57.96,44.70 58.96,44.70" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
-<circle cx="58.46" cy="45.80" r="0.70" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
-<polygon points="66.58,43.30 65.58,43.30 65.58,41.10 66.58,41.10" fill="#b04a1e" stroke="#000000" stroke-width="0.12"/>
-<circle cx="66.08" cy="42.20" r="0.70" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
-<polygon points="57.77,82.10 58.77,82.10 58.77,84.30 57.77,84.30" fill="#b04a1e" stroke="#000000" stroke-width="0.12"/>
-<circle cx="58.27" cy="83.20" r="0.70" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
-<polygon points="55.23,82.10 56.23,82.10 56.23,84.30 55.23,84.30" fill="#b04a1e" stroke="#000000" stroke-width="0.12"/>
-<circle cx="55.73" cy="83.20" r="0.70" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
-<polygon points="46.96,64.70 47.96,64.70 47.96,66.90 46.96,66.90" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
-<circle cx="47.46" cy="65.80" r="0.70" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
-<polygon points="49.50,61.10 50.50,61.10 50.50,63.30 49.50,63.30" fill="#b04a1e" stroke="#000000" stroke-width="0.12"/>
-<circle cx="50.00" cy="62.20" r="0.70" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
-<polygon points="52.04,61.10 53.04,61.10 53.04,63.30 52.04,63.30" fill="#b04a1e" stroke="#000000" stroke-width="0.12"/>
-<circle cx="52.54" cy="62.20" r="0.70" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
-<polygon points="19.58,32.90 18.58,32.90 18.58,30.70 19.58,30.70" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
-<circle cx="19.08" cy="31.80" r="0.70" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
-<polygon points="14.50,32.90 13.50,32.90 13.50,30.70 14.50,30.70" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
-<circle cx="14.00" cy="31.80" r="0.70" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
-<polygon points="22.12,29.30 21.12,29.30 21.12,27.10 22.12,27.10" fill="#b04a1e" stroke="#000000" stroke-width="0.12"/>
-<circle cx="21.62" cy="28.20" r="0.70" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
-<polygon points="6.88,29.30 5.88,29.30 5.88,27.10 6.88,27.10" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
-<circle cx="6.38" cy="28.20" r="0.70" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
-<polygon points="17.04,29.30 16.04,29.30 16.04,27.10 17.04,27.10" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
-<circle cx="16.54" cy="28.20" r="0.70" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
-<polygon points="9.42,32.90 8.42,32.90 8.42,30.70 9.42,30.70" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
-<circle cx="8.92" cy="31.80" r="0.70" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
-<polygon points="11.96,32.90 10.96,32.90 10.96,30.70 11.96,30.70" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
-<circle cx="11.46" cy="31.80" r="0.70" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
-<polygon points="4.34,29.30 3.34,29.30 3.34,27.10 4.34,27.10" fill="#9aa0a6" stroke="#000000" stroke-width="0.12"/>
-<circle cx="3.84" cy="28.20" r="0.70" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
-<polygon points="24.66,29.30 23.66,29.30 23.66,27.10 24.66,27.10" fill="#b04a1e" stroke="#000000" stroke-width="0.12"/>
-<circle cx="24.16" cy="28.20" r="0.70" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
-<polygon points="46.96,54.70 47.96,54.70 47.96,56.90 46.96,56.90" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
-<circle cx="47.46" cy="55.80" r="0.70" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
-<polygon points="49.50,51.10 50.50,51.10 50.50,53.30 49.50,53.30" fill="#b04a1e" stroke="#000000" stroke-width="0.12"/>
-<circle cx="50.00" cy="52.20" r="0.70" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
-<polygon points="52.04,51.10 53.04,51.10 53.04,53.30 52.04,53.30" fill="#b04a1e" stroke="#000000" stroke-width="0.12"/>
-<circle cx="52.54" cy="52.20" r="0.70" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
-<polygon points="49.50,31.10 50.50,31.10 50.50,33.30 49.50,33.30" fill="#b04a1e" stroke="#000000" stroke-width="0.12"/>
-<circle cx="50.00" cy="32.20" r="0.70" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
-<polygon points="46.96,34.70 47.96,34.70 47.96,36.90 46.96,36.90" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
-<circle cx="47.46" cy="35.80" r="0.70" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
-<polygon points="52.04,31.10 53.04,31.10 53.04,33.30 52.04,33.30" fill="#b04a1e" stroke="#000000" stroke-width="0.12"/>
-<circle cx="52.54" cy="32.20" r="0.70" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
+<polygon points="46.23,40.95 47.23,40.95 47.23,43.15 46.23,43.15" fill="#b04a1e" stroke="#000000" stroke-width="0.12"/>
+<circle cx="46.73" cy="42.05" r="0.85" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
+<polygon points="48.77,44.85 49.77,44.85 49.77,47.05 48.77,47.05" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
+<circle cx="49.27" cy="45.95" r="0.85" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
+<polygon points="51.31,44.85 52.31,44.85 52.31,47.05 51.31,47.05" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
+<circle cx="51.81" cy="45.95" r="0.85" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
+<polygon points="43.69,40.95 44.69,40.95 44.69,43.15 43.69,43.15" fill="#b04a1e" stroke="#000000" stroke-width="0.12"/>
+<circle cx="44.19" cy="42.05" r="0.85" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
+<polygon points="56.42,43.15 55.42,43.15 55.42,40.95 56.42,40.95" fill="#9aa0a6" stroke="#000000" stroke-width="0.12"/>
+<circle cx="55.92" cy="42.05" r="0.85" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
+<polygon points="64.04,43.15 63.04,43.15 63.04,40.95 64.04,40.95" fill="#b04a1e" stroke="#000000" stroke-width="0.12"/>
+<circle cx="63.54" cy="42.05" r="0.85" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
+<polygon points="61.50,47.05 60.50,47.05 60.50,44.85 61.50,44.85" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
+<circle cx="61.00" cy="45.95" r="0.85" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
+<polygon points="58.96,47.05 57.96,47.05 57.96,44.85 58.96,44.85" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
+<circle cx="58.46" cy="45.95" r="0.85" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
+<polygon points="66.58,43.15 65.58,43.15 65.58,40.95 66.58,40.95" fill="#b04a1e" stroke="#000000" stroke-width="0.12"/>
+<circle cx="66.08" cy="42.05" r="0.85" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
+<polygon points="57.77,81.95 58.77,81.95 58.77,84.15 57.77,84.15" fill="#b04a1e" stroke="#000000" stroke-width="0.12"/>
+<circle cx="58.27" cy="83.05" r="0.85" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
+<polygon points="55.23,81.95 56.23,81.95 56.23,84.15 55.23,84.15" fill="#b04a1e" stroke="#000000" stroke-width="0.12"/>
+<circle cx="55.73" cy="83.05" r="0.85" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
+<polygon points="46.96,64.85 47.96,64.85 47.96,67.05 46.96,67.05" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
+<circle cx="47.46" cy="65.95" r="0.85" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
+<polygon points="49.50,60.95 50.50,60.95 50.50,63.15 49.50,63.15" fill="#b04a1e" stroke="#000000" stroke-width="0.12"/>
+<circle cx="50.00" cy="62.05" r="0.85" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
+<polygon points="52.04,60.95 53.04,60.95 53.04,63.15 52.04,63.15" fill="#b04a1e" stroke="#000000" stroke-width="0.12"/>
+<circle cx="52.54" cy="62.05" r="0.85" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
+<polygon points="19.58,33.05 18.58,33.05 18.58,30.85 19.58,30.85" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
+<circle cx="19.08" cy="31.95" r="0.85" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
+<polygon points="14.50,33.05 13.50,33.05 13.50,30.85 14.50,30.85" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
+<circle cx="14.00" cy="31.95" r="0.85" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
+<polygon points="22.12,29.15 21.12,29.15 21.12,26.95 22.12,26.95" fill="#b04a1e" stroke="#000000" stroke-width="0.12"/>
+<circle cx="21.62" cy="28.05" r="0.85" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
+<polygon points="6.88,29.15 5.88,29.15 5.88,26.95 6.88,26.95" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
+<circle cx="6.38" cy="28.05" r="0.85" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
+<polygon points="17.04,29.15 16.04,29.15 16.04,26.95 17.04,26.95" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
+<circle cx="16.54" cy="28.05" r="0.85" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
+<polygon points="9.42,33.05 8.42,33.05 8.42,30.85 9.42,30.85" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
+<circle cx="8.92" cy="31.95" r="0.85" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
+<polygon points="11.96,33.05 10.96,33.05 10.96,30.85 11.96,30.85" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
+<circle cx="11.46" cy="31.95" r="0.85" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
+<polygon points="4.34,29.15 3.34,29.15 3.34,26.95 4.34,26.95" fill="#9aa0a6" stroke="#000000" stroke-width="0.12"/>
+<circle cx="3.84" cy="28.05" r="0.85" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
+<polygon points="24.66,29.15 23.66,29.15 23.66,26.95 24.66,26.95" fill="#b04a1e" stroke="#000000" stroke-width="0.12"/>
+<circle cx="24.16" cy="28.05" r="0.85" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
+<polygon points="46.96,54.85 47.96,54.85 47.96,57.05 46.96,57.05" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
+<circle cx="47.46" cy="55.95" r="0.85" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
+<polygon points="49.50,50.95 50.50,50.95 50.50,53.15 49.50,53.15" fill="#b04a1e" stroke="#000000" stroke-width="0.12"/>
+<circle cx="50.00" cy="52.05" r="0.85" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
+<polygon points="52.04,50.95 53.04,50.95 53.04,53.15 52.04,53.15" fill="#b04a1e" stroke="#000000" stroke-width="0.12"/>
+<circle cx="52.54" cy="52.05" r="0.85" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
+<polygon points="49.50,30.95 50.50,30.95 50.50,33.15 49.50,33.15" fill="#b04a1e" stroke="#000000" stroke-width="0.12"/>
+<circle cx="50.00" cy="32.05" r="0.85" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
+<polygon points="46.96,34.85 47.96,34.85 47.96,37.05 46.96,37.05" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
+<circle cx="47.46" cy="35.95" r="0.85" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
+<polygon points="52.04,30.95 53.04,30.95 53.04,33.15 52.04,33.15" fill="#b04a1e" stroke="#000000" stroke-width="0.12"/>
+<circle cx="52.54" cy="32.05" r="0.85" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
 <polygon points="59.90,68.60 59.90,67.40 61.30,67.40 61.30,68.60" fill="#b04a1e" stroke="#000000" stroke-width="0.12"/>
 <polygon points="62.70,69.75 62.70,68.55 64.10,68.55 64.10,69.75" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
 <polygon points="62.70,67.45 62.70,66.25 64.10,66.25 64.10,67.45" fill="#b04a1e" stroke="#000000" stroke-width="0.12"/>
@@ -210,62 +208,63 @@
 <polygon points="24.90,36.90 27.10,36.90 27.10,39.10 24.90,39.10" fill="#b04a1e" stroke="#000000" stroke-width="0.12"/>
 <polygon points="58.90,62.90 61.10,62.90 61.10,65.10 58.90,65.10" fill="#b04a1e" stroke="#000000" stroke-width="0.12"/>
 <polygon points="8.90,22.90 11.10,22.90 11.10,25.10 8.90,25.10" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
-<polygon points="42.32,78.55 44.52,78.55 44.52,79.55 42.32,79.55" fill="#b04a1e" stroke="#000000" stroke-width="0.12"/>
-<circle cx="43.42" cy="79.05" r="0.70" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
-<polygon points="42.32,83.63 44.52,83.63 44.52,84.63 42.32,84.63" fill="#b04a1e" stroke="#000000" stroke-width="0.12"/>
-<circle cx="43.42" cy="84.13" r="0.70" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
-<polygon points="42.32,81.09 44.52,81.09 44.52,82.09 42.32,82.09" fill="#b04a1e" stroke="#000000" stroke-width="0.12"/>
-<circle cx="43.42" cy="81.59" r="0.70" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
-<polygon points="42.32,65.85 44.52,65.85 44.52,66.85 42.32,66.85" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
-<circle cx="43.42" cy="66.35" r="0.70" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
-<polygon points="42.32,68.39 44.52,68.39 44.52,69.39 42.32,69.39" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
-<circle cx="43.42" cy="68.89" r="0.70" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
-<polygon points="23.48,70.93 25.68,70.93 25.68,71.93 23.48,71.93" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
-<circle cx="24.58" cy="71.43" r="0.70" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
-<polygon points="42.32,70.93 44.52,70.93 44.52,71.93 42.32,71.93" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
-<circle cx="43.42" cy="71.43" r="0.70" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
-<polygon points="23.48,68.39 25.68,68.39 25.68,69.39 23.48,69.39" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
-<circle cx="24.58" cy="68.89" r="0.70" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
-<polygon points="23.48,65.85 25.68,65.85 25.68,66.85 23.48,66.85" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
-<circle cx="24.58" cy="66.35" r="0.70" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
-<polygon points="42.32,73.47 44.52,73.47 44.52,74.47 42.32,74.47" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
-<circle cx="43.42" cy="73.97" r="0.70" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
-<polygon points="42.32,76.01 44.52,76.01 44.52,77.01 42.32,77.01" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
-<circle cx="43.42" cy="76.51" r="0.70" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
-<polygon points="23.48,83.63 25.68,83.63 25.68,84.63 23.48,84.63" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
-<circle cx="24.58" cy="84.13" r="0.70" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
-<polygon points="23.48,81.09 25.68,81.09 25.68,82.09 23.48,82.09" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
-<circle cx="24.58" cy="81.59" r="0.70" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
-<polygon points="23.48,78.55 25.68,78.55 25.68,79.55 23.48,79.55" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
-<circle cx="24.58" cy="79.05" r="0.70" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
-<polygon points="23.48,76.01 25.68,76.01 25.68,77.01 23.48,77.01" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
-<circle cx="24.58" cy="76.51" r="0.70" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
-<polygon points="23.48,73.47 25.68,73.47 25.68,74.47 23.48,74.47" fill="#9aa0a6" stroke="#000000" stroke-width="0.12"/>
-<circle cx="24.58" cy="73.97" r="0.70" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
+<polygon points="42.47,78.55 44.67,78.55 44.67,79.55 42.47,79.55" fill="#b04a1e" stroke="#000000" stroke-width="0.12"/>
+<circle cx="43.57" cy="79.05" r="0.85" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
+<polygon points="42.47,83.63 44.67,83.63 44.67,84.63 42.47,84.63" fill="#b04a1e" stroke="#000000" stroke-width="0.12"/>
+<circle cx="43.57" cy="84.13" r="0.85" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
+<polygon points="42.47,81.09 44.67,81.09 44.67,82.09 42.47,82.09" fill="#b04a1e" stroke="#000000" stroke-width="0.12"/>
+<circle cx="43.57" cy="81.59" r="0.85" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
+<polygon points="42.47,65.85 44.67,65.85 44.67,66.85 42.47,66.85" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
+<circle cx="43.57" cy="66.35" r="0.85" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
+<polygon points="42.47,68.39 44.67,68.39 44.67,69.39 42.47,69.39" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
+<circle cx="43.57" cy="68.89" r="0.85" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
+<polygon points="23.33,70.93 25.53,70.93 25.53,71.93 23.33,71.93" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
+<circle cx="24.43" cy="71.43" r="0.85" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
+<polygon points="42.47,70.93 44.67,70.93 44.67,71.93 42.47,71.93" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
+<circle cx="43.57" cy="71.43" r="0.85" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
+<polygon points="23.33,68.39 25.53,68.39 25.53,69.39 23.33,69.39" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
+<circle cx="24.43" cy="68.89" r="0.85" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
+<polygon points="23.33,65.85 25.53,65.85 25.53,66.85 23.33,66.85" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
+<circle cx="24.43" cy="66.35" r="0.85" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
+<polygon points="42.47,73.47 44.67,73.47 44.67,74.47 42.47,74.47" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
+<circle cx="43.57" cy="73.97" r="0.85" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
+<polygon points="42.47,76.01 44.67,76.01 44.67,77.01 42.47,77.01" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
+<circle cx="43.57" cy="76.51" r="0.85" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
+<polygon points="23.33,83.63 25.53,83.63 25.53,84.63 23.33,84.63" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
+<circle cx="24.43" cy="84.13" r="0.85" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
+<polygon points="23.33,81.09 25.53,81.09 25.53,82.09 23.33,82.09" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
+<circle cx="24.43" cy="81.59" r="0.85" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
+<polygon points="23.33,78.55 25.53,78.55 25.53,79.55 23.33,79.55" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
+<circle cx="24.43" cy="79.05" r="0.85" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
+<polygon points="23.33,76.01 25.53,76.01 25.53,77.01 23.33,77.01" fill="#2f6f4f" stroke="#000000" stroke-width="0.12"/>
+<circle cx="24.43" cy="76.51" r="0.85" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
+<polygon points="23.33,73.47 25.53,73.47 25.53,74.47 23.33,74.47" fill="#9aa0a6" stroke="#000000" stroke-width="0.12"/>
+<circle cx="24.43" cy="73.97" r="0.85" fill="#ffffff" stroke="#000000" stroke-width="0.1"/>
 <path d="M 56.00 61.70 L 60.00 57.70" stroke="#1a3fa8" stroke-width="0.45" stroke-dasharray="2 1.4" fill="none"/>
 <path d="M 60.00 57.70 L 56.00 53.70" stroke="#1a3fa8" stroke-width="0.45" stroke-dasharray="2 1.4" fill="none"/>
-<path d="M 43.42 73.97 L 47.46 35.80" stroke="#1a3fa8" stroke-width="0.45" stroke-dasharray="2 1.4" fill="none"/>
-<path d="M 43.42 76.51 L 51.81 45.80" stroke="#1a3fa8" stroke-width="0.45" stroke-dasharray="2 1.4" fill="none"/>
-<path d="M 24.58 84.13 L 49.27 45.80" stroke="#1a3fa8" stroke-width="0.45" stroke-dasharray="2 1.4" fill="none"/>
-<path d="M 49.27 45.80 L 61.00 45.80" stroke="#1a3fa8" stroke-width="0.45" stroke-dasharray="2 1.4" fill="none"/>
-<path d="M 24.58 76.51 L 47.46 55.80" stroke="#1a3fa8" stroke-width="0.45" stroke-dasharray="2 1.4" fill="none"/>
-<path d="M 60.00 64.00 L 52.54 62.20" stroke="#1a3fa8" stroke-width="0.45" stroke-dasharray="2 1.4" fill="none"/>
+<path d="M 43.57 73.97 L 47.46 35.95" stroke="#1a3fa8" stroke-width="0.45" stroke-dasharray="2 1.4" fill="none"/>
+<path d="M 43.57 76.51 L 51.81 45.95" stroke="#1a3fa8" stroke-width="0.45" stroke-dasharray="2 1.4" fill="none"/>
+<path d="M 24.43 84.13 L 49.27 45.95" stroke="#1a3fa8" stroke-width="0.45" stroke-dasharray="2 1.4" fill="none"/>
+<path d="M 49.27 45.95 L 61.00 45.95" stroke="#1a3fa8" stroke-width="0.45" stroke-dasharray="2 1.4" fill="none"/>
+<path d="M 24.43 76.51 L 47.46 55.95" stroke="#1a3fa8" stroke-width="0.45" stroke-dasharray="2 1.4" fill="none"/>
+<path d="M 60.00 64.00 L 52.54 62.05" stroke="#1a3fa8" stroke-width="0.45" stroke-dasharray="2 1.4" fill="none"/>
 <path d="M 65.00 60.30 L 65.00 52.30" stroke="#1a3fa8" stroke-width="0.45" stroke-dasharray="2 1.4" fill="none"/>
-<path d="M 55.73 83.20 L 56.00 58.30" stroke="#1a3fa8" stroke-width="0.45" stroke-dasharray="2 1.4" fill="none"/>
-<path d="M 43.42 79.05 L 57.70 70.00" stroke="#1a3fa8" stroke-width="0.45" stroke-dasharray="2 1.4" fill="none"/>
-<path d="M 63.40 66.85 L 52.54 52.20" stroke="#1a3fa8" stroke-width="0.45" stroke-dasharray="2 1.4" fill="none"/>
-<path d="M 26.00 38.00 L 24.16 28.20" stroke="#1a3fa8" stroke-width="0.45" stroke-dasharray="2 1.4" fill="none"/>
+<path d="M 55.73 83.05 L 56.00 58.30" stroke="#1a3fa8" stroke-width="0.45" stroke-dasharray="2 1.4" fill="none"/>
+<path d="M 43.57 79.05 L 57.70 70.00" stroke="#1a3fa8" stroke-width="0.45" stroke-dasharray="2 1.4" fill="none"/>
+<path d="M 63.40 66.85 L 52.54 52.05" stroke="#1a3fa8" stroke-width="0.45" stroke-dasharray="2 1.4" fill="none"/>
+<path d="M 26.00 38.00 L 24.16 28.05" stroke="#1a3fa8" stroke-width="0.45" stroke-dasharray="2 1.4" fill="none"/>
 <path d="M 15.70 16.50 L 6.85 16.60" stroke="#1a3fa8" stroke-width="0.45" stroke-dasharray="2 1.4" fill="none"/>
-<path d="M 43.42 81.59 L 58.27 83.20" stroke="#1a3fa8" stroke-width="0.45" stroke-dasharray="2 1.4" fill="none"/>
-<path d="M 43.42 81.59 L 50.00 62.20" stroke="#1a3fa8" stroke-width="0.45" stroke-dasharray="2 1.4" fill="none"/>
-<path d="M 50.00 62.20 L 50.00 52.20" stroke="#1a3fa8" stroke-width="0.45" stroke-dasharray="2 1.4" fill="none"/>
-<path d="M 60.00 54.30 L 65.00 55.70" stroke="#1a3fa8" stroke-width="0.45" stroke-dasharray="2 1.4" fill="none"/>
-<path d="M 65.00 55.70 L 65.00 63.70" stroke="#1a3fa8" stroke-width="0.45" stroke-dasharray="2 1.4" fill="none"/>
-<path d="M 50.00 52.20 L 46.73 42.20" stroke="#1a3fa8" stroke-width="0.45" stroke-dasharray="2 1.4" fill="none"/>
-<path d="M 46.73 42.20 L 38.30 42.00" stroke="#1a3fa8" stroke-width="0.45" stroke-dasharray="2 1.4" fill="none"/>
-<path d="M 46.73 42.20 L 50.00 32.20" stroke="#1a3fa8" stroke-width="0.45" stroke-dasharray="2 1.4" fill="none"/>
-<path d="M 38.30 42.00 L 29.50 50.00" stroke="#1a3fa8" stroke-width="0.45" stroke-dasharray="2 1.4" fill="none"/>
-<path d="M 26.00 44.00 L 21.62 28.20" stroke="#1a3fa8" stroke-width="0.45" stroke-dasharray="2 1.4" fill="none"/>
+<path d="M 43.57 81.59 L 58.27 83.05" stroke="#1a3fa8" stroke-width="0.45" stroke-dasharray="2 1.4" fill="none"/>
+<path d="M 58.27 83.05 L 65.00 63.70" stroke="#1a3fa8" stroke-width="0.45" stroke-dasharray="2 1.4" fill="none"/>
+<path d="M 65.00 63.70 L 65.00 55.70" stroke="#1a3fa8" stroke-width="0.45" stroke-dasharray="2 1.4" fill="none"/>
+<path d="M 65.00 55.70 L 60.00 54.30" stroke="#1a3fa8" stroke-width="0.45" stroke-dasharray="2 1.4" fill="none"/>
+<path d="M 56.00 50.30 L 50.00 52.05" stroke="#1a3fa8" stroke-width="0.45" stroke-dasharray="2 1.4" fill="none"/>
+<path d="M 50.00 52.05 L 50.00 62.05" stroke="#1a3fa8" stroke-width="0.45" stroke-dasharray="2 1.4" fill="none"/>
+<path d="M 50.00 52.05 L 46.73 42.05" stroke="#1a3fa8" stroke-width="0.45" stroke-dasharray="2 1.4" fill="none"/>
+<path d="M 46.73 42.05 L 38.30 42.00" stroke="#1a3fa8" stroke-width="0.45" stroke-dasharray="2 1.4" fill="none"/>
+<path d="M 46.73 42.05 L 50.00 32.05" stroke="#1a3fa8" stroke-width="0.45" stroke-dasharray="2 1.4" fill="none"/>
+<path d="M 38.30 42.00 L 29.50 50.15" stroke="#1a3fa8" stroke-width="0.45" stroke-dasharray="2 1.4" fill="none"/>
+<path d="M 26.00 44.00 L 21.62 28.05" stroke="#1a3fa8" stroke-width="0.45" stroke-dasharray="2 1.4" fill="none"/>
 </g>
 <g font-family="sans-serif" fill="#111111">
 <text x="44.00" y="24.60" font-size="1.7" text-anchor="middle">U1</text>
@@ -297,51 +296,51 @@
 <text x="60.00" y="66.60" font-size="1.7" text-anchor="middle">J_TOQUE</text>
 <text x="36.00" y="56.60" font-size="1.7" text-anchor="middle">TP1</text>
 <text x="36.00" y="62.60" font-size="1.7" text-anchor="middle">TP3</text>
-<text x="56.73" y="60.20" font-size="1.25" text-anchor="middle">GND</text>
-<text x="59.27" y="56.60" font-size="1.25" text-anchor="middle">SCL</text>
-<text x="61.81" y="56.60" font-size="1.25" text-anchor="middle">SDA</text>
-<text x="54.19" y="60.20" font-size="1.25" text-anchor="middle">VCC</text>
-<text x="65.92" y="60.20" font-size="1.25" text-anchor="middle">ADDR</text>
-<text x="73.54" y="60.20" font-size="1.25" text-anchor="middle">GND</text>
-<text x="71.00" y="56.60" font-size="1.25" text-anchor="middle">SCL</text>
-<text x="68.46" y="56.60" font-size="1.25" text-anchor="middle">SDA</text>
-<text x="76.08" y="60.20" font-size="1.25" text-anchor="middle">VCC</text>
-<text x="68.27" y="19.20" font-size="1.25" text-anchor="middle">GND</text>
-<text x="65.73" y="19.20" font-size="1.25" text-anchor="middle">VIN</text>
-<text x="57.46" y="36.60" font-size="1.25" text-anchor="middle">AOUT</text>
-<text x="60.00" y="40.20" font-size="1.25" text-anchor="middle">GND</text>
-<text x="62.54" y="40.20" font-size="1.25" text-anchor="middle">VCC</text>
-<text x="29.08" y="70.60" font-size="1.25" text-anchor="middle">CS</text>
-<text x="24.00" y="70.60" font-size="1.25" text-anchor="middle">DC</text>
-<text x="31.62" y="74.20" font-size="1.25" text-anchor="middle">GND</text>
-<text x="16.38" y="74.20" font-size="1.25" text-anchor="middle">LED</text>
-<text x="26.54" y="74.20" font-size="1.25" text-anchor="middle">RESET</text>
-<text x="18.92" y="70.60" font-size="1.25" text-anchor="middle">SCK</text>
-<text x="21.46" y="70.60" font-size="1.25" text-anchor="middle">SDI</text>
-<text x="13.84" y="74.20" font-size="1.25" text-anchor="middle">SDO</text>
-<text x="34.16" y="74.20" font-size="1.25" text-anchor="middle">VCC</text>
-<text x="57.46" y="46.60" font-size="1.25" text-anchor="middle">DQ</text>
-<text x="60.00" y="50.20" font-size="1.25" text-anchor="middle">GND</text>
-<text x="62.54" y="50.20" font-size="1.25" text-anchor="middle">VCC</text>
-<text x="60.00" y="70.20" font-size="1.25" text-anchor="middle">GND</text>
-<text x="57.46" y="66.60" font-size="1.25" text-anchor="middle">IO</text>
-<text x="62.54" y="70.20" font-size="1.25" text-anchor="middle">VCC</text>
-<text x="53.42" y="23.95" font-size="1.25" text-anchor="middle">3V3</text>
-<text x="53.42" y="18.87" font-size="1.25" text-anchor="middle">5V</text>
-<text x="53.42" y="21.41" font-size="1.25" text-anchor="middle">GND</text>
-<text x="53.42" y="36.65" font-size="1.25" text-anchor="middle">IO0</text>
-<text x="53.42" y="34.11" font-size="1.25" text-anchor="middle">IO1</text>
-<text x="34.58" y="31.57" font-size="1.25" text-anchor="middle">IO10</text>
-<text x="53.42" y="31.57" font-size="1.25" text-anchor="middle">IO2</text>
-<text x="34.58" y="34.11" font-size="1.25" text-anchor="middle">IO20</text>
-<text x="34.58" y="36.65" font-size="1.25" text-anchor="middle">IO21</text>
-<text x="53.42" y="29.03" font-size="1.25" text-anchor="middle">IO3</text>
-<text x="53.42" y="26.49" font-size="1.25" text-anchor="middle">IO4</text>
-<text x="34.58" y="18.87" font-size="1.25" text-anchor="middle">IO5</text>
-<text x="34.58" y="21.41" font-size="1.25" text-anchor="middle">IO6</text>
-<text x="34.58" y="23.95" font-size="1.25" text-anchor="middle">IO7</text>
-<text x="34.58" y="26.49" font-size="1.25" text-anchor="middle">IO8</text>
-<text x="34.58" y="29.03" font-size="1.25" text-anchor="middle">IO9</text>
+<text x="56.73" y="60.35" font-size="1.25" text-anchor="middle">GND</text>
+<text x="59.27" y="56.45" font-size="1.25" text-anchor="middle">SCL</text>
+<text x="61.81" y="56.45" font-size="1.25" text-anchor="middle">SDA</text>
+<text x="54.19" y="60.35" font-size="1.25" text-anchor="middle">VCC</text>
+<text x="65.92" y="60.35" font-size="1.25" text-anchor="middle">ADDR</text>
+<text x="73.54" y="60.35" font-size="1.25" text-anchor="middle">GND</text>
+<text x="71.00" y="56.45" font-size="1.25" text-anchor="middle">SCL</text>
+<text x="68.46" y="56.45" font-size="1.25" text-anchor="middle">SDA</text>
+<text x="76.08" y="60.35" font-size="1.25" text-anchor="middle">VCC</text>
+<text x="68.27" y="19.35" font-size="1.25" text-anchor="middle">GND</text>
+<text x="65.73" y="19.35" font-size="1.25" text-anchor="middle">VIN</text>
+<text x="57.46" y="36.45" font-size="1.25" text-anchor="middle">AOUT</text>
+<text x="60.00" y="40.35" font-size="1.25" text-anchor="middle">GND</text>
+<text x="62.54" y="40.35" font-size="1.25" text-anchor="middle">VCC</text>
+<text x="29.08" y="70.45" font-size="1.25" text-anchor="middle">CS</text>
+<text x="24.00" y="70.45" font-size="1.25" text-anchor="middle">DC</text>
+<text x="31.62" y="74.35" font-size="1.25" text-anchor="middle">GND</text>
+<text x="16.38" y="74.35" font-size="1.25" text-anchor="middle">LED</text>
+<text x="26.54" y="74.35" font-size="1.25" text-anchor="middle">RESET</text>
+<text x="18.92" y="70.45" font-size="1.25" text-anchor="middle">SCK</text>
+<text x="21.46" y="70.45" font-size="1.25" text-anchor="middle">SDI</text>
+<text x="13.84" y="74.35" font-size="1.25" text-anchor="middle">SDO</text>
+<text x="34.16" y="74.35" font-size="1.25" text-anchor="middle">VCC</text>
+<text x="57.46" y="46.45" font-size="1.25" text-anchor="middle">DQ</text>
+<text x="60.00" y="50.35" font-size="1.25" text-anchor="middle">GND</text>
+<text x="62.54" y="50.35" font-size="1.25" text-anchor="middle">VCC</text>
+<text x="60.00" y="70.35" font-size="1.25" text-anchor="middle">GND</text>
+<text x="57.46" y="66.45" font-size="1.25" text-anchor="middle">IO</text>
+<text x="62.54" y="70.35" font-size="1.25" text-anchor="middle">VCC</text>
+<text x="53.57" y="23.95" font-size="1.25" text-anchor="middle">3V3</text>
+<text x="53.57" y="18.87" font-size="1.25" text-anchor="middle">5V</text>
+<text x="53.57" y="21.41" font-size="1.25" text-anchor="middle">GND</text>
+<text x="53.57" y="36.65" font-size="1.25" text-anchor="middle">IO0</text>
+<text x="53.57" y="34.11" font-size="1.25" text-anchor="middle">IO1</text>
+<text x="34.43" y="31.57" font-size="1.25" text-anchor="middle">IO10</text>
+<text x="53.57" y="31.57" font-size="1.25" text-anchor="middle">IO2</text>
+<text x="34.43" y="34.11" font-size="1.25" text-anchor="middle">IO20</text>
+<text x="34.43" y="36.65" font-size="1.25" text-anchor="middle">IO21</text>
+<text x="53.57" y="29.03" font-size="1.25" text-anchor="middle">IO3</text>
+<text x="53.57" y="26.49" font-size="1.25" text-anchor="middle">IO4</text>
+<text x="34.43" y="18.87" font-size="1.25" text-anchor="middle">IO5</text>
+<text x="34.43" y="21.41" font-size="1.25" text-anchor="middle">IO6</text>
+<text x="34.43" y="23.95" font-size="1.25" text-anchor="middle">IO7</text>
+<text x="34.43" y="26.49" font-size="1.25" text-anchor="middle">IO8</text>
+<text x="34.43" y="29.03" font-size="1.25" text-anchor="middle">IO9</text>
 <text x="41.00" y="46.70" font-size="2.00" text-anchor="middle" fill="#9aa0a6">ROOTKIT v3.0</text>
 <text x="41.00" y="51.06" font-size="1.60" text-anchor="middle" fill="#9aa0a6">ifbotech</text>
 </g>

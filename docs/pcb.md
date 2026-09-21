@@ -4,7 +4,7 @@ El ROOTKIT no lleva una placa de circuito impreso comprada: lleva un
 **sustrato de PETG impreso en 3D con canaletas**, y las pistas son **cinta de
 cobre** pegada dentro de esas canaletas y soldada en cada unión.
 
-## Qué es esta placa, y qué no (v3.0)
+## Qué es esta placa, y qué no (v3.1)
 
 Es una **protoboard impresa**. Su única función es que el ESP32, la pantalla
 y los sensores se **claven** en ella —cada uno por su tira de pines— y queden
@@ -25,8 +25,9 @@ fue todo eso:
 | Cómo se monta un módulo | bornes y cables sueltos | **tira de pines, clavada** |
 | Cinta de cobre | dos rollos (6 y 20 mm) | **un solo rollo de 5 mm** |
 | Canaleta | 0,8 mm de hondo | **1,2 mm** |
-| Nervadura de la estampadora | sobresale 0,4 mm, 0,25 de luz | **sobresale 1,0 mm, 0,15 de luz** |
-| Puentes de cable | 38 | **24**, y ninguno en una señal del SPI |
+| Nervadura de la estampadora | sobresale 0,4 mm, 0,25 de luz | **sobresale 1,0 mm, 0,20 de luz** (medido) |
+| Puentes de cable | 38 | **25**, y ninguno en una señal del SPI |
+| Agujero de una tira de pines | — | **1,7 mm** (medido: con 1,4 el pin no siempre entra) |
 
 Lo que se gana: el montaje es clavar ocho módulos. Lo que se pierde: la placa
 ya no sostiene nada, así que **la carcasa tiene que sostenerla a ella y a la
@@ -149,7 +150,7 @@ porque una prueba que nunca falló no demostró nada.
 | Orientación | la cara de las canaletas **hacia arriba**; la cara plana en la cama |
 | Canaletas | **1,2 mm de profundidad**, 0,3 mm más anchas que la pista |
 | Pared entre canaletas | **0,8 mm mínimo** |
-| Agujeros | 1,4 mm todas las tiras de pines, 1,8 mm el electrolítico, 2,4 mm los tornillos M2 |
+| Agujeros | 1,7 mm todas las tiras de pines, 2,1 mm el electrolítico, 2,7 mm los tornillos M2 |
 | Relleno | 25 % basta; lo que importa son los perímetros |
 
 **Por qué 0,8 mm de profundidad.** La canaleta hace dos cosas: guía la cinta
@@ -166,7 +167,7 @@ contra la pared. Es lo que hace que dos unidades salgan iguales.
 
 **Por qué 3,0 mm de espesor.** Debajo de una canaleta quedan 2,2 mm, por
 encima de la pared mínima de 1,6 mm de [carcasas.md](carcasas.md), y es lo
-que necesita un agujero de 1,4 mm para guiar un pin derecho.
+que necesita un agujero de 1,7 mm para guiar un pin derecho.
 
 ### La cinta manda
 
@@ -202,10 +203,15 @@ las canaletas de la placa se forran con cinta de 5 mm. Se terminó el rollo de
 20 mm para los rieles y el de 6 mm para las señales, y con él se terminaron
 los empalmes entre cintas de distinto ancho.
 
-> **Los dos números de arriba —1,2 mm de hondo y 0,15 de luz— son de papel.**
-> El que los confirma o los corrige es el cupón de prueba (`make cupon`): ahí
-> están las tres profundidades y las tres luces en una sola pieza. Ver
-> [armado.md](armado.md), paso 0.a.
+> **Los dos números de arriba están MEDIDOS, no calculados.** El cupón de
+> prueba (`make cupon`) trae tres profundidades y tres luces laterales en
+> una sola pieza, y en la corrida del 21/09/2026 —PETG, boquilla 0,6, capa
+> 0,2— ganó la combinación del centro: **1,2 mm de hondo con 0,20 mm de luz
+> por lado**. Con 1,0 la cinta no se marca lo suficiente contra el borde;
+> con 1,4 empieza a romperse en el piso, que es donde tiene que conducir.
+> Con 0,15 la nervadura agarra; con 0,25 la cinta queda floja y la lija no
+> la corta pareja. Si alguna vez cambia la impresora o el material, se
+> vuelve a correr el cupón: ver [armado.md](armado.md), paso 0.a.
 
 > **Lo que no se puede pedir: que la cinta se corte sola.** El objetivo de
 > hundir la canaleta a 1,2 mm y hacer que la nervadura sobresalga 1,0 mm es
@@ -227,14 +233,15 @@ entra. Así que el número de la boquilla pasó a estar en el dato
 
 | Regla | Valor | Por qué |
 |---|---:|---|
-| `agujero_min` | **1,4 mm** | poco más de dos boquillas; menos que eso se cierra |
-| `pared_min_agujeros` | **1,1 mm** | dos extrusiones de 0,55, que una boquilla de 0,6 saca sin despeinarse |
-| `separacion_min` | 0,8 mm | una extrusión ancha; es la pared entre dos canaletas, no una pared estructural |
+| `agujero_min` | **1,7 mm** | medido: es lo que hace falta para que el pin entre solo |
+| `pared_min_agujeros` | **0,8 mm** | la misma pared mínima que entre dos canaletas: un solo número en todo el diseño |
+| `separacion_min` | 0,8 mm | una extrusión ancha; es la pared entre dos canaletas, y el cupón la imprimió y la lijó sin romperla |
 
-Los agujeros de los bornes fueron de 1,3 a **1,8 mm** (paso de 4,4 a 3,8, que
-además angosta la placa), los del condensador radial de 1,2 a 1,8, y los
-tornillos de 2,4 a **3,2**. El único que no pudo crecer tanto es el del C3, y
-tiene su propia sección.
+Los agujeros de las tiras de pines quedaron en **1,7 mm**, el del condensador
+radial en 2,1 y los tornillos M2 en **2,7**. Los tres crecieron por la misma
+razón, que se explica abajo: un agujero impreso sale dos o tres décimas más
+chico que el dibujado, y lo que importa no es que se vea abierto sino que el
+pin entre solo.
 
 ### Las tiras de pines, y de qué lado sale cada pad
 
@@ -245,7 +252,7 @@ Ocho módulos, ocho tiras, ningún cable entre el ESP32 y los sensores.
 El paso es **2,54 mm** y eso no se negocia. Hagamos la cuenta de lo que hay
 que meter entre dos pines vecinos: el agujero, el anillo de cobre alrededor,
 la holgura de la canaleta y la pared hasta el pad de al lado. Con una
-boquilla de 0,6 el agujero solo ya pide 1,4 mm, y no queda nada para el
+boquilla de 0,6 el agujero solo ya pide 1,7 mm, y no queda nada para el
 resto. **Un pad con su agujero adentro no entra a 2,54 mm.** No es cuestión
 de dibujarlo mejor: no da la aritmética.
 
@@ -302,8 +309,27 @@ del SPI **no encontraban camino ni con la placa vacía**, y desde afuera
 parecía un problema de congestión. Medio milímetro de margen en una regla
 que se evalúa sobre una grilla de 0,2 mm no es margen.
 
-Con eso el agujero pudo ir de 1,0 a **1,4 mm** (+40 %) dejando 1,14 mm de
-pared entre agujeros vecinos, que es lo que la regla pide.
+**El agujero mide 1,7 mm, y ese número también está medido.** El pin de una
+tira es un cuadrado de 0,64 mm, o sea 0,91 mm de diagonal: sobre el papel,
+1,4 mm de agujero le dejan medio milímetro de aire por todos lados y tendría
+que entrar solo. En la práctica no entraba. El cupón traía ocho agujeros de
+1,4 —todos iguales, sin gradiente— y por tres de ellos el pin no pasaba y por
+los otros cinco pasaba perfecto.
+
+Eso dice dos cosas. La primera, que el problema no es el diseño: es que **un
+agujero impreso sale más chico que el dibujado**, dos o tres décimas con una
+boquilla de 0,6, porque el perímetro interior se tiende del lado de adentro
+del arco. La segunda, que 1,4 quedaba tan al filo que lo decidía la variación
+normal de la máquina —y un número que funciona cinco de cada ocho veces no es
+un número, es una lotería—. Con 1,7 nominal el agujero real queda cerca de
+1,4 y el pin entra sin forzar.
+
+Eso se paga en pared: a 2,54 mm de paso, 1,7 deja **0,84 mm** entre dos
+agujeros vecinos, contra los 1,14 de antes. Es menos, pero no es menos que lo
+que la placa ya hace en todos lados: **0,8 mm es la pared entre dos canaletas
+desde la v1.0**, y el cupón la imprimió y la lijó sin romperla. Así que
+`pared_min_agujeros` bajó de 1,1 a 0,8 y ahora hay **un solo número de pared
+mínima** en todo el diseño, en vez de dos que decían cosas distintas.
 
 ### La base plana### La base plana
 
@@ -401,7 +427,7 @@ tramo corto, y los pines de masa de las tiras de sensor miran todos **hacia
 afuera**, hacia la barra, mientras los de señal miran hacia adentro, hacia el
 ESP32 (ver "Las tiras de pines").
 
-**La masa es la que paga los puentes.** De los 24 puentes de la v3.0, diez
+**La masa es la que paga los puentes.** De los 25 puentes de la v3.1, once
 son de masa y cuatro de 3V3: son las dos redes con quince y diecisiete nodos
 repartidos por toda la placa, y en una sola cara eso no se cierra sin cruces.
 Se eligió a propósito que los pague la masa: un cable de masa es el más
@@ -420,7 +446,7 @@ código — antes de sospechar del hardware.
 ### Los puentes
 
 Una sola cara de cobre significa que algunos cruces no se pueden evitar. Se
-resuelven con **cable aislado fino (AWG30) por arriba**: 24 puentes, todos
+resuelven con **cable aislado fino (AWG30) por arriba**: 25 puentes, todos
 listados en [conexiones.md](conexiones.md) y dibujados en la plantilla con
 línea azul de puntos. No hay ninguno que no esté en esa lista, y la prueba de
 conectividad los cuenta: si falta uno, la red queda en dos pedazos y el
@@ -532,12 +558,15 @@ más arriba, el faldón engancha 1,0 mm menos. Por eso `faldon_alto` pasó de
 2,5 a **3,5 mm**: sigue entrando los mismos 2,5 mm en los 3 mm de espesor del
 sustrato, y sigue sin apoyar en la mesa.
 
-**La nervadura es 0,15 mm más fina por lado.** Ahí entran el espesor de la
+**La nervadura es 0,20 mm más fina por lado.** Ahí entran el espesor de la
 cinta doblada contra las dos paredes (0,035 mm cada una) y la tolerancia de
-impresión. Era 0,25 hasta la v2.0; bajarlo a 0,15 es acercar el filo de la
-nervadura al borde de la canaleta todo lo que una boquilla de 0,6 permite.
-La nervadura más fina de todo el juego mide **1,15 mm** —la de las pistas de
-señal— y el verificador falla si alguna baja de 0,95.
+impresión. Era 0,25 hasta la v2.0 y **el cupón de prueba dijo 0,20**: con
+0,25 la cinta queda floja contra el borde y la lija no la corta pareja, y
+con 0,15 la nervadura agarra y la pieza no baja del todo. La nervadura más
+fina de todo el juego mide **0,90 mm** —la de las pistas de señal— y el
+verificador falla si alguna baja de 0,85. Ese piso bajó de 0,95 a 0,85 por
+la misma medición: el cupón imprimió esa nervadura de 0,90 y la prensó sin
+partirla.
 
 > **Si la estampadora agarra y no baja, el número a subir es ése**, de a
 > 0,05. Es el único parámetro del juego que depende de cómo salga la
@@ -598,7 +627,7 @@ hasta la v2.0.
 > **La prueba en seco no es opcional.** Antes de poner la cinta, apoyar la
 > estampadora sobre el sustrato vacío: tiene que bajar hasta que el faldón
 > envuelva el borde, sin resistencia. Si hace tope antes, está al revés o la
-> impresión salió con las nervaduras gordas —y con 0,15 mm de luz por lado
+> impresión salió con las nervaduras gordas —y con 0,20 mm de luz por lado
 > eso es más probable que antes: ver `estampadora.holgura_lateral`—.
 > **Nunca forzar**: las nervaduras se parten.
 
@@ -800,7 +829,7 @@ el cable que haga falta.
 | Sustrato | **68 × 92 × 3,0 mm** |
 | Postes de la carcasa | **M2**, Ø2,4 mm, a (3, 11), (65, 11), (3, 81) y (65, 81) desde la esquina inferior izquierda, mirando la cara de las canaletas |
 | Aire hacia la cara de los módulos | **12 mm**: 4 de la SuperMini más su tira de pines, y lugar para los conectores que se claven |
-| Aire hacia la cara de las canaletas | **6 mm** para la cinta, los 24 puentes y las soldaduras |
+| Aire hacia la cara de las canaletas | **6 mm** para la cinta, los 25 puentes y las soldaduras |
 | Antena | 10 mm de aire arriba y a los costados, sin metal, y la muesca del sustrato despejada |
 | Pantalla TFT 2,2" | módulo de **56 × 40 × 11 mm**; se clava en `J_TFT` y queda parada sobre el sustrato. Su ventana la define la carcasa |
 | Capacitivo de suelo | **98 × 23 × 1,5 mm**, sale por abajo, junta abajo y el cable haciendo panza |
@@ -881,7 +910,7 @@ cambiar de idea es editar el JSON y correr `make pcb`.
    de servicio. Recomendación: dejarlo así y corregir `decisiones.md`, que
    quedó viejo.
 3. **¿La pantalla del producto pasa a ser la de 2,2"?** El sustrato de la
-   v3.0 tiene una tira de **nueve** pines, que es la de la TFT de 2,2"
+   v3.1 tiene una tira de **nueve** pines, que es la de la TFT de 2,2"
    ILI9341 240 × 320 —la que hay sobre la mesa—. La de 1,44" del producto
    tiene ocho y otro orden: **no entra en esta tira**. El firmware retiró el
    ILI9341 en la 0.6.0 y hay que volver a sumarlo como variante (es su bloque

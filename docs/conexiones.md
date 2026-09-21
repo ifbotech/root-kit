@@ -3,7 +3,7 @@
 <!-- GENERADO por tools/pcb.py desde hardware/pcb/nucleo.json.
      No se edita a mano: se edita el JSON y se corre `make pcb`. -->
 
-Cada red del núcleo de ROOTKIT v3.0: de qué riel cuelga, qué ancho de
+Cada red del núcleo de ROOTKIT v3.1: de qué riel cuelga, qué ancho de
 cinta lleva y de dónde a dónde va. El sustrato y la cinta están en
 [pcb.md](pcb.md); el paso a paso con los controles de multímetro, en
 [armado.md](armado.md).
@@ -25,10 +25,10 @@ la X crece hacia la izquierda.
 
 | Red | Clase | Riel | Cinta | Nodos | Por qué |
 |---|---|---|---:|---|---|
-| **GND** | potencia | GND | 1.0 / 1.2 / 1.9 / 2.2 mm | `U1.GND`, `J_TFT.GND`, `J_AIRE.GND`, `J_LUZ.GND`, `J_TOQUE.GND`, `J_TIERRA.GND`, `J_SUELO.GND`, `J_PWR.GND`, `R2.1`, `C1.1`, `C2.1`, `C3.1`, `R5.2`, `C4.2`, `R8.2`, `Q3.S`, `TP1.1` | la masa del sistema; entra por J_PWR y toca todo |
+| **GND** | potencia | GND | 1.0 / 1.2 / 2.2 mm | `U1.GND`, `J_TFT.GND`, `J_AIRE.GND`, `J_LUZ.GND`, `J_TOQUE.GND`, `J_TIERRA.GND`, `J_SUELO.GND`, `J_PWR.GND`, `R2.1`, `C1.1`, `C2.1`, `C3.1`, `R5.2`, `C4.2`, `R8.2`, `Q3.S`, `TP1.1` | la masa del sistema; entra por J_PWR y toca todo |
 | **VIN** | potencia | VIN | 1.0 / 2.2 mm | `J_PWR.VIN`, `U1.5V`, `R1.1`, `TP2.1` | 3,0 a 4,65 V: la celda ya protegida, despues del interruptor. Entra por J_PWR y va al pin 5V de la SuperMini, que la baja a 3,3 V con su ME6211 |
-| **3V3** | potencia | 3V3 | 1.0 / 1.2 / 1.9 / 2.2 mm | `U1.3V3`, `C2.2`, `C3.2`, `R4.2`, `Q2.S`, `R6.2`, `R7.2`, `R9.2`, `Q4.S`, `J_TFT.VCC`, `J_AIRE.VCC`, `J_LUZ.VCC`, `J_TOQUE.VCC`, `J_TIERRA.VCC`, `TP3.1` | el ME6211 de la SuperMini. Fijo: el aire, la luz, la sonda y el toque juntos suman menos de 5 uA durmiendo |
-| **3V3S** | potencia | 3V3S | 1.2 / 1.9 / 2.2 mm | `Q2.D`, `J_SUELO.VCC`, `R5.1`, `C4.1`, `TP4.1` | el riel conmutado: vive 400 ms por medicion. Solo cuelga el capacitivo, que come 5 mA prendido |
+| **3V3** | potencia | 3V3 | 1.0 / 1.2 / 2.2 mm | `U1.3V3`, `C2.2`, `C3.2`, `R4.2`, `Q2.S`, `R6.2`, `R7.2`, `R9.2`, `Q4.S`, `J_TFT.VCC`, `J_AIRE.VCC`, `J_LUZ.VCC`, `J_TOQUE.VCC`, `J_TIERRA.VCC`, `TP3.1` | el ME6211 de la SuperMini. Fijo: el aire, la luz, la sonda y el toque juntos suman menos de 5 uA durmiendo |
+| **3V3S** | potencia | 3V3S | 1.0 / 1.4 mm | `Q2.D`, `J_SUELO.VCC`, `R5.1`, `C4.1`, `TP4.1` | el riel conmutado: vive 400 ms por medicion. Solo cuelga el capacitivo, que come 5 mA prendido. Es de potencia por lo que hace, no por lo que lleva: 5 mA sobre 1,4 x 0,035 mm son 0,1 mV en toda la placa, asi que declara su propio ancho minimo de 1,4 mm en vez de los 2,2 de los otros rieles. Ademas termina en pads chicos --el drenador de un SOT-23, un pin de tira-- que estrangulan igual cualquier tramo ancho que llegue hasta ellos, con lo cual pedirle 2,2 era pedir un tramo gordo en el medio que no servia para nada. |
 | **SENS_EN** | senal | 3V3 | 1.0 mm | `U1.IO2`, `Q2.G`, `R4.1` | compuerta del P-MOSFET del riel conmutado: bajo enciende. GPIO2 es pin de arranque y R4 lo deja en alto |
 | **RIEL** | senal | VIN | 1.0 mm | `U1.IO1`, `R1.2`, `R2.2`, `C1.2` | el divisor 470k/470k al ADC1: de ahi sale cuanta bateria queda y si esta enchufado |
 | **SUELO** | senal | — | 1.0 mm | `U1.IO0`, `J_SUELO.AOUT` | la salida del capacitivo al ADC1 por GPIO0, directo desde la tira |
@@ -217,15 +217,16 @@ plantilla los dibuja por donde van.
 | 13 | 3V3 | `TP3.1` | `J_TFT.VCC` | AWG30 | 16 mm |  |
 | 14 | 3V3 | `R9.2` | `Q4.S` | AWG30 | 15 mm |  |
 | 15 | GND | `U1.GND` | `J_PWR.GND` | AWG30 | 21 mm |  |
-| 16 | GND | `U1.GND` | `J_SUELO.GND` | AWG30 | 26 mm |  |
-| 17 | GND | `J_SUELO.GND` | `J_TIERRA.GND` | AWG30 | 16 mm |  |
-| 18 | GND | `C1.1` | `C4.2` | AWG30 | 11 mm |  |
-| 19 | GND | `C4.2` | `R5.2` | AWG30 | 14 mm |  |
-| 20 | GND | `J_TIERRA.GND` | `J_AIRE.GND` | AWG30 | 17 mm |  |
-| 21 | GND | `J_AIRE.GND` | `C3.1` | AWG30 | 14 mm |  |
-| 22 | GND | `J_AIRE.GND` | `J_TOQUE.GND` | AWG30 | 17 mm |  |
-| 23 | GND | `C3.1` | `C2.1` | AWG30 | 18 mm |  |
-| 24 | GND | `TP1.1` | `J_TFT.GND` | AWG30 | 22 mm |  |
+| 16 | GND | `J_PWR.GND` | `R5.2` | AWG30 | 26 mm |  |
+| 17 | GND | `R5.2` | `C4.2` | AWG30 | 14 mm |  |
+| 18 | GND | `C4.2` | `C1.1` | AWG30 | 11 mm |  |
+| 19 | GND | `R2.1` | `J_TIERRA.GND` | AWG30 | 12 mm |  |
+| 20 | GND | `J_TIERRA.GND` | `J_SUELO.GND` | AWG30 | 16 mm |  |
+| 21 | GND | `J_TIERRA.GND` | `J_AIRE.GND` | AWG30 | 17 mm |  |
+| 22 | GND | `J_AIRE.GND` | `C3.1` | AWG30 | 14 mm |  |
+| 23 | GND | `J_AIRE.GND` | `J_TOQUE.GND` | AWG30 | 17 mm |  |
+| 24 | GND | `C3.1` | `C2.1` | AWG30 | 18 mm |  |
+| 25 | GND | `TP1.1` | `J_TFT.GND` | AWG30 | 23 mm |  |
 
 ## Los puntos de prueba
 
@@ -243,13 +244,14 @@ plantilla los dibuja por donde van.
 
 | Ancho | Largo total |
 |---:|---:|
-| 1.0 mm | 514 mm |
-| 1.2 mm | 66 mm |
-| 1.9 mm | 34 mm |
+| 1.0 mm | 521 mm |
+| 1.2 mm | 62 mm |
+| 1.4 mm | 8 mm |
+| 1.9 mm | 20 mm |
 | 2.0 mm | 27 mm |
-| 2.2 mm | 189 mm |
+| 2.2 mm | 184 mm |
 
-Son **830 mm de cinta por unidad**, contando los pads. Todo sale
+Son **821 mm de cinta por unidad**, contando los pads. Todo sale
 de **un solo rollo de 5 mm**: ninguna canaleta pide más ancho que
 ése (el porqué, en [pcb.md](pcb.md), «La cinta manda»). Con un 40 % de
 recortes y errores, un rollo de 20 m alcanza para más de cien

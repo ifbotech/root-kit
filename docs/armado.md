@@ -46,8 +46,8 @@ media.
 | Pinza de punta fina | para abrir las patas de los SOT-23 |
 | Alcohol isopropílico y cepillo | el flux que queda es una fuga |
 
-| Cable de silicona AWG30 | los 24 puentes |
-| Tiras de pines macho de 2,54 mm | dos de 8 para el ESP32 y una por módulo |
+| Cable de silicona AWG30 | los 25 puentes |
+| Tiras de pines macho de 2,54 mm | dos de 8 para el ESP32 y una por módulo; sirven también para probar los agujeros del cupón |
 
 ---
 
@@ -95,9 +95,10 @@ Qué trae el cupón:
 - **La estampadora cruza las tres con tres luces laterales distintas**:
   0,15 / 0,20 / 0,25 mm por lado, en tres franjas horizontales rotuladas en
   su dorso. Una sola prensada prueba las nueve combinaciones.
-- **Una fila de ocho agujeros de 1,4 mm a 2,54 de paso**, que es la huella de
-  una tira de pines: dice si los agujeros salen abiertos con boquilla de 0,6
-  y si la pared de 1,14 mm entre dos vecinos se sostiene.
+- **Una fila de ocho agujeros a 2,54 de paso, de 1,3 a 2,0 mm de a una
+  décima**, que es la huella de una tira de pines. Dice cuál es el diámetro
+  más chico por el que el pin entra **solo**, que no es el mismo que aquel
+  con el que el agujero *se ve* abierto. Los dos extremos están rotulados.
 
 Se hace el proceso completo del paso 2 —cubrir de cinta, recortar al
 contorno, prensar, **lijar**— y se lee así:
@@ -110,13 +111,18 @@ contorno, prensar, **lijar**— y se lee así:
 | ¿La cinta se cortó limpio en el **borde** al lijar? | Es lo que se busca. Anotar con qué profundidad y con qué luz pasó |
 | Tester entre dos canaletas vecinas | **Abierto.** Si pita, faltó lija. Probar primero el par de 0,8 mm, que es el peor caso |
 | ¿Sobrevivió la pared de 0,8 mm a la lija? | Si se redondeó o se rompió, hay que subir `separacion_min` en el JSON y volver a rutear |
-| ¿Entran los pines de una tira en los ocho agujeros? | Si salen tapados, subir `agujero_min` |
+| ¿Desde qué agujero entra el pin **sin forzar**? | Ése es `agujero_min`. Ojo: el que *se ve* abierto y el que deja pasar el pin no son el mismo |
 
 Lo que salga de acá se anota en `hardware/pcb/nucleo.json`
-(`reglas.prof_canaleta`, `estampadora.holgura_lateral`) y se corre
-`make pcb`. Los números que trae hoy el diseño son **1,2 mm de profundidad y
-0,15 mm de luz**, elegidos sobre el papel: este cupón es el que los confirma
-o los corrige.
+(`reglas.prof_canaleta`, `reglas.agujero_min`,
+`estampadora.holgura_lateral`) y se corre `make rutear && make pcb`.
+
+> **Lo que dio la primera corrida** (21/09/2026, PETG, boquilla 0,6, capa
+> 0,2): ganó la combinación del **centro**, 1,2 mm de profundidad con
+> **0,20 mm de luz** por lado. Y los agujeros —que en esa corrida eran los
+> ocho de 1,4 mm, sin gradiente— dejaron pasar el pin en cinco de ocho, así
+> que el sustrato pasó a **1,7 mm**. Esos tres números son los que tiene hoy
+> el diseño. Si cambia la impresora o el material, se vuelve a correr.
 
 > **La cara de abajo no lleva soportes ni los necesita.** El sustrato apoya
 > en la cama por una cara **completamente plana**: no hay un solo voladizo.
@@ -263,13 +269,13 @@ Se busca con lupa antes de seguir: después va a estar tapado por un módulo.
 
 ## Paso 3 — Los puentes de cable
 
-Los 24 de la tabla de [conexiones.md](conexiones.md), en ese orden, con cable
+Los 25 de la tabla de [conexiones.md](conexiones.md), en ese orden, con cable
 de silicona **AWG30**.
 
 Van **por arriba** de la cinta, cruzando lo que tengan que cruzar, pegados al
 sustrato con una gota de cianoacrilato cada 15 mm para que no bailen.
 
-Catorce de los 24 son de masa y de 3V3, y eso es a propósito: en una sola
+Quince de los 25 son de masa y de 3V3, y eso es a propósito: en una sola
 cara de cobre las dos redes que tocan todo no se pueden cerrar sin cruces, y
 si alguien tiene que llevar un cable por arriba, que sea la masa —no tiene
 señal que degradar y, si hiciera falta, se refuerza con otro en paralelo—.

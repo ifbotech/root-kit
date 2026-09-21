@@ -504,7 +504,7 @@ Por unidad. Los precios de pantalla son los de la cotización actual.
 | 1 | interruptor deslizante | en la pared de la carcasa |
 | 1 | sustrato impreso en PETG | [pcb.md](pcb.md) |
 | — | **cinta de cobre de 5 mm** | un solo rollo: ninguna canaleta pide más ancho ([pcb.md](pcb.md), "La cinta manda") |
-| — | cable de silicona AWG30 | 24 puentes |
+| — | cable de silicona AWG30 | 25 puentes |
 | 4 | tornillos M2 × 8 | sustrato a carcasa |
 | 8 | tiras de pines macho 2,54 mm | dos de 8 para el ESP32, y una por módulo |
 

@@ -78,6 +78,24 @@ propio módulo cargador y entra a la placa por dos pines. No cambió ni un
 componente: cambió dónde vive. Es lo que permitió bajar los rieles de 4 a
 2,2 mm, y de paso saca los 5 V y el ampere de una placa que se arma a mano.
 
+**Los tres números del proceso están medidos, no calculados (v3.1).** La
+profundidad de la canaleta (1,2 mm), la luz lateral de la nervadura (0,20 mm)
+y el diámetro del agujero de una tira de pines (1,7 mm) salieron de imprimir
+un cupón de prueba con las tres variables barridas, no de una cuenta. Dos de
+los tres contradijeron lo que decía el papel: la luz estaba en 0,15, que
+agarra y no deja bajar la pieza; y el agujero en 1,4, que sobre el papel le
+deja medio milímetro de aire al pin de 0,64 mm y en la práctica lo dejó pasar
+en cinco de ocho intentos, porque **un agujero impreso sale dos o tres
+décimas más chico que el dibujado**. La lección es del método, no de los
+números: en la parte del proyecto que toca plástico y cobre, el papel propone
+y la impresora dispone, y por eso el cupón existe y se vuelve a correr cada
+vez que cambia la impresora o el material.
+
+Como efecto colateral, la pared mínima entre dos agujeros bajó de 1,1 a
+0,8 mm, que es la misma que hay entre dos canaletas desde la v1.0. Ahora hay
+**un solo número de pared mínima** en todo el diseño en vez de dos que decían
+cosas distintas.
+
 **El estampador marca; la lija corta.** Una matriz de corte para 0,06 mm de
 cobre trabaja con unas micras de luz entre punzón y matriz; una boquilla de
 0,6 mm da 0,15 mm, cincuenta veces más. Así que la nervadura hunde la cinta y

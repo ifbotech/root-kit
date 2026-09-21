@@ -381,12 +381,14 @@ class Ruteador:
         holg = reglas["holgura_canaleta"]
         marg = reglas["margen_borde"]
         paso = g.paso
-        # Celda y media de margen, no una. La grilla mide al centro de la
-        # celda y el cobre llega hasta el borde, y eso se paga DOS veces:
-        # media celda por el redondeo de la pista que se esta ruteando y otra
-        # media por el de la que ya esta puesta. Con una celda sola el
-        # ruteador entregaba pistas que el verificador rechazaba por 0,15 mm,
-        # que es justo el tamano de ese error.
+        # Celda y media de margen, y el numero sale de contar el error, no
+        # de probar. El verificador mide distancias exactas entre rectangulos
+        # y segmentos; el ruteador mide entre centros de celda. La diferencia
+        # tiene dos partes: el cobre que ya esta puesto se marca celda por
+        # celda y una celda cuenta como marcada solo si su CENTRO cae adentro,
+        # asi que su borde de verdad queda hasta media celda mas afuera que el
+        # ultimo centro marcado; y la pista que se esta ruteando se mide por
+        # su eje, que es otra media celda.
         u_otros = (ancho / 2.0 + holg + sep) / paso + 1.5
         u_hueco = (ancho / 2.0 + sep) / paso + 1.0
         u_borde = (ancho / 2.0 + marg) / paso
@@ -557,6 +559,7 @@ class Ruteador:
     def rutear(self):
         n = self.n
         pistas, puentes, informe = [], [], []
+        piso_senal = n.reglas["ancho_minimo"]["senal"]
 
         for p in n.d.get("pistas_fijas", []):
             red = p["red"]
@@ -645,10 +648,20 @@ class Ruteador:
                     centro = (round(pad.x, 3), round(pad.y, 3))
                     trozos = self._partir_por_ancho(
                         celdas, usado, min(fino, usado), estrictos(usado))
+                    # El ultimo saltito, del centro de la ultima celda al
+                    # centro del pad, va SIEMPRE al ancho minimo. Es el unico
+                    # tramo que no sale de la grilla, asi que nadie lo
+                    # verifico; y corre en DIAGONAL adentro del pad, asi que
+                    # con el ancho del pad su cobre se sale del pad por los
+                    # costados. De ahi salian tramos de 1,9 mm que el
+                    # verificador rechazaba por una decima, siempre en el
+                    # mismo lugar y sin que el margen del ruteador cambiara
+                    # nada. Con el ancho minimo el cobre no se sale, y para
+                    # la conectividad da igual: el camino ya termina ADENTRO
+                    # del pad, que es lo que el verificador mira.
                     ultima = (g.mm(*celdas[-1]), centro)
                     if math.dist(*ultima) > 1e-9:
-                        trozos.append((self._ancho_tramo(ancho_red, objetivo),
-                                       None))
+                        trozos.append((piso_senal, None))
                     puestos = 0
                     for a, sub in trozos:
                         pts = ([round(ultima[0][0], 3), round(ultima[0][1], 3)],

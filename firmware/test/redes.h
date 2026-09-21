@@ -34,7 +34,7 @@ static const rk_red_t RK_REDES[] = {
 #define RK_REDES_N ((int)(sizeof RK_REDES / sizeof RK_REDES[0]))
 
 /* Lo que el sustrato le promete al firmware, en numeros. */
-#define RK_SUSTRATO_VERSION        "v3.0"
+#define RK_SUSTRATO_VERSION        "v3.1"
 #define RK_SUELO_DIVISOR_NUM       1
 #define RK_SUELO_DIVISOR_DEN       1
 #define RK_RIEL_R_ARRIBA_OHM       470000u

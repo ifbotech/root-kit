@@ -1,5 +1,5 @@
 {
- "version": "v3.0",
+ "version": "v3.1",
  "que_es": "El nucleo de ROOTKIT: una PROTOBOARD IMPRESA. Un sustrato de PETG con canaletas, cinta de cobre de 5 mm dentro de ellas, y tiras de pines donde se clavan el ESP32, la pantalla y los sensores. Su unica funcion es interconectarlos: no tiene ventana de pantalla, ni bolsillo de cargador, ni lugar para el USB. Donde va fisicamente cada modulo lo decide la carcasa, que todavia no existe.",
  "sustrato": {
   "ancho": 68.0,
@@ -28,22 +28,22 @@
    {
     "x": 3.0,
     "y": 11.0,
-    "d": 2.4
+    "d": 2.7
    },
    {
     "x": 65.0,
     "y": 11.0,
-    "d": 2.4
+    "d": 2.7
    },
    {
     "x": 3.0,
     "y": 81.0,
-    "d": 2.4
+    "d": 2.7
    },
    {
     "x": 65.0,
     "y": 81.0,
-    "d": 2.4
+    "d": 2.7
    }
   ],
   "rotulos": [
@@ -59,7 +59,8 @@
     "tam": 1.6,
     "texto": "ifbotech"
    }
-  ]
+  ],
+  "tornillos_nota": "M2. El agujero es de 2,7 y no de 2,4 por lo mismo que los de las tiras: un agujero impreso sale mas chico que el dibujado."
  },
  "reglas": {
   "boquilla": 0.6,
@@ -68,8 +69,8 @@
   "holgura_canaleta": 0.3,
   "prof_canaleta": 1.2,
   "margen_borde": 0.6,
-  "pared_min_agujeros": 1.1,
-  "agujero_min": 1.4,
+  "pared_min_agujeros": 0.8,
+  "agujero_min": 1.7,
   "aire_rotulo": 0.6,
   "ancho": {
    "potencia": 2.2,
@@ -80,7 +81,7 @@
    "potencia": 2.2,
    "senal": 1.0
   },
-  "porque": "Manda la CINTA. El rollo es de 5 mm, y una canaleta de ancho a y hondo p no se forra con a milimetros de cinta sino con a + 2p: la cinta baja por una pared, cubre el piso y sube por la otra. Con 1,2 mm de profundidad --seis capas de 0,2-- quedan 5,0 - 2,4 = 2,6 mm de canaleta, o sea 2,3 mm de pista. Por eso el riel mas gordo es de 2,2 y no de 4 como en la v2.0: se puede, porque con el cargador fuera del sustrato por aca ya no pasa un ampere sino los 350 mA de pico del wifi, y sobre 2,2 x 0,035 mm eso son 5 mV en toda la placa. La profundidad subio de 0,8 a 1,2 para que el estampador casi corte la cinta contra el borde de la canaleta. La boquilla es de 0,6: un agujero de menos de 1,4 mm sale tapado, y entre dos agujeros a 2,54 mm quedan 1,14 mm de pared, que es lo justo."
+  "porque": "Manda la CINTA. El rollo es de 5 mm, y una canaleta de ancho a y hondo p no se forra con a milimetros de cinta sino con a + 2p: la cinta baja por una pared, cubre el piso y sube por la otra. Con 1,2 mm de profundidad --seis capas de 0,2-- quedan 5,0 - 2,4 = 2,6 mm de canaleta, o sea 2,3 mm de pista. Por eso el riel mas gordo es de 2,2 y no de 4 como en la v2.0: se puede, porque con el cargador fuera del sustrato por aca ya no pasa un ampere sino los 350 mA de pico del wifi, y sobre 2,2 x 0,035 mm eso son 5 mV en toda la placa.\n\nLos dos numeros que siguen salen del cupon de prueba, no del papel. La PROFUNDIDAD de 1,2 mm gano contra 1,0 y 1,4: con 1,0 la cinta no se marca lo suficiente contra el borde y con 1,4 empieza a romperse en el piso, que es donde tiene que conducir. Y el AGUJERO paso de 1,4 a 1,7 mm: los ocho agujeros del cupon eran todos de 1,4 y por tres de ellos el pin no entraba, asi que el problema no es el diseño sino que un agujero impreso sale unas dos o tres decimas mas chico que el dibujado, y 1,4 quedaba justo en el filo. A 2,54 mm de paso, 1,7 deja 0,84 mm de pared entre agujeros vecinos: es menos que los 1,1 de antes, pero es mas que los 0,8 que el cupon demostro que se imprimen entre dos canaletas, y esa es ahora la pared minima del diseño en todos lados."
  },
  "rieles": [
   {
@@ -125,7 +126,7 @@
     2.2,
     1.0
    ],
-   "agujero": 1.4,
+   "agujero": 1.7,
    "pines": [
     "IO5",
     "IO6",
@@ -146,97 +147,97 @@
    ],
    "pads": [
     [
-     -9.42,
+     -9.57,
      8.13,
      -7.62,
      8.13
     ],
     [
-     -9.42,
+     -9.57,
      5.59,
      -7.62,
      5.59
     ],
     [
-     -9.42,
+     -9.57,
      3.05,
      -7.62,
      3.05
     ],
     [
-     -9.42,
+     -9.57,
      0.51,
      -7.62,
      0.51
     ],
     [
-     -9.42,
+     -9.57,
      -2.03,
      -7.62,
      -2.03
     ],
     [
-     -9.42,
+     -9.57,
      -4.57,
      -7.62,
      -4.57
     ],
     [
-     -9.42,
+     -9.57,
      -7.11,
      -7.62,
      -7.11
     ],
     [
-     -9.42,
+     -9.57,
      -9.65,
      -7.62,
      -9.65
     ],
     [
-     9.42,
+     9.57,
      8.13,
      7.62,
      8.13
     ],
     [
-     9.42,
+     9.57,
      5.59,
      7.62,
      5.59
     ],
     [
-     9.42,
+     9.57,
      3.05,
      7.62,
      3.05
     ],
     [
-     9.42,
+     9.57,
      0.51,
      7.62,
      0.51
     ],
     [
-     9.42,
+     9.57,
      -2.03,
      7.62,
      -2.03
     ],
     [
-     9.42,
+     9.57,
      -4.57,
      7.62,
      -4.57
     ],
     [
-     9.42,
+     9.57,
      -7.11,
      7.62,
      -7.11
     ],
     [
-     9.42,
+     9.57,
      -9.65,
      7.62,
      -9.65
@@ -257,7 +258,7 @@
     1.0,
     2.2
    ],
-   "agujero": 1.4,
+   "agujero": 1.7,
    "pines": [
     "1",
     "2"
@@ -265,13 +266,13 @@
    "pads": [
     [
      -1.27,
-     -1.8,
+     -1.95,
      -1.27,
      0.0
     ],
     [
      1.27,
-     -1.8,
+     -1.95,
      1.27,
      0.0
     ]
@@ -293,7 +294,7 @@
     1.0,
     2.2
    ],
-   "agujero": 1.4,
+   "agujero": 1.7,
    "pines": [
     "1",
     "2",
@@ -302,19 +303,19 @@
    "pads": [
     [
      -2.54,
-     1.8,
+     1.95,
      -2.54,
      0.0
     ],
     [
      0.0,
-     -1.8,
+     -1.95,
      0.0,
      0.0
     ],
     [
      2.54,
-     -1.8,
+     -1.95,
      2.54,
      0.0
     ]
@@ -337,7 +338,7 @@
     1.0,
     2.2
    ],
-   "agujero": 1.4,
+   "agujero": 1.7,
    "pines": [
     "1",
     "2",
@@ -347,25 +348,25 @@
    "pads": [
     [
      -3.81,
-     -1.8,
+     -1.95,
      -3.81,
      0.0
     ],
     [
      -1.27,
-     -1.8,
+     -1.95,
      -1.27,
      0.0
     ],
     [
      1.27,
-     1.8,
+     1.95,
      1.27,
      0.0
     ],
     [
      3.81,
-     1.8,
+     1.95,
      3.81,
      0.0
     ]
@@ -389,7 +390,7 @@
     1.0,
     2.2
    ],
-   "agujero": 1.4,
+   "agujero": 1.7,
    "pines": [
     "1",
     "2",
@@ -400,31 +401,31 @@
    "pads": [
     [
      -5.08,
-     1.8,
+     1.95,
      -5.08,
      0.0
     ],
     [
      -2.54,
-     1.8,
+     1.95,
      -2.54,
      0.0
     ],
     [
      0.0,
-     -1.8,
+     -1.95,
      0.0,
      0.0
     ],
     [
      2.54,
-     -1.8,
+     -1.95,
      2.54,
      0.0
     ],
     [
      5.08,
-     1.8,
+     1.95,
      5.08,
      0.0
     ]
@@ -452,7 +453,7 @@
     1.0,
     2.2
    ],
-   "agujero": 1.4,
+   "agujero": 1.7,
    "pines": [
     "1",
     "2",
@@ -467,55 +468,55 @@
    "pads": [
     [
      -10.16,
-     1.8,
+     1.95,
      -10.16,
      0.0
     ],
     [
      -7.62,
-     1.8,
+     1.95,
      -7.62,
      0.0
     ],
     [
      -5.08,
-     -1.8,
+     -1.95,
      -5.08,
      0.0
     ],
     [
      -2.54,
-     1.8,
+     1.95,
      -2.54,
      0.0
     ],
     [
      0.0,
-     -1.8,
+     -1.95,
      0.0,
      0.0
     ],
     [
      2.54,
-     -1.8,
+     -1.95,
      2.54,
      0.0
     ],
     [
      5.08,
-     -1.8,
+     -1.95,
      5.08,
      0.0
     ],
     [
      7.62,
-     1.8,
+     1.95,
      7.62,
      0.0
     ],
     [
      10.16,
-     1.8,
+     1.95,
      10.16,
      0.0
     ]
@@ -600,7 +601,7 @@
     2.2,
     2.2
    ],
-   "agujero": 1.8,
+   "agujero": 2.1,
    "pines": [
     "1",
     "2"
@@ -609,13 +610,13 @@
    "pads": [
     [
      -2.5,
-     2.0,
+     2.15,
      -2.5,
      0.0
     ],
     [
      2.5,
-     -2.0,
+     -2.15,
      2.5,
      0.0
     ]
@@ -1195,7 +1196,8 @@
   "3V3S": {
    "clase": "potencia",
    "riel": "3V3S",
-   "porque": "el riel conmutado: vive 400 ms por medicion. Solo cuelga el capacitivo, que come 5 mA prendido",
+   "ancho_minimo": 1.4,
+   "porque": "el riel conmutado: vive 400 ms por medicion. Solo cuelga el capacitivo, que come 5 mA prendido. Es de potencia por lo que hace, no por lo que lleva: 5 mA sobre 1,4 x 0,035 mm son 0,1 mV en toda la placa, asi que declara su propio ancho minimo de 1,4 mm en vez de los 2,2 de los otros rieles. Ademas termina en pads chicos --el drenador de un SOT-23, un pin de tira-- que estrangulan igual cualquier tramo ancho que llegue hasta ellos, con lo cual pedirle 2,2 era pedir un tramo gordo en el medio que no servia para nada.",
    "nodos": [
     "Q2.D",
     "J_SUELO.VCC",
@@ -1499,8 +1501,8 @@
   }
  },
  "estampadora": {
-  "que_es": "La estampadora: el negativo del sustrato. Las mismas canaletas pero en relieve, para meter toda la cinta de una sola prensada. Se imprime con las nervaduras hacia arriba y se usa dada vuelta, asi que la geometria va ESPEJADA en X. Desde la v3 la nervadura entra 1,0 mm mas alla de la cara del sustrato y solo le quedan 0,15 mm de luz por lado: la idea es que el filo de la nervadura contra el borde de la canaleta casi corte la cinta, para que despues se lije el cobre de la superficie y quede solo el de adentro de los canales.",
-  "holgura_lateral": 0.15,
+  "que_es": "La estampadora: el negativo del sustrato. Las mismas canaletas pero en relieve, para meter toda la cinta de una sola prensada. Se imprime con las nervaduras hacia arriba y se usa dada vuelta, asi que la geometria va ESPEJADA en X. La nervadura entra 1,0 mm mas alla de la cara del sustrato y le quedan 0,20 mm de luz por lado: asi el filo de la nervadura contra el borde de la canaleta marca la cinta hasta casi cortarla, y despues se lija el cobre de la superficie para que quede solo el de adentro de los canales.\n\nLos 0,20 salen del cupon de prueba: con 0,15 la nervadura agarra y la pieza no baja del todo, y con 0,25 la cinta queda floja contra el borde y la lija no la corta parejo. La nervadura mas fina del juego --la de las canaletas de 1,3 mm-- mide 0,90 mm, y por eso el piso de ancho_min_nervadura bajo de 0,95 a 0,85: el cupon la imprimio y la prenso sin partirse.",
+  "holgura_lateral": 0.2,
   "sobresalir": 1.0,
   "base_extra": 0.2,
   "base_alto": 0.25,
@@ -1509,10 +1511,10 @@
   "faldon_pared": 2.0,
   "faldon_holgura": 0.5,
   "relieve_hueco": 0.6,
-  "ancho_min_nervadura": 0.95,
+  "ancho_min_nervadura": 0.85,
   "rotulo": {
    "tam": 5.0,
-   "texto": "ESTAMPADORA v3.0"
+   "texto": "ESTAMPADORA v3.1"
   }
  }
 }
