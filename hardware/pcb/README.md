@@ -18,6 +18,9 @@ carcasa. El porqué de cada número está en [../../docs/pcb.md](../../docs/pcb.
 | `sustrato.scad` | El modelo paramétrico. No tiene ni un número del diseño: los lee de `generado/sustrato_datos.scad` |
 | `estampadora.scad` | El **negativo**: las mismas canaletas en relieve, para meter toda la cinta de una prensada. Va espejado en X |
 | `encaje.scad` | La prueba de que una entra en la otra: choque vacío y nervaduras llegando al fondo |
+| `cupon.scad` | **La pieza de prueba del proceso**, con sus dos modos de encaje. Tres profundidades de canaleta, tres luces de nervadura y la pared mínima, todo en 52 × 44 mm. Se imprime **antes** que el sustrato: ver `docs/armado.md`, paso 0.a |
+| `generado/cupon-sustrato.stl` | El cupón, en PETG, sin soportes |
+| `generado/cupon-estampadora.stl` | Su estampadora, nervaduras hacia arriba |
 | `generado/sustrato_datos.scad` | Los datos que come el modelo |
 | `generado/nucleo-sustrato.stl` | La pieza para imprimir, en PETG, sin soportes |
 | `generado/nucleo-estampadora.stl` | La estampadora, nervaduras hacia arriba, sin soportes |
@@ -29,6 +32,7 @@ y `firmware/test/redes.h`. Se regenera con:
 ```bash
 make pcb        # rehace todo a partir del ruteo commiteado
 make rutear     # vuelve a rutear y después rehace todo (tarda ~20 s)
+make cupon      # el cupón de prueba y su estampadora, con su encaje
 ```
 
 **Cuándo hace falta `make rutear`:** cuando se mueve un módulo, se cambia una

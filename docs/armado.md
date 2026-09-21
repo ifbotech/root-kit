@@ -64,18 +64,59 @@ Se imprimen **dos piezas**:
 | El sustrato | `generado/nucleo-sustrato.stl` | **PETG**, canaletas **hacia arriba**, sin soportes, boquilla **0,6**, capa 0,2, tres perímetros. 68 × 92 × 3 mm |
 | La estampadora | `generado/nucleo-estampadora.stl` | PETG o PLA, nervaduras **hacia arriba**, sin soportes, misma boquilla y capa. 73 × 97 × 8,5 mm |
 
-> **Antes del sustrato entero, el cupón.** Media hora de impresora que
-> evita tirar cinco placas: un cuadrado de 40 mm con canaletas de 1,0 /
-> 1,4 / 2,2 mm a tres profundidades, y su estampadora con tres holguras
-> laterales. Ahí se contesta hasta dónde se puede hundir la canaleta sin
-> que la cinta se rompa en el piso, con cuánta luz entra la nervadura sin
-> agarrar, y cuánta lija hace falta. Ver [pcb.md](pcb.md).
-
-La estampadora es el negativo del sustrato y sirve para meter toda la cinta
-de una sola prensada ([pcb.md](pcb.md)). Se imprime una sola vez y sirve para
-todas las unidades.
-
 Y se imprime la plantilla **al 100 %, sin ajustar a la página**.
+
+---
+
+## Paso 0.a — El cupón de prueba (la primera vez, sí o sí)
+
+Media hora de impresora que evita tirar cinco placas. Son dos piezas más:
+
+```
+make cupon
+```
+
+| Pieza | STL | Medidas |
+|---|---|---|
+| El cupón | `generado/cupon-sustrato.stl` | 52 × 44 × 3 mm |
+| Su estampadora | `generado/cupon-estampadora.stl` | 57 × 49 × 8,5 mm |
+
+**Se imprimen con la misma boquilla, la misma altura de capa y el mismo
+material que el sustrato de verdad.** Si se prueba en PLA no se prueba nada:
+el PETG se estira distinto bajo la nervadura y se ablanda a otra temperatura.
+
+Qué trae el cupón:
+
+- **Tres grupos de canaletas, uno por profundidad**: 1,0 / 1,2 / 1,4 mm. El
+  número está grabado arriba de cada grupo. El sustrato usa 1,2.
+- **Cinco canaletas por grupo**: las tres anchos del sustrato (1,3 / 1,7 /
+  2,5 mm de canaleta, o sea pistas de 1,0 / 1,4 / 2,2) y después **un par
+  separado por exactamente 0,8 mm**, que es la pared mínima del diseño.
+- **La estampadora cruza las tres con tres luces laterales distintas**:
+  0,15 / 0,20 / 0,25 mm por lado, en tres franjas horizontales rotuladas en
+  su dorso. Una sola prensada prueba las nueve combinaciones.
+- **Una fila de ocho agujeros de 1,4 mm a 2,54 de paso**, que es la huella de
+  una tira de pines: dice si los agujeros salen abiertos con boquilla de 0,6
+  y si la pared de 1,14 mm entre dos vecinos se sostiene.
+
+Se hace el proceso completo del paso 2 —cubrir de cinta, recortar al
+contorno, prensar, **lijar**— y se lee así:
+
+| Qué mirar | Qué significa |
+|---|---|
+| ¿Bajó la estampadora sin forzar? | La franja más ajustada que entre sin agarrar es la `holgura_lateral` que hay que usar. Si ninguna entra, subir de a 0,05 |
+| ¿Se rompió alguna nervadura al imprimir o al prensar? | La de 1,3 mm de canaleta con 0,25 de luz mide 0,8 mm y es la más flaca del juego: es la primera candidata |
+| ¿La cinta llegó al **piso** de la canaleta, o se rompió ahí? | Si se rompe en el piso, esa profundidad es demasiada. Ésa es la respuesta a "hasta dónde se puede hundir" |
+| ¿La cinta se cortó limpio en el **borde** al lijar? | Es lo que se busca. Anotar con qué profundidad y con qué luz pasó |
+| Tester entre dos canaletas vecinas | **Abierto.** Si pita, faltó lija. Probar primero el par de 0,8 mm, que es el peor caso |
+| ¿Sobrevivió la pared de 0,8 mm a la lija? | Si se redondeó o se rompió, hay que subir `separacion_min` en el JSON y volver a rutear |
+| ¿Entran los pines de una tira en los ocho agujeros? | Si salen tapados, subir `agujero_min` |
+
+Lo que salga de acá se anota en `hardware/pcb/nucleo.json`
+(`reglas.prof_canaleta`, `estampadora.holgura_lateral`) y se corre
+`make pcb`. Los números que trae hoy el diseño son **1,2 mm de profundidad y
+0,15 mm de luz**, elegidos sobre el papel: este cupón es el que los confirma
+o los corrige.
 
 > **La cara de abajo no lleva soportes ni los necesita.** El sustrato apoya
 > en la cama por una cara **completamente plana**: no hay un solo voladizo.

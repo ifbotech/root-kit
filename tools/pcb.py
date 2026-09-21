@@ -20,6 +20,7 @@ Uso:
   python3 tools/pcb.py --stl          ademas exporta los STL con OpenSCAD
   python3 tools/pcb.py --encaje       comprueba que la estampadora entre
   python3 tools/pcb.py --rutear       vuelve a rutear (tarda; ver tools/ruteo.py)
+  python3 tools/pcb.py --canonizar X.stl   ordena las facetas de un STL
 
 Sin dependencias: solo la biblioteca estandar, igual que tools/fabrica.py.
 """
@@ -42,6 +43,23 @@ ENCAJE = os.path.join(RAIZ, "hardware", "pcb", "encaje.scad")
 REDES_H = os.path.join(RAIZ, "firmware", "test", "redes.h")
 CONEXIONES = os.path.join(RAIZ, "docs", "conexiones.md")
 RUTEO = os.path.join(GEN, "ruteo.json")
+# Como se llama el binario de OpenSCAD. Desde WSL sobre una instalacion de
+# Windows es "openscad.exe" y con un PATH que hay que armar a mano, asi que
+# el Makefile lo resuelve una vez y lo pasa por el entorno. Sin eso, `make
+# pcb` desde WSL decia "sin OpenSCAD" y seguia como si nada: los STL
+# quedaban viejos y nadie se enteraba.
+OPENSCAD = os.environ.get("OPENSCAD") or "openscad"
+
+
+def _rel(ruta):
+    """El camino visto desde la raiz del repositorio.
+
+    A OpenSCAD hay que hablarle en caminos RELATIVOS, corriendolo con el cwd
+    en la raiz. Desde WSL, el binario es un .exe de Windows: un camino
+    absoluto de Linux como /mnt/c/... no existe para el, y contesta "is not a
+    directory for output file" sobre una carpeta que esta ahi. Relativo
+    funciona en los dos lados."""
+    return os.path.relpath(ruta, RAIZ)
 
 
 def cargar():
@@ -1045,9 +1063,10 @@ def _correr_encaje(modo):
     if os.path.exists(destino):
         os.remove(destino)
     try:
-        subprocess.run(["openscad", "-D", 'modo="%s"' % modo,
-                        "--export-format", "binstl", "-o", destino, ENCAJE],
-                       capture_output=True, text=True, timeout=1800)
+        subprocess.run([OPENSCAD, "-D", 'modo="%s"' % modo,
+                        "--export-format", "binstl",
+                        "-o", _rel(destino), _rel(ENCAJE)],
+                       cwd=RAIZ, capture_output=True, text=True, timeout=1800)
     except FileNotFoundError:
         return None, None
     n = triangulos(destino)
@@ -1167,9 +1186,9 @@ def exportar_stl(destino, fuente=None):
     if not os.path.exists(fuente):
         return "no existe %s" % fuente
     try:
-        r = subprocess.run(["openscad", "--export-format", "binstl",
-                            "-o", destino, fuente],
-                           capture_output=True, text=True, timeout=1800)
+        r = subprocess.run([OPENSCAD, "--export-format", "binstl",
+                            "-o", _rel(destino), _rel(fuente)],
+                           cwd=RAIZ, capture_output=True, text=True, timeout=1800)
     except FileNotFoundError:
         return "openscad no esta instalado"
     except subprocess.TimeoutExpired:
@@ -1188,9 +1207,18 @@ def main():
     ap.add_argument("--stl", action="store_true")
     ap.add_argument("--encaje", action="store_true")
     ap.add_argument("--rutear", action="store_true")
+    ap.add_argument("--canonizar", nargs="+", metavar="STL",
+                    help="ordena las facetas de un STL ya exportado, para que "
+                         "el archivo sea funcion del modelo y no del orden en "
+                         "que terminaron los hilos de OpenSCAD")
     args = ap.parse_args()
+    if args.canonizar:
+        for ruta in args.canonizar:
+            _canonizar_stl(ruta)
+            print("  canonizado: %s" % ruta)
+        return 0
     if not (args.verificar or args.generar or args.stl or args.encaje
-            or args.rutear):
+            or args.rutear or args.canonizar):
         args.verificar = True
 
     d = cargar()

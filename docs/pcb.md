@@ -202,6 +202,11 @@ las canaletas de la placa se forran con cinta de 5 mm. Se terminó el rollo de
 20 mm para los rieles y el de 6 mm para las señales, y con él se terminaron
 los empalmes entre cintas de distinto ancho.
 
+> **Los dos números de arriba —1,2 mm de hondo y 0,15 de luz— son de papel.**
+> El que los confirma o los corrige es el cupón de prueba (`make cupon`): ahí
+> están las tres profundidades y las tres luces en una sola pieza. Ver
+> [armado.md](armado.md), paso 0.a.
+
 > **Lo que no se puede pedir: que la cinta se corte sola.** El objetivo de
 > hundir la canaleta a 1,2 mm y hacer que la nervadura sobresalga 1,0 mm es
 > que el filo de la nervadura contra el borde de la canaleta **marque** la
@@ -831,15 +836,17 @@ el cable que haga falta.
 todo esto está en [armado.md](armado.md) y en la Fase 2 del
 [roadmap](roadmap.md):
 
-1. **Una pieza de prueba antes que el sustrato entero**: un cupón de
-   40 × 40 mm con canaletas de 1,0 / 1,4 / 2,2 mm a 1,0 / 1,2 / 1,4 mm de
-   profundidad, y su estampadora con `holgura_lateral` de 0,15 / 0,20 / 0,25.
-   Ahí se contestan de una vez las tres preguntas que quedan abiertas del
+1. **El cupón, antes que el sustrato entero** (`make cupon`, y el paso 0.a de
+   [armado.md](armado.md)). Es una pieza de 52 × 44 mm con las tres anchos
+   del sustrato a las tres profundidades, un par de canaletas separadas por
+   la pared mínima de 0,8 mm, una fila de ocho agujeros de 1,4 a 2,54 de
+   paso, y una estampadora que las cruza con tres luces laterales distintas.
+   Contesta de una prensada las tres preguntas que quedan abiertas del
    proceso: **hasta dónde se puede hundir la canaleta sin que la cinta se
    rompa en el piso** en vez de en el borde, **con cuánta luz lateral entra
    la nervadura** sin agarrar, y **cuánta lija hace falta** para que dos
-   canaletas vecinas den abierto. Es una hora de impresora y evita imprimir
-   cinco sustratos mal.
+   canaletas vecinas den abierto. Media hora de impresora contra cinco
+   sustratos mal impresos.
 2. **Una unión soldada de prueba**: Sn42Bi58 sobre cinta pegada en PETG, y
    tirar. Si el PETG se marca, bajar la punta o pasar a remaches.
 3. La huella de la SuperMini contra la placa real (paso 1 del armado): las

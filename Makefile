@@ -12,6 +12,7 @@
 #   make wasm       el renderer compilado para la app (root-lab)
 #   make pcb        verifica el sustrato y la estampadora, y regenera todo
 #   make rutear     vuelve a rutear la placa (despues de mover un modulo)
+#   make cupon      el cupon de prueba de canaletas y su estampadora
 #   make placa      compila el producto (c3-144) y el banco (devkit-144)
 #   make bench      costo de renderizar una cara
 #   make golden     regenera las referencias visuales
@@ -20,7 +21,19 @@
 #
 # La app, la nube y el emulador viven en github.com/ifbotech/root-lab.
 
-.PHONY: all test sim sheet pieles etapas despertar pantallas capturas wasm placa pcb rutear bench golden verify clean
+# OpenSCAD se llama distinto segun desde donde se corra: `openscad` en
+# Linux, `openscad.exe` desde WSL sobre una instalacion de Windows, y ahi
+# ademas no esta en el PATH. Se resuelve una sola vez aca y se pasa por el
+# entorno, en vez de que cada objetivo adivine. Sin esto, `make pcb` desde
+# WSL decia "sin OpenSCAD" y seguia como si nada: los STL quedaban viejos
+# y nadie se enteraba.
+OPENSCAD := $(shell command -v openscad 2> /dev/null \
+                 || command -v openscad.exe 2> /dev/null \
+                 || ls "/mnt/c/Program Files/OpenSCAD/openscad.exe" 2> /dev/null \
+                 || ls "/c/Program Files/OpenSCAD/openscad.exe" 2> /dev/null)
+export OPENSCAD
+
+.PHONY: all test sim sheet pieles etapas despertar pantallas capturas wasm placa pcb rutear cupon bench golden verify clean
 
 all: test
 
@@ -48,11 +61,33 @@ placa:
 # El STL necesita OpenSCAD; sin el, el resto se genera igual.
 pcb:
 	@python3 tools/pcb.py --generar
-	@if command -v openscad > /dev/null 2>&1; then \
+	@if [ -n "$(OPENSCAD)" ]; then \
 	    python3 tools/pcb.py --stl; \
 	 else \
 	    echo "  (sin OpenSCAD: los STL y la prueba de encaje quedan como estaban)"; \
 	 fi
+
+# El cupon de prueba: media hora de impresora que contesta las tres
+# preguntas del proceso de la cinta que no se pueden contestar en la
+# computadora (ver hardware/pcb/cupon.scad). Se exporta y ademas se le corre
+# la misma prueba de encaje que a la placa grande: la interseccion de las dos
+# piezas tiene que dar vacia, y las nervaduras tienen que llegar al fondo.
+cupon:
+	@[ -n "$(OPENSCAD)" ] || { echo "  hace falta OpenSCAD"; exit 1; }
+	@"$(OPENSCAD)" -D 'pieza="sustrato"' --export-format binstl 	    -o hardware/pcb/generado/cupon-sustrato.stl hardware/pcb/cupon.scad 2> /dev/null
+	@"$(OPENSCAD)" -D 'pieza="estampadora"' --export-format binstl 	    -o hardware/pcb/generado/cupon-estampadora.stl hardware/pcb/cupon.scad 2> /dev/null
+	@python3 tools/pcb.py --canonizar \
+	    hardware/pcb/generado/cupon-sustrato.stl \
+	    hardware/pcb/generado/cupon-estampadora.stl > /dev/null
+	@echo "  STL: hardware/pcb/generado/cupon-sustrato.stl"
+	@echo "  STL: hardware/pcb/generado/cupon-estampadora.stl"
+	@rm -f hardware/pcb/generado/cupon-choque.stl hardware/pcb/generado/cupon-presencia.stl
+	@"$(OPENSCAD)" -D 'pieza="choque"' --export-format binstl 	    -o hardware/pcb/generado/cupon-choque.stl hardware/pcb/cupon.scad 2> /dev/null || true
+	@"$(OPENSCAD)" -D 'pieza="presencia"' --export-format binstl 	    -o hardware/pcb/generado/cupon-presencia.stl hardware/pcb/cupon.scad 2> /dev/null || true
+	@if [ -s hardware/pcb/generado/cupon-choque.stl ]; then 	    echo "  FALLA: la estampadora del cupon choca con el cupon"; exit 1; 	 fi
+	@if [ ! -s hardware/pcb/generado/cupon-presencia.stl ]; then 	    echo "  FALLA: las nervaduras del cupon no llegan al fondo"; exit 1; 	 fi
+	@rm -f hardware/pcb/generado/cupon-choque.stl hardware/pcb/generado/cupon-presencia.stl
+	@echo "  encaje: entra sin tocar y llega al fondo de las canaletas"
 
 # Rutear es otra cosa que generar: el ruteo se guarda commiteado en
 # generado/ruteo.json y no se rehace en cada build. Se vuelve a correr a mano
