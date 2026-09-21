@@ -1,0 +1,1478 @@
+{
+ "que_es": "El ruteo del sustrato: lo genera tools/ruteo.py desde nucleo.json y lo revisa entero tools/pcb.py --verificar. No se edita a mano: se vuelve a correr 'make rutear'.",
+ "paso_de_grilla": 0.2,
+ "pistas": [
+  {
+   "red": "GND",
+   "ancho": 2.4,
+   "puntos": [
+    [
+     35.4,
+     81.8
+    ],
+    [
+     32.8,
+     81.8
+    ],
+    [
+     32.8,
+     65.8
+    ],
+    [
+     32.8,
+     63.8
+    ],
+    [
+     40.2,
+     63.8
+    ],
+    [
+     44.6,
+     63.8
+    ],
+    [
+     44.6,
+     65.8
+    ],
+    [
+     44.6,
+     77.4
+    ]
+   ]
+  },
+  {
+   "red": "GND",
+   "ancho": 1.9,
+   "puntos": [
+    [
+     44.6,
+     77.4
+    ],
+    [
+     44.5,
+     78.3
+    ]
+   ]
+  },
+  {
+   "red": "GND",
+   "ancho": 2.4,
+   "puntos": [
+    [
+     45.8,
+     72.0
+    ],
+    [
+     47.4,
+     72.0
+    ]
+   ]
+  },
+  {
+   "red": "GND",
+   "ancho": 2.4,
+   "puntos": [
+    [
+     47.4,
+     72.0
+    ],
+    [
+     49.0,
+     73.5
+    ]
+   ]
+  },
+  {
+   "red": "GND",
+   "ancho": 2.4,
+   "puntos": [
+    [
+     50.4,
+     84.2
+    ],
+    [
+     53.6,
+     84.2
+    ]
+   ]
+  },
+  {
+   "red": "GND",
+   "ancho": 1.9,
+   "puntos": [
+    [
+     53.6,
+     84.2
+    ],
+    [
+     54.5,
+     84.3
+    ]
+   ]
+  },
+  {
+   "red": "GND",
+   "ancho": 2.4,
+   "puntos": [
+    [
+     44.4,
+     62.6
+    ],
+    [
+     44.4,
+     57.8
+    ]
+   ]
+  },
+  {
+   "red": "GND",
+   "ancho": 2.4,
+   "puntos": [
+    [
+     44.4,
+     57.8
+    ],
+    [
+     44.3,
+     56.5
+    ]
+   ]
+  },
+  {
+   "red": "GND",
+   "ancho": 2.4,
+   "puntos": [
+    [
+     45.4,
+     55.2
+    ],
+    [
+     47.6,
+     55.2
+    ],
+    [
+     47.6,
+     46.4
+    ]
+   ]
+  },
+  {
+   "red": "GND",
+   "ancho": 2.4,
+   "puntos": [
+    [
+     47.6,
+     46.4
+    ],
+    [
+     49.0,
+     45.0
+    ]
+   ]
+  },
+  {
+   "red": "GND",
+   "ancho": 2.4,
+   "puntos": [
+    [
+     50.4,
+     44.8
+    ],
+    [
+     57.6,
+     44.8
+    ],
+    [
+     57.6,
+     35.2
+    ],
+    [
+     50.2,
+     35.2
+    ]
+   ]
+  },
+  {
+   "red": "GND",
+   "ancho": 2.4,
+   "puntos": [
+    [
+     50.2,
+     35.2
+    ],
+    [
+     49.0,
+     34.0
+    ]
+   ]
+  },
+  {
+   "red": "GND",
+   "ancho": 2.4,
+   "puntos": [
+    [
+     52.2,
+     34.0
+    ],
+    [
+     53.5,
+     34.0
+    ]
+   ]
+  },
+  {
+   "red": "GND",
+   "ancho": 1.2,
+   "puntos": [
+    [
+     17.0,
+     78.0
+    ],
+    [
+     17.6,
+     78.0
+    ],
+    [
+     17.6,
+     69.0
+    ],
+    [
+     4.2,
+     69.0
+    ],
+    [
+     4.2,
+     77.0
+    ],
+    [
+     6.4,
+     77.0
+    ]
+   ]
+  },
+  {
+   "red": "GND",
+   "ancho": 1.2,
+   "puntos": [
+    [
+     6.4,
+     77.0
+    ],
+    [
+     6.85,
+     77.6
+    ]
+   ]
+  },
+  {
+   "red": "GND",
+   "ancho": 2.4,
+   "puntos": [
+    [
+     4.0,
+     68.4
+    ],
+    [
+     3.2,
+     68.4
+    ],
+    [
+     3.2,
+     66.0
+    ]
+   ]
+  },
+  {
+   "red": "GND",
+   "ancho": 1.9,
+   "puntos": [
+    [
+     3.2,
+     66.0
+    ],
+    [
+     3.22,
+     65.8
+    ],
+    [
+     3.3,
+     65.0
+    ]
+   ]
+  },
+  {
+   "red": "GND",
+   "ancho": 2.4,
+   "puntos": [
+    [
+     57.6,
+     34.0
+    ],
+    [
+     57.6,
+     22.8
+    ],
+    [
+     51.0,
+     22.8
+    ],
+    [
+     51.0,
+     9.0
+    ]
+   ]
+  },
+  {
+   "red": "GND",
+   "ancho": 1.9,
+   "puntos": [
+    [
+     51.0,
+     9.0
+    ],
+    [
+     50.2,
+     8.0
+    ]
+   ]
+  },
+  {
+   "red": "GND",
+   "ancho": 2.4,
+   "puntos": [
+    [
+     5.2,
+     32.8
+    ],
+    [
+     7.2,
+     32.8
+    ]
+   ]
+  },
+  {
+   "red": "GND",
+   "ancho": 2.4,
+   "puntos": [
+    [
+     7.2,
+     32.8
+    ],
+    [
+     8.4,
+     34.0
+    ]
+   ]
+  },
+  {
+   "red": "GND",
+   "ancho": 2.4,
+   "puntos": [
+    [
+     9.6,
+     32.8
+    ],
+    [
+     11.6,
+     32.8
+    ]
+   ]
+  },
+  {
+   "red": "GND",
+   "ancho": 2.4,
+   "puntos": [
+    [
+     11.6,
+     32.8
+    ],
+    [
+     12.8,
+     34.0
+    ]
+   ]
+  },
+  {
+   "red": "GND",
+   "ancho": 2.4,
+   "puntos": [
+    [
+     6.0,
+     9.6
+    ],
+    [
+     6.0,
+     8.2
+    ],
+    [
+     6.2,
+     8.2
+    ]
+   ]
+  },
+  {
+   "red": "GND",
+   "ancho": 2.4,
+   "puntos": [
+    [
+     6.2,
+     8.2
+    ],
+    [
+     7.5,
+     7.0
+    ]
+   ]
+  },
+  {
+   "red": "GND",
+   "ancho": 2.4,
+   "puntos": [
+    [
+     8.6,
+     5.6
+    ],
+    [
+     10.2,
+     5.6
+    ]
+   ]
+  },
+  {
+   "red": "GND",
+   "ancho": 2.4,
+   "puntos": [
+    [
+     10.2,
+     5.6
+    ],
+    [
+     11.3,
+     7.0
+    ]
+   ]
+  },
+  {
+   "red": "GND",
+   "ancho": 2.4,
+   "puntos": [
+    [
+     10.2,
+     8.2
+    ],
+    [
+     10.2,
+     9.6
+    ]
+   ]
+  },
+  {
+   "red": "GND",
+   "ancho": 1.9,
+   "puntos": [
+    [
+     10.2,
+     9.6
+    ],
+    [
+     11.0,
+     10.5
+    ]
+   ]
+  },
+  {
+   "red": "V5",
+   "ancho": 2.4,
+   "puntos": [
+    [
+     27.6,
+     6.8
+    ],
+    [
+     29.4,
+     6.8
+    ]
+   ]
+  },
+  {
+   "red": "V5",
+   "ancho": 2.4,
+   "puntos": [
+    [
+     29.4,
+     6.8
+    ],
+    [
+     30.7,
+     8.0
+    ]
+   ]
+  },
+  {
+   "red": "V5",
+   "ancho": 1.2,
+   "puntos": [
+    [
+     43.6,
+     6.0
+    ],
+    [
+     43.8,
+     6.0
+    ]
+   ]
+  },
+  {
+   "red": "V5",
+   "ancho": 1.2,
+   "puntos": [
+    [
+     43.8,
+     6.0
+    ],
+    [
+     46.0,
+     6.0
+    ],
+    [
+     46.0,
+     7.0
+    ]
+   ]
+  },
+  {
+   "red": "V5",
+   "ancho": 1.9,
+   "puntos": [
+    [
+     46.0,
+     7.0
+    ],
+    [
+     46.8,
+     8.0
+    ]
+   ]
+  },
+  {
+   "red": "VSYS",
+   "ancho": 1.2,
+   "puntos": [
+    [
+     34.0,
+     6.8
+    ],
+    [
+     34.0,
+     4.4
+    ]
+   ]
+  },
+  {
+   "red": "VSYS",
+   "ancho": 1.2,
+   "puntos": [
+    [
+     34.0,
+     4.4
+    ],
+    [
+     35.0,
+     3.0
+    ]
+   ]
+  },
+  {
+   "red": "VSYS",
+   "ancho": 1.2,
+   "puntos": [
+    [
+     34.6,
+     5.0
+    ],
+    [
+     40.2,
+     5.0
+    ],
+    [
+     40.4,
+     5.0
+    ]
+   ]
+  },
+  {
+   "red": "VSYS",
+   "ancho": 1.2,
+   "puntos": [
+    [
+     40.4,
+     5.0
+    ],
+    [
+     40.85,
+     5.6
+    ]
+   ]
+  },
+  {
+   "red": "VINT",
+   "ancho": 2.4,
+   "puntos": [
+    [
+     41.2,
+     86.4
+    ],
+    [
+     41.2,
+     87.8
+    ],
+    [
+     43.6,
+     87.8
+    ]
+   ]
+  },
+  {
+   "red": "VINT",
+   "ancho": 1.9,
+   "puntos": [
+    [
+     43.6,
+     87.8
+    ],
+    [
+     44.5,
+     87.7
+    ]
+   ]
+  },
+  {
+   "red": "3V3",
+   "ancho": 1.9,
+   "puntos": [
+    [
+     50.4,
+     80.6
+    ],
+    [
+     53.6,
+     80.6
+    ]
+   ]
+  },
+  {
+   "red": "3V3",
+   "ancho": 1.9,
+   "puntos": [
+    [
+     53.6,
+     80.6
+    ],
+    [
+     54.5,
+     80.7
+    ]
+   ]
+  },
+  {
+   "red": "3V3",
+   "ancho": 2.4,
+   "puntos": [
+    [
+     55.4,
+     80.8
+    ],
+    [
+     57.6,
+     80.8
+    ]
+   ]
+  },
+  {
+   "red": "3V3",
+   "ancho": 2.4,
+   "puntos": [
+    [
+     57.6,
+     80.8
+    ],
+    [
+     59.0,
+     80.0
+    ]
+   ]
+  },
+  {
+   "red": "3V3",
+   "ancho": 2.4,
+   "puntos": [
+    [
+     58.0,
+     78.6
+    ],
+    [
+     58.0,
+     74.2
+    ],
+    [
+     56.6,
+     74.2
+    ]
+   ]
+  },
+  {
+   "red": "3V3",
+   "ancho": 2.4,
+   "puntos": [
+    [
+     56.6,
+     74.2
+    ],
+    [
+     55.0,
+     73.5
+    ]
+   ]
+  },
+  {
+   "red": "3V3",
+   "ancho": 2.4,
+   "puntos": [
+    [
+     50.2,
+     39.8
+    ],
+    [
+     52.2,
+     39.8
+    ]
+   ]
+  },
+  {
+   "red": "3V3",
+   "ancho": 2.4,
+   "puntos": [
+    [
+     52.2,
+     39.8
+    ],
+    [
+     53.5,
+     41.0
+    ]
+   ]
+  },
+  {
+   "red": "3V3",
+   "ancho": 1.2,
+   "puntos": [
+    [
+     40.0,
+     55.2
+    ],
+    [
+     40.0,
+     49.8
+    ],
+    [
+     21.8,
+     49.8
+    ],
+    [
+     15.2,
+     49.8
+    ],
+    [
+     15.2,
+     42.2
+    ],
+    [
+     9.6,
+     42.2
+    ]
+   ]
+  },
+  {
+   "red": "3V3",
+   "ancho": 2.4,
+   "puntos": [
+    [
+     9.6,
+     42.2
+    ],
+    [
+     8.4,
+     41.0
+    ]
+   ]
+  },
+  {
+   "red": "3V3",
+   "ancho": 2.4,
+   "puntos": [
+    [
+     7.2,
+     39.8
+    ],
+    [
+     5.2,
+     39.8
+    ]
+   ]
+  },
+  {
+   "red": "3V3",
+   "ancho": 2.4,
+   "puntos": [
+    [
+     5.2,
+     39.8
+    ],
+    [
+     4.0,
+     41.0
+    ]
+   ]
+  },
+  {
+   "red": "3V3S",
+   "ancho": 1.2,
+   "puntos": [
+    [
+     6.2,
+     18.4
+    ],
+    [
+     6.2,
+     14.8
+    ],
+    [
+     6.0,
+     14.8
+    ]
+   ]
+  },
+  {
+   "red": "3V3S",
+   "ancho": 1.2,
+   "puntos": [
+    [
+     6.0,
+     14.8
+    ],
+    [
+     5.0,
+     13.9
+    ]
+   ]
+  },
+  {
+   "red": "3V3S",
+   "ancho": 1.2,
+   "puntos": [
+    [
+     6.4,
+     14.2
+    ],
+    [
+     10.0,
+     14.2
+    ]
+   ]
+  },
+  {
+   "red": "3V3S",
+   "ancho": 1.2,
+   "puntos": [
+    [
+     10.0,
+     14.2
+    ],
+    [
+     11.0,
+     13.9
+    ]
+   ]
+  },
+  {
+   "red": "3V3S",
+   "ancho": 1.2,
+   "puntos": [
+    [
+     12.0,
+     14.2
+    ],
+    [
+     14.0,
+     14.2
+    ],
+    [
+     14.0,
+     22.8
+    ]
+   ]
+  },
+  {
+   "red": "3V3S",
+   "ancho": 1.2,
+   "puntos": [
+    [
+     14.0,
+     22.8
+    ],
+    [
+     12.8,
+     24.0
+    ]
+   ]
+  },
+  {
+   "red": "RIEL",
+   "ancho": 1.2,
+   "puntos": [
+    [
+     43.8,
+     82.6
+    ],
+    [
+     43.8,
+     83.4
+    ]
+   ]
+  },
+  {
+   "red": "RIEL",
+   "ancho": 1.2,
+   "puntos": [
+    [
+     43.8,
+     83.4
+    ],
+    [
+     44.5,
+     84.3
+    ]
+   ]
+  },
+  {
+   "red": "SDA",
+   "ancho": 1.2,
+   "puntos": [
+    [
+     7.2,
+     22.8
+    ],
+    [
+     5.2,
+     22.8
+    ]
+   ]
+  },
+  {
+   "red": "SDA",
+   "ancho": 1.2,
+   "puntos": [
+    [
+     5.2,
+     22.8
+    ],
+    [
+     4.0,
+     24.0
+    ]
+   ]
+  },
+  {
+   "red": "SCL",
+   "ancho": 1.2,
+   "puntos": [
+    [
+     7.2,
+     27.8
+    ],
+    [
+     5.2,
+     27.8
+    ]
+   ]
+  },
+  {
+   "red": "SCL",
+   "ancho": 1.2,
+   "puntos": [
+    [
+     5.2,
+     27.8
+    ],
+    [
+     4.0,
+     29.0
+    ]
+   ]
+  },
+  {
+   "red": "SCK",
+   "ancho": 1.2,
+   "puntos": [
+    [
+     26.6,
+     81.8
+    ],
+    [
+     28.6,
+     81.8
+    ],
+    [
+     28.6,
+     65.8
+    ],
+    [
+     28.6,
+     60.0
+    ],
+    [
+     21.8,
+     60.0
+    ],
+    [
+     18.2,
+     60.0
+    ],
+    [
+     18.2,
+     57.8
+    ]
+   ]
+  },
+  {
+   "red": "SCK",
+   "ancho": 1.2,
+   "puntos": [
+    [
+     18.2,
+     57.8
+    ],
+    [
+     17.7,
+     56.5
+    ]
+   ]
+  },
+  {
+   "red": "TFT_CS",
+   "ancho": 1.2,
+   "puntos": [
+    [
+     20.2,
+     69.2
+    ],
+    [
+     20.2,
+     65.8
+    ],
+    [
+     20.2,
+     62.6
+    ],
+    [
+     14.4,
+     62.6
+    ],
+    [
+     14.4,
+     53.0
+    ],
+    [
+     21.8,
+     53.0
+    ],
+    [
+     24.8,
+     53.0
+    ],
+    [
+     24.8,
+     55.2
+    ]
+   ]
+  },
+  {
+   "red": "TFT_CS",
+   "ancho": 1.2,
+   "puntos": [
+    [
+     24.8,
+     55.2
+    ],
+    [
+     25.3,
+     56.5
+    ]
+   ]
+  },
+  {
+   "red": "BL_G",
+   "ancho": 1.2,
+   "puntos": [
+    [
+     12.0,
+     78.0
+    ],
+    [
+     9.8,
+     78.0
+    ]
+   ]
+  },
+  {
+   "red": "BL_G",
+   "ancho": 1.2,
+   "puntos": [
+    [
+     9.8,
+     78.0
+    ],
+    [
+     9.6,
+     78.0
+    ]
+   ]
+  },
+  {
+   "red": "BL_G",
+   "ancho": 1.2,
+   "puntos": [
+    [
+     9.6,
+     78.0
+    ],
+    [
+     9.15,
+     77.6
+    ]
+   ]
+  },
+  {
+   "red": "BL_M",
+   "ancho": 1.2,
+   "puntos": [
+    [
+     8.6,
+     81.0
+    ],
+    [
+     9.4,
+     81.0
+    ],
+    [
+     9.4,
+     84.0
+    ]
+   ]
+  },
+  {
+   "red": "BL_M",
+   "ancho": 1.2,
+   "puntos": [
+    [
+     9.4,
+     84.0
+    ],
+    [
+     9.15,
+     84.6
+    ]
+   ]
+  },
+  {
+   "red": "BL_M",
+   "ancho": 1.2,
+   "puntos": [
+    [
+     9.6,
+     85.0
+    ],
+    [
+     9.8,
+     85.0
+    ]
+   ]
+  },
+  {
+   "red": "BL_M",
+   "ancho": 1.2,
+   "puntos": [
+    [
+     9.8,
+     85.0
+    ],
+    [
+     12.0,
+     85.0
+    ]
+   ]
+  },
+  {
+   "red": "BL_M",
+   "ancho": 1.2,
+   "puntos": [
+    [
+     12.0,
+     85.0
+    ],
+    [
+     12.8,
+     86.0
+    ]
+   ]
+  }
+ ],
+ "puentes": [
+  {
+   "red": "GND",
+   "de": "R2.1",
+   "a": "C1.1",
+   "porque": "no quedaba paso por cobre"
+  },
+  {
+   "red": "GND",
+   "de": "U1.GND",
+   "a": "R8.2",
+   "porque": "no quedaba paso por cobre"
+  },
+  {
+   "red": "GND",
+   "de": "R10.1",
+   "a": "J_AHT.GND",
+   "porque": "no quedaba paso por cobre"
+  },
+  {
+   "red": "GND",
+   "de": "J_AHT.GND",
+   "a": "R5.1",
+   "porque": "no quedaba paso por cobre"
+  },
+  {
+   "red": "BMIN",
+   "de": "J_CELDA.-",
+   "a": "J_TP.B-",
+   "porque": "no quedaba paso por cobre"
+  },
+  {
+   "red": "VBAT",
+   "de": "J_CELDA.+",
+   "a": "J_TP.B+",
+   "porque": "no quedaba paso por cobre"
+  },
+  {
+   "red": "V5",
+   "de": "D1.A",
+   "a": "Q1.G",
+   "porque": "no quedaba paso por cobre"
+  },
+  {
+   "red": "VBATP",
+   "de": "J_TP.OUT+",
+   "a": "TP2.1",
+   "porque": "no quedaba paso por cobre"
+  },
+  {
+   "red": "VBATP",
+   "de": "TP2.1",
+   "a": "Q1.D",
+   "porque": "no quedaba paso por cobre"
+  },
+  {
+   "red": "VSYS",
+   "de": "Q1.S",
+   "a": "J_SW.1",
+   "porque": "no quedaba paso por cobre"
+  },
+  {
+   "red": "VINT",
+   "de": "J_SW.2",
+   "a": "TP4.1",
+   "porque": "no quedaba paso por cobre"
+  },
+  {
+   "red": "VINT",
+   "de": "J_SW.2",
+   "a": "U1.5V",
+   "porque": "no quedaba paso por cobre"
+  },
+  {
+   "red": "3V3",
+   "de": "U1.3V3",
+   "a": "R7.2",
+   "porque": "no quedaba paso por cobre"
+  },
+  {
+   "red": "3V3",
+   "de": "R6.2",
+   "a": "C3.2",
+   "porque": "no quedaba paso por cobre"
+  },
+  {
+   "red": "3V3",
+   "de": "C2.2",
+   "a": "J_TFT.VCC",
+   "porque": "no quedaba paso por cobre"
+  },
+  {
+   "red": "3V3",
+   "de": "C2.2",
+   "a": "J_TTP.VCC",
+   "porque": "no quedaba paso por cobre"
+  },
+  {
+   "red": "3V3",
+   "de": "U1.3V3",
+   "a": "R9.2",
+   "porque": "no quedaba paso por cobre"
+  },
+  {
+   "red": "3V3",
+   "de": "R9.2",
+   "a": "Q4.S",
+   "porque": "no quedaba paso por cobre"
+  },
+  {
+   "red": "3V3",
+   "de": "J_BH.VCC",
+   "a": "R4.2",
+   "porque": "no quedaba paso por cobre"
+  },
+  {
+   "red": "3V3",
+   "de": "R4.2",
+   "a": "Q2.S",
+   "porque": "no quedaba paso por cobre"
+  },
+  {
+   "red": "RIEL",
+   "de": "U1.IO1",
+   "a": "R2.2",
+   "porque": "no quedaba paso por cobre"
+  },
+  {
+   "red": "RIEL",
+   "de": "R1.1",
+   "a": "C1.2",
+   "porque": "no quedaba paso por cobre"
+  },
+  {
+   "red": "SENS_EN",
+   "de": "U1.IO2",
+   "a": "R4.1",
+   "porque": "no quedaba paso por cobre, y el cable tiene que rodear la ventana",
+   "por": [
+    [
+     12.0,
+     71.6
+    ]
+   ]
+  },
+  {
+   "red": "SENS_EN",
+   "de": "R4.1",
+   "a": "Q2.G",
+   "porque": "no quedaba paso por cobre"
+  },
+  {
+   "red": "SUELO",
+   "de": "U1.IO0",
+   "a": "J_SUELO.AOUT",
+   "porque": "no quedaba paso por cobre, y el cable tiene que rodear la ventana",
+   "por": [
+    [
+     14.0,
+     66.6
+    ]
+   ]
+  },
+  {
+   "red": "TOQUE",
+   "de": "U1.IO3",
+   "a": "J_TTP.IO",
+   "porque": "no quedaba paso por cobre"
+  },
+  {
+   "red": "SDA",
+   "de": "U1.IO4",
+   "a": "J_BH.SDA",
+   "porque": "no quedaba paso por cobre, y el cable tiene que rodear la ventana",
+   "por": [
+    [
+     9.6,
+     76.8
+    ]
+   ]
+  },
+  {
+   "red": "SCL",
+   "de": "U1.IO5",
+   "a": "J_BH.SCL",
+   "porque": "no quedaba paso por cobre"
+  },
+  {
+   "red": "MOSI",
+   "de": "U1.IO7",
+   "a": "J_TFT.SDA",
+   "porque": "no quedaba paso por cobre"
+  },
+  {
+   "red": "OW",
+   "de": "U1.IO8",
+   "a": "R6.1",
+   "porque": "no quedaba paso por cobre"
+  },
+  {
+   "red": "OW",
+   "de": "R6.1",
+   "a": "J_DS.DQ",
+   "porque": "no quedaba paso por cobre"
+  },
+  {
+   "red": "TFT_DC",
+   "de": "U1.IO10",
+   "a": "J_TFT.DC",
+   "porque": "no quedaba paso por cobre"
+  },
+  {
+   "red": "TFT_RST",
+   "de": "R7.1",
+   "a": "J_TFT.RES",
+   "porque": "no quedaba paso por cobre"
+  },
+  {
+   "red": "BL_G",
+   "de": "U1.IO21",
+   "a": "R8.1",
+   "porque": "no quedaba paso por cobre"
+  },
+  {
+   "red": "BL_M",
+   "de": "Q3.D",
+   "a": "JP_BL.B",
+   "porque": "no quedaba paso por cobre"
+  },
+  {
+   "red": "BL_A",
+   "de": "Q4.D",
+   "a": "JP_BL.A",
+   "porque": "no quedaba paso por cobre"
+  },
+  {
+   "red": "BL",
+   "de": "JP_BL.C",
+   "a": "R10.2",
+   "porque": "no quedaba paso por cobre"
+  },
+  {
+   "red": "BL",
+   "de": "JP_BL.C",
+   "a": "J_TFT.BL",
+   "porque": "no quedaba paso por cobre"
+  }
+ ]
+}

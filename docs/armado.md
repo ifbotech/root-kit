@@ -44,7 +44,7 @@ media.
 | **Fuente de laboratorio con límite de corriente** | no es opcional: es lo que reemplaza a la celda hasta el paso 11 |
 | Pinza de punta fina | para abrir las patas de los SOT-23 |
 | Alcohol isopropílico y cepillo | el flux que queda es una fuga |
-| Cinta de espuma de 1 mm | entre la repisa y la pantalla |
+| Cinta de espuma de 1 mm | entre el sustrato y la pantalla |
 | Cable de silicona AWG30 y AWG24 | puentes de señal y de potencia |
 
 ---
@@ -59,8 +59,8 @@ Se imprimen **dos piezas**:
 
 | Pieza | STL | Cómo |
 |---|---|---|
-| El sustrato | `generado/nucleo-sustrato.stl` | **PETG**, canaletas **hacia arriba**, sin soportes, boquilla 0,4, capa 0,2, cuatro perímetros. Unas dos horas |
-| La estampadora | `generado/nucleo-estampadora.stl` | PETG o PLA, nervaduras **hacia arriba**, sin soportes, misma boquilla y capa. Unas tres horas |
+| El sustrato | `generado/nucleo-sustrato.stl` | **PETG**, canaletas **hacia arriba**, sin soportes, boquilla **0,6**, capa 0,2, tres perímetros. 62 × 92 × 3 mm |
+| La estampadora | `generado/nucleo-estampadora.stl` | PETG o PLA, nervaduras **hacia arriba**, sin soportes, misma boquilla y capa. 67 × 97 × 7,5 mm |
 
 La estampadora es el negativo del sustrato y sirve para meter toda la cinta
 de una sola prensada ([pcb.md](pcb.md)). Se imprime una sola vez y sirve para
@@ -68,21 +68,35 @@ todas las unidades.
 
 Y se imprime la plantilla **al 100 %, sin ajustar a la página**.
 
+> **La cara de abajo no lleva soportes ni los necesita.** El sustrato apoya
+> en la cama por una cara **completamente plana**: no hay un solo voladizo.
+> Si el laminador propone soportes, algo está mal —probablemente el STL es
+> viejo—, no se los pongas.
+
 **Control 0.b — la estampadora entra.** Antes de tocar la cinta: apoyar la
 estampadora sobre el sustrato vacío. El faldón tiene que envolver el borde y
 la pieza bajar hasta el fondo **sin resistencia**, y las nervaduras entrar en
 sus canaletas. Si hace tope antes, está al revés (mirala de nuevo: va dada
 vuelta) o las nervaduras salieron gordas y hay que bajar el flujo. **Nunca
-forzar**: las más finas miden 0,9 mm y se parten.
+forzar**: las más finas miden 1,0 mm y se parten.
 
 **Control 0.** Con un calibre, la regla de la plantilla impresa tiene que
 medir **50,0 mm**. Si mide otra cosa, la impresora de papel la escaló y todo
 lo que se corte con ella va a estar mal. Y en la pieza impresa: el ancho total
-son **72,0 mm**; si la pieza mide 71,4, el filamento se contrajo y las
+son **62,0 mm**; si la pieza mide 61,4, el filamento se contrajo y las
 canaletas también — se reimprime con compensación antes de seguir.
 
+**Control 0.c — los agujeros.** Con la punta de un calibre o un pin de tira
+macho: los agujeros de los bornes son de **1,8 mm** y los de la SuperMini de
+**1,4 mm**. Un pin de 0,64 mm tiene que entrar **suelto** en los dos. Si
+entra a presión o no entra, la boquilla está sacando de menos: subí la
+compensación de agujeros del laminador (*hole compensation* / *XY size
+compensation*) y reimprimí. Es el defecto más común con boquilla de 0,6 y
+arruina el paso 3 entero si se descubre tarde.
+
 > **La primera vez, antes del sustrato entero:** imprimir un cupón de prueba
-> de canaletas (40 × 40 mm con canaletas de 1,2 / 1,4 / 2,4 / 3,0 mm) y
+> de canaletas (40 × 40 mm con canaletas de 1,2 y 2,4 mm y agujeros de 1,4 y
+> 1,8 mm) y
 > confirmar que la cinta entra, se presiona y se corta contra la pared. Media
 > hora que evita tirar cinco sustratos.
 
@@ -166,7 +180,7 @@ misma orientación (el texto grabado se lee derecho).
 > hacer tramo por tramo: cortar un pedazo de cinta un poco más ancho que la
 > canaleta, apoyarlo, presionarlo con el bruñidor y recortar contra la pared
 > con el bisturí apoyado **en la pared, no en la cinta**. Son los mismos
-> 51 tramos, y media tarde en vez de veinte minutos.
+> 76 tramos, y media tarde en vez de veinte minutos.
 
 **Control 2.a — continuidad de cada red.** Multímetro en continuidad. Para
 cada red de [conexiones.md](conexiones.md), tocar el nodo más lejano contra
@@ -191,12 +205,15 @@ Se busca con lupa antes de seguir: después va a estar tapado por un módulo.
 
 ## Paso 3 — Los puentes de cable
 
-Los 28 de la tabla de [conexiones.md](conexiones.md), en ese orden, con cable
-de silicona **AWG30** (los dos de potencia —`VSYS: D1.K → Q1.S` y
-`VBATP: TP2.1 → Q1.D`— con **AWG24**).
+Los 38 de la tabla de [conexiones.md](conexiones.md), en ese orden, con cable
+de silicona **AWG30** (los de potencia, que la tabla marca, con **AWG24**).
 
 Van **por arriba** de la cinta, cruzando lo que tengan que cruzar, pegados al
 sustrato con una gota de cianoacrilato cada 15 mm para que no bailen.
+
+> **Los tres que dicen "rodeando" no van derecho.** El camino corto les
+> cruzaría la ventana de la pantalla, y ahí el cable quedaría apretado entre
+> el módulo y el plástico. La plantilla los dibuja por donde van: seguila.
 
 **Control 3.** Tachar cada puente de la lista al soldarlo y volver a hacer el
 **control 2.a completo**. Es el momento más fácil para olvidarse uno, y el
@@ -274,8 +291,10 @@ que dar **abierto**. Si pita, está mal cableado: parar.
 
 ## Paso 6 — El cargador
 
-El TP4056 apoya en el bolsillo de la cara de los módulos, con su **USB-C
-mirando hacia el borde de abajo**. Se fija con dos gotas de cianoacrilato en
+El TP4056 apoya **sobre la cara plana** de los módulos, con su **USB-C
+mirando hacia el borde de abajo**. (En la v1.0 iba hundido en un bolsillo;
+se lo sacamos porque era un voladizo en la cara que se imprime contra la
+cama, y ahora el módulo queda 0,8 mm más afuera.) Se fija con dos gotas de cianoacrilato en
 las esquinas o con una gota de silicona caliente, y sus seis cables bajan por
 los agujeros a `J_TP`.
 
@@ -307,7 +326,23 @@ Este control prueba la carga compartida entera sin arriesgar nada.
 Soldar una tira de pines macho al módulo (pines hacia el lado de los
 componentes), pasarlos por los agujeros del sustrato y soldarlos del lado de
 la cinta. El módulo queda del lado plano, con la **antena mirando al borde de
-arriba** y sobresaliendo del recorte.
+arriba** y asomando por la muesca.
+
+> **Acá los pads no rodean el agujero: están al lado.** A 2,54 mm de paso, con
+> boquilla de 0,6, un anillo completo de cobre no entra ([pcb.md](pcb.md)).
+> Así que el pad de cada pin está **pegado al borde de su agujero**, y van
+> alternados: uno para afuera, el siguiente para adentro. El agujero en sí
+> queda pelado.
+>
+> Se suelda así: el pin asoma por el agujero, se le arrima la punta del
+> soldador **del lado donde está su cinta** —mirá la plantilla si dudás— y se
+> deja correr una gota que moje el pin y la cinta a la vez. No hay que doblar
+> el pin. Si la gota se va para el lado que no es, no toca nada: no hay cobre
+> ahí, y se saca con malla.
+>
+> **Control: ningún pin unido a su vecino.** Tester en continuidad entre
+> pines contiguos de la misma fila. Con los pads alternados un puente de
+> estaño es menos probable que antes, pero si aparece, aparece acá.
 
 **Antes de soldar**, con la placa suelta:
 
@@ -461,8 +496,9 @@ masa. **Tiene que dar menos de 2,5 V.** Por encima de eso el ADC del C3 a
 4. **Sellar el borde del capacitivo** con esmalte de uñas o epoxi: el canto
    de esa placa absorbe agua y en un mes la lectura deriva. Sellar también el
    circuito, no sólo el canto.
-5. Montar el sustrato en la carcasa con los cuatro M2, con la espuma de 1 mm
-   entre la repisa y la pantalla.
+5. Montar el sustrato en la carcasa con los cuatro **M3**, con la espuma de
+   1 mm entre el sustrato y la pantalla. La ventana es un hueco recto: el
+   apoyo de la pantalla lo da el marco de la carcasa, no el sustrato.
 6. La junta del capacitivo **abajo**, y el cable **haciendo panza** para que
    el agua gotee antes de llegar a la placa.
 
@@ -473,7 +509,7 @@ masa. **Tiene que dar menos de 2,5 V.** Por encima de eso el ADC del C3 a
 Un renglón por aparato, que después vale oro:
 
 ```
-unidad ___  fecha ______  sustrato v1.0
+unidad ___  fecha ______  sustrato v2.0
   SuperMini: 5V unido a VBUS?  si / no     LED de encendido: sacado / no tenia
   pantalla: BL = anodo / catodo            JP_BL: C-A / C-B
   area activa a ___ mm del borde

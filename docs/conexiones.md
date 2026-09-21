@@ -3,7 +3,7 @@
 <!-- GENERADO por tools/pcb.py desde hardware/pcb/nucleo.json.
      No se edita a mano: se edita el JSON y se corre `make pcb`. -->
 
-Cada red del núcleo de ROOTKIT v1.0: de qué riel cuelga, qué ancho de
+Cada red del núcleo de ROOTKIT v2.0: de qué riel cuelga, qué ancho de
 cinta lleva y de dónde a dónde va. El sustrato y la cinta están en
 [pcb.md](pcb.md); el paso a paso con los controles de multímetro, en
 [armado.md](armado.md).
@@ -29,31 +29,31 @@ la X crece hacia la izquierda.
 
 | Red | Clase | Riel | Cinta | Nodos | Por qué |
 |---|---|---|---:|---|---|
-| **GND** | potencia | GND | 1.2 / 1.4 / 2.4 mm | `U1.GND`, `J_TFT.GND`, `J_AHT.GND`, `J_BH.GND`, `J_TTP.GND`, `J_DS.GND`, `J_SUELO.GND`, `J_TP.IN-`, `J_TP.OUT-`, `R2.1`, `C1.1`, `C2.1`, `C3.1`, `R3.2`, `R5.1`, `C4.1`, `R8.2`, `R10.1`, `Q3.S`, `TP1.1` | la masa del sistema; sale del OUT−/IN− del TP4056, nunca del B− de la celda |
-| **BMIN** | potencia | BMIN | 2.4 mm | `J_CELDA.-`, `J_TP.B-` | el − de la celda va SOLO al B− del modulo: ahi estan los MOSFET de la proteccion. Unirlo a masa deja la celda sin proteccion |
-| **VBAT** | potencia | VBAT | 2.4 mm | `J_CELDA.+`, `J_TP.B+` | el + de la celda al B+ del modulo |
-| **V5** | potencia | V5 | 1.4 / 2.4 mm | `J_TP.IN+`, `D1.A`, `Q1.G`, `R3.1` | los 5 V del USB de carga: alimentan el sistema por el Schottky y apagan el MOSFET de carga compartida |
-| **VBATP** | potencia | VBATP | 1.4 / 2.4 mm | `J_TP.OUT+`, `Q1.D`, `TP2.1` | la celda ya protegida por el DW01A |
+| **GND** | potencia | GND | 1.2 / 1.9 / 2.4 mm | `U1.GND`, `J_TFT.GND`, `J_AHT.GND`, `J_BH.GND`, `J_TTP.GND`, `J_DS.GND`, `J_SUELO.GND`, `J_TP.IN-`, `J_TP.OUT-`, `R2.1`, `C1.1`, `C2.1`, `C3.1`, `R3.2`, `R5.1`, `C4.1`, `R8.2`, `R10.1`, `Q3.S`, `TP1.1` | la masa del sistema; sale del OUT−/IN− del TP4056, nunca del B− de la celda |
+| **BMIN** | potencia | BMIN | sólo cable | `J_CELDA.-`, `J_TP.B-` | el − de la celda va SOLO al B− del modulo: ahi estan los MOSFET de la proteccion. Unirlo a masa deja la celda sin proteccion |
+| **VBAT** | potencia | VBAT | sólo cable | `J_CELDA.+`, `J_TP.B+` | el + de la celda al B+ del modulo |
+| **V5** | potencia | V5 | 1.2 / 1.9 / 2.4 mm | `J_TP.IN+`, `D1.A`, `Q1.G`, `R3.1` | los 5 V del USB de carga: alimentan el sistema por el Schottky y apagan el MOSFET de carga compartida |
+| **VBATP** | potencia | VBATP | sólo cable | `J_TP.OUT+`, `Q1.D`, `TP2.1` | la celda ya protegida por el DW01A |
 | **VSYS** | potencia | VSYS | 1.2 mm | `D1.K`, `Q1.S`, `J_SW.1`, `TP3.1` | el nodo de carga compartida: enchufado come del USB, a bateria come de la celda. El grueso de su corriente va por cable (AWG24), no por cinta |
-| **VINT** | potencia | VINT | 1.4 / 2.4 mm | `J_SW.2`, `U1.5V`, `R1.2`, `TP4.1` | lo que el interruptor deja pasar al pin 5V de la SuperMini. El divisor cuelga de aca y no de VSYS: apagado no gasta ni un microamperio |
-| **3V3** | potencia | 3V3 | 1.4 / 2.4 mm | `U1.3V3`, `C2.2`, `C3.2`, `R4.2`, `Q2.S`, `R6.2`, `R7.2`, `R9.2`, `Q4.S`, `J_TFT.VCC`, `J_AHT.VCC`, `J_BH.VCC`, `J_TTP.VCC`, `J_DS.VCC`, `TP5.1` | el ME6211 de la SuperMini. Fijo: el AHT20, el BH1750, el DS18B20 y el TTP223 juntos suman menos de 5 uA durmiendo |
-| **3V3S** | potencia | 3V3S | 1.4 mm | `Q2.D`, `R5.2`, `C4.2`, `J_SUELO.VCC` | el riel que se prende 400 ms por medicion; lo unico que cuelga es el capacitivo, que come 5 mA. Son 5 mA: 1,4 mm de cinta sobran |
-| **RIEL** | senal | — | 1.4 mm | `U1.IO1`, `R1.1`, `R2.2`, `C1.2` | divisor 470k/470k con 100 nF: bateria y deteccion de USB con un solo pin (ADC1) |
-| **SENS_EN** | senal | — | 1.2 mm | `U1.IO2`, `Q2.G`, `R4.1` | GPIO2 a la compuerta del P-MOSFET: bajo enciende. Es pin de arranque, por eso la de 100 k lo deja en alto |
+| **VINT** | potencia | VINT | 1.9 / 2.4 mm | `J_SW.2`, `U1.5V`, `R1.2`, `TP4.1` | lo que el interruptor deja pasar al pin 5V de la SuperMini. El divisor cuelga de aca y no de VSYS: apagado no gasta ni un microamperio |
+| **3V3** | potencia | 3V3 | 1.2 / 1.9 / 2.4 mm | `U1.3V3`, `C2.2`, `C3.2`, `R4.2`, `Q2.S`, `R6.2`, `R7.2`, `R9.2`, `Q4.S`, `J_TFT.VCC`, `J_AHT.VCC`, `J_BH.VCC`, `J_TTP.VCC`, `J_DS.VCC`, `TP5.1` | el ME6211 de la SuperMini. Fijo: el AHT20, el BH1750, el DS18B20 y el TTP223 juntos suman menos de 5 uA durmiendo |
+| **3V3S** | potencia | 3V3S | 1.2 mm | `Q2.D`, `R5.2`, `C4.2`, `J_SUELO.VCC` | el riel que se prende 400 ms por medicion; lo unico que cuelga es el capacitivo, que come 5 mA. Son 5 mA: 1,4 mm de cinta sobran |
+| **RIEL** | senal | — | 1.2 mm | `U1.IO1`, `R1.1`, `R2.2`, `C1.2` | divisor 470k/470k con 100 nF: bateria y deteccion de USB con un solo pin (ADC1) |
+| **SENS_EN** | senal | — | sólo cable | `U1.IO2`, `Q2.G`, `R4.1` | GPIO2 a la compuerta del P-MOSFET: bajo enciende. Es pin de arranque, por eso la de 100 k lo deja en alto |
 | **SUELO** | senal | — | sólo cable | `U1.IO0`, `J_SUELO.AOUT` | al ADC1 por GPIO0, directo desde el borne. Si el capacitivo seco se pasa de 2,5 V hay lugar al lado del borne para un divisor 100 k / 220 k (ver docs/pcb.md) |
 | **TOQUE** | senal | — | sólo cable | `U1.IO3`, `J_TTP.IO` | GPIO3, que es de los que despiertan del sueño profundo (solo GPIO0–5) |
-| **SDA** | senal | — | sólo cable | `U1.IO4`, `J_AHT.SDA`, `J_BH.SDA` | I2C a 100 kHz: AHT20 (0x38) y BH1750 (0x23) |
-| **SCL** | senal | — | sólo cable | `U1.IO5`, `J_AHT.SCL`, `J_BH.SCL` | idem SDA |
-| **SCK** | senal | — | 1.4 mm | `U1.IO6`, `J_TFT.SCL` | SPI a 40 MHz: corta y con la masa al lado |
-| **MOSI** | senal | — | 1.4 mm | `U1.IO7`, `J_TFT.SDA` | idem SCK |
-| **OW** | senal | — | 1.4 mm | `U1.IO8`, `R6.1`, `J_DS.DQ` | 1-Wire con pull-up de 4,7 k al riel FIJO: asi la linea sostiene GPIO8 en alto al arrancar (es pin de arranque) y no alimenta la sonda por la pata de datos |
+| **SDA** | senal | — | 1.2 mm | `U1.IO4`, `J_AHT.SDA`, `J_BH.SDA` | I2C a 100 kHz: AHT20 (0x38) y BH1750 (0x23) |
+| **SCL** | senal | — | 1.2 mm | `U1.IO5`, `J_AHT.SCL`, `J_BH.SCL` | idem SDA |
+| **SCK** | senal | — | 1.2 mm | `U1.IO6`, `J_TFT.SCL` | SPI a 40 MHz: corta y con la masa al lado |
+| **MOSI** | senal | — | sólo cable | `U1.IO7`, `J_TFT.SDA` | idem SCK |
+| **OW** | senal | — | sólo cable | `U1.IO8`, `R6.1`, `J_DS.DQ` | 1-Wire con pull-up de 4,7 k al riel FIJO: asi la linea sostiene GPIO8 en alto al arrancar (es pin de arranque) y no alimenta la sonda por la pata de datos |
 | **TFT_DC** | senal | — | sólo cable | `U1.IO10`, `J_TFT.DC` | dato/comando de la pantalla |
-| **TFT_CS** | senal | — | 1.2 / 1.4 mm | `U1.IO20`, `J_TFT.CS` | seleccion de la pantalla. El dia del sonido se ata a masa y GPIO20 queda libre |
+| **TFT_CS** | senal | — | 1.2 mm | `U1.IO20`, `J_TFT.CS` | seleccion de la pantalla. El dia del sonido se ata a masa y GPIO20 queda libre |
 | **TFT_RST** | senal | — | sólo cable | `R7.1`, `J_TFT.RES` | RES a 3V3 con 10 k; el firmware reinicia el panel por software |
 | **BL_G** | senal | — | 1.2 mm | `U1.IO21`, `Q3.G`, `R8.1` | GPIO21 a la compuerta del N. Es el TX del UART0: la ROM escribe ahi al arrancar y la luz pestañea ~50 ms (ver docs/pcb.md) |
 | **BL_M** | senal | — | 1.2 mm | `Q3.D`, `R9.1`, `Q4.G`, `JP_BL.B` | el drenador del N tira de la compuerta del P |
-| **BL_A** | senal | — | 1.2 mm | `Q4.D`, `JP_BL.A` | la salida del lado alto, antes del selector |
-| **BL** | potencia | 3V3 | 1.2 mm | `JP_BL.C`, `J_TFT.BL`, `R10.2` | hasta 30 mA a 22 kHz. Con R10 el nodo queda definido en bajo cuando la etapa esta apagada. Son 30 mA: 1,2 mm de cinta sobran |
+| **BL_A** | senal | — | sólo cable | `Q4.D`, `JP_BL.A` | la salida del lado alto, antes del selector |
+| **BL** | potencia | 3V3 | sólo cable | `JP_BL.C`, `J_TFT.BL`, `R10.2` | hasta 30 mA a 22 kHz. Con R10 el nodo queda definido en bajo cuando la etapa esta apagada. Son 30 mA: 1,2 mm de cinta sobran |
 | **NC_BOOT** | sin_conexion | — | sólo cable | `U1.IO9` | GPIO9 es el boton BOOT de la propia SuperMini: no se cablea. El borron de 10 s tambien sale por el toque (main.cpp) |
 
 ## Los módulos y los bornes
@@ -102,36 +102,51 @@ Una sola cara de cobre: donde dos redes tendrían que cruzarse, una
 pasa por arriba con un cable aislado. Son estos, y no hay más. Se
 sueldan **después** de la cinta y **antes** de los módulos.
 
-| # | Red | De | A | Largo aprox. |
-|---:|---|---|---|---:|
-| 1 | SCL | `U1.IO5` | `J_AHT.SCL` | 51 mm |
-| 2 | SCL | `J_AHT.SCL` | `J_BH.SCL` | 11 mm |
-| 3 | SDA | `U1.IO4` | `J_AHT.SDA` | 58 mm |
-| 4 | SDA | `J_AHT.SDA` | `J_BH.SDA` | 11 mm |
-| 5 | TOQUE | `U1.IO3` | `J_TTP.IO` | 38 mm |
-| 6 | OW | `U1.IO8` | `J_DS.DQ` | 51 mm |
-| 7 | SUELO | `U1.IO0` | `J_SUELO.AOUT` | 40 mm |
-| 8 | SENS_EN | `U1.IO2` | `R4.1` | 63 mm |
-| 9 | BL_G | `U1.IO21` | `Q3.G` | 26 mm |
-| 10 | BL | `JP_BL.C` | `J_TFT.BL` | 31 mm |
-| 11 | TFT_RST | `R7.1` | `J_TFT.RES` | 15 mm |
-| 12 | GND | `J_TTP.GND` | `C1.1` | 24 mm |
-| 13 | GND | `J_AHT.GND` | `R10.1` | 17 mm |
-| 14 | GND | `C3.1` | `C2.1` | 10 mm |
-| 15 | 3V3 | `J_AHT.VCC` | `R9.2` | 31 mm |
-| 16 | 3V3 | `J_AHT.VCC` | `R4.2` | 29 mm |
-| 17 | 3V3 | `J_DS.VCC` | `R6.2` | 23 mm |
-| 18 | 3V3 | `J_DS.VCC` | `Q2.S` | 60 mm |
-| 19 | 3V3 | `R9.2` | `Q4.S` | 14 mm |
-| 20 | VINT | `R1.2` | `TP4.1` | 77 mm |
-| 21 | VBATP | `TP2.1` | `Q1.D` | 28 mm |
-| 22 | VSYS | `D1.K` | `Q1.S` | 16 mm |
-| 23 | VSYS | `TP3.1` | `J_SW.1` | 24 mm |
-| 24 | V5 | `D1.A` | `Q1.G` | 22 mm |
-| 25 | GND | `R10.1` | `Q3.S` | 17 mm |
-| 26 | GND | `Q3.S` | `R8.2` | 14 mm |
-| 27 | TFT_DC | `U1.IO10` | `J_TFT.DC` | 18 mm |
-| 28 | GND | `J_TFT.GND` | `J_TTP.GND` | 19 mm |
+Los que dicen **rodeando** no van de punta a punta: el camino
+derecho les cruzaría la ventana de la pantalla y el cable quedaría
+apretado entre el módulo y el plástico. La plantilla los dibuja por
+donde van.
+
+| # | Red | De | A | Cable | Largo aprox. | |
+|---:|---|---|---|---|---:|---|
+| 1 | GND | `R2.1` | `C1.1` | AWG30 | 14 mm |  |
+| 2 | GND | `U1.GND` | `R8.2` | AWG30 | 27 mm |  |
+| 3 | GND | `R10.1` | `J_AHT.GND` | AWG30 | 37 mm |  |
+| 4 | GND | `J_AHT.GND` | `R5.1` | AWG30 | 30 mm |  |
+| 5 | BMIN | `J_CELDA.-` | `J_TP.B-` | **AWG24** | 10 mm |  |
+| 6 | VBAT | `J_CELDA.+` | `J_TP.B+` | **AWG24** | 10 mm |  |
+| 7 | V5 | `D1.A` | `Q1.G` | **AWG24** | 19 mm |  |
+| 8 | VBATP | `J_TP.OUT+` | `TP2.1` | **AWG24** | 10 mm |  |
+| 9 | VBATP | `TP2.1` | `Q1.D` | **AWG24** | 25 mm |  |
+| 10 | VSYS | `Q1.S` | `J_SW.1` | **AWG24** | 25 mm |  |
+| 11 | VINT | `J_SW.2` | `TP4.1` | AWG30 | 15 mm |  |
+| 12 | VINT | `J_SW.2` | `U1.5V` | AWG30 | 75 mm |  |
+| 13 | 3V3 | `U1.3V3` | `R7.2` | AWG30 | 15 mm |  |
+| 14 | 3V3 | `R6.2` | `C3.2` | AWG30 | 13 mm |  |
+| 15 | 3V3 | `C2.2` | `J_TFT.VCC` | AWG30 | 28 mm |  |
+| 16 | 3V3 | `C2.2` | `J_TTP.VCC` | AWG30 | 39 mm |  |
+| 17 | 3V3 | `U1.3V3` | `R9.2` | AWG30 | 31 mm |  |
+| 18 | 3V3 | `R9.2` | `Q4.S` | AWG30 | 15 mm |  |
+| 19 | 3V3 | `J_BH.VCC` | `R4.2` | AWG30 | 27 mm |  |
+| 20 | 3V3 | `R4.2` | `Q2.S` | AWG30 | 13 mm |  |
+| 21 | RIEL | `U1.IO1` | `R2.2` | AWG30 | 18 mm |  |
+| 22 | RIEL | `R1.1` | `C1.2` | AWG30 | 12 mm |  |
+| 23 | SENS_EN | `U1.IO2` | `R4.1` | AWG30 | 85 mm | **rodeando** la ventana (ver la plantilla) |
+| 24 | SENS_EN | `R4.1` | `Q2.G` | AWG30 | 13 mm |  |
+| 25 | SUELO | `U1.IO0` | `J_SUELO.AOUT` | AWG30 | 66 mm | **rodeando** la ventana (ver la plantilla) |
+| 26 | TOQUE | `U1.IO3` | `J_TTP.IO` | AWG30 | 53 mm |  |
+| 27 | SDA | `U1.IO4` | `J_BH.SDA` | AWG30 | 86 mm | **rodeando** la ventana (ver la plantilla) |
+| 28 | SCL | `U1.IO5` | `J_BH.SCL` | AWG30 | 64 mm |  |
+| 29 | MOSI | `U1.IO7` | `J_TFT.SDA` | AWG30 | 30 mm |  |
+| 30 | OW | `U1.IO8` | `R6.1` | AWG30 | 35 mm |  |
+| 31 | OW | `R6.1` | `J_DS.DQ` | AWG30 | 54 mm |  |
+| 32 | TFT_DC | `U1.IO10` | `J_TFT.DC` | AWG30 | 23 mm |  |
+| 33 | TFT_RST | `R7.1` | `J_TFT.RES` | AWG30 | 30 mm |  |
+| 34 | BL_G | `U1.IO21` | `R8.1` | AWG30 | 23 mm |  |
+| 35 | BL_M | `Q3.D` | `JP_BL.B` | AWG30 | 17 mm |  |
+| 36 | BL_A | `Q4.D` | `JP_BL.A` | AWG30 | 21 mm |  |
+| 37 | BL | `JP_BL.C` | `R10.2` | AWG30 | 14 mm |  |
+| 38 | BL | `JP_BL.C` | `J_TFT.BL` | AWG30 | 33 mm |  |
 
 ## Los puntos de prueba
 
@@ -154,16 +169,16 @@ sueldan **después** de la cinta y **antes** de los módulos.
 
 | Ancho | Largo total |
 |---:|---:|
-| 1.2 mm | 126 mm |
-| 1.4 mm | 241 mm |
-| 1.9 mm | 16 mm |
+| 1.2 mm | 225 mm |
+| 1.9 mm | 28 mm |
 | 2.0 mm | 34 mm |
-| 2.2 mm | 32 mm |
-| 2.4 mm | 367 mm |
-| 2.8 mm | 98 mm |
+| 2.2 mm | 6 mm |
+| 2.4 mm | 178 mm |
+| 2.6 mm | 85 mm |
+| 2.8 mm | 49 mm |
 | 3.0 mm | 15 mm |
 | 3.4 mm | 7 mm |
 
-Son **936 mm de cinta por unidad**, contando los pads. Con un 40 % de
+Son **626 mm de cinta por unidad**, contando los pads. Con un 40 % de
 recortes y errores, un rollo de 6 mm y otro de 20 mm alcanzan para
 más de diez unidades.

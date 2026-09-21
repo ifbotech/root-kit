@@ -106,8 +106,17 @@ la netlist y la plantilla de corte, y se verifica solo: separaciones, anchos,
 conectividad, zona de antena. Detalle en [pcb.md](pcb.md).
 
 **Un solo núcleo para los cinco Rooties.** La carcasa cambia; lo de adentro
-es idéntico. El sustrato le pide a la carcasa un volumen de 78 × 116 × 45 mm
-y cuatro postes M2 en posiciones fijas; el resto es libre.
+es idéntico. El sustrato le pide a la carcasa un volumen de 68 × 104 × 45 mm
+y cuatro postes M3 en posiciones fijas; el resto es libre.
+
+**El sustrato se rutea solo (v2.0).** Las pistas dejaron de dibujarse a mano:
+`tools/ruteo.py` las calcula desde la netlist y la posición de los módulos, y
+`tools/pcb.py --verificar` las revisa con las mismas reglas geométricas de
+antes. El motivo fue práctico —la boquilla de 0,6 obligó a agrandar todos los
+agujeros y a escalonar los pads del C3, y eso solo ya manda a redibujar las
+51 pistas— pero el efecto es que mover un módulo o achicar la placa pasó a
+costar un comando en vez de una tarde. Con eso la placa bajó de 72 × 104 a
+**62 × 92** (24 % menos) y el Musgo dejó de ser un problema de volumen.
 
 **El DS18B20 va al riel fijo, no al conmutado.** Su pull-up de 1-Wire tiene
 que sostener GPIO8 —que es pin de arranque— en alto al encender, cuando el

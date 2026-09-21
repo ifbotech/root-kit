@@ -11,6 +11,7 @@
 #   make capturas   regenera las imagenes de tools/preview
 #   make wasm       el renderer compilado para la app (root-lab)
 #   make pcb        verifica el sustrato y la estampadora, y regenera todo
+#   make rutear     vuelve a rutear la placa (despues de mover un modulo)
 #   make placa      compila el producto (c3-144) y el banco (devkit-144)
 #   make bench      costo de renderizar una cara
 #   make golden     regenera las referencias visuales
@@ -19,7 +20,7 @@
 #
 # La app, la nube y el emulador viven en github.com/ifbotech/root-lab.
 
-.PHONY: all test sim sheet pieles etapas despertar pantallas capturas wasm placa pcb bench golden verify clean
+.PHONY: all test sim sheet pieles etapas despertar pantallas capturas wasm placa pcb rutear bench golden verify clean
 
 all: test
 
@@ -52,6 +53,14 @@ pcb:
 	 else \
 	    echo "  (sin OpenSCAD: los STL y la prueba de encaje quedan como estaban)"; \
 	 fi
+
+# Rutear es otra cosa que generar: el ruteo se guarda commiteado en
+# generado/ruteo.json y no se rehace en cada build. Se vuelve a correr a mano
+# cuando se mueve un módulo, se cambia una red o se toca una regla, y `make
+# pcb` lo revisa entero con la geometría de siempre: un ruteo viejo no pasa.
+rutear:
+	@python3 tools/pcb.py --rutear
+	@$(MAKE) --no-print-directory pcb
 
 # Lo mismo que corre CI. Además de las pruebas verifica que los hashes de
 # regresión visual estén commiteados al día: si alguien toca el rig de caras

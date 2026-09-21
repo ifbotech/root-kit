@@ -419,9 +419,9 @@ Por unidad. Los precios de pantalla son los de la cotización actual.
 | 1 | 220–470 µF 6,3 V bajo ESR | picos de wifi |
 | 1 | interruptor deslizante | en la pared de la carcasa |
 | 1 | sustrato impreso en PETG | [pcb.md](pcb.md) |
-| — | cinta de cobre 6 mm y 20 mm | ~940 mm de pista por unidad |
-| — | cable de silicona AWG30 y AWG24 | 28 puentes |
-| 4 | tornillos M2 × 8 | sustrato a carcasa |
+| — | cinta de cobre 6 mm y 20 mm | ~630 mm de cinta por unidad, contando pads |
+| — | cable de silicona AWG30 y AWG24 | 38 puentes |
+| 4 | tornillos M3 × 8 | sustrato a carcasa |
 
 Si los módulos de I2C **no** traen sus pull-ups (casi todos los traen), dos
 4,7 kΩ más, soldadas entre los bornes `SCL`/`SDA` y el `VCC` de su propio

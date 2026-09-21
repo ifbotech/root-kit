@@ -29,10 +29,19 @@ jobs:
 
       - name: El sustrato impreso está en regla y sus generados al día
         # La geometría de la PCB de cinta de cobre (separaciones, anchos,
-        # conectividad, zona libre de la antena) se verifica sola, y los
-        # archivos que salen del dato tienen que estar commiteados: si no,
-        # la plantilla que se imprime y la netlist que mira `make test`
-        # dejan de describir la placa que se arma.
+        # conectividad, agujeros, puentes, zona libre de la antena) se
+        # verifica sola, y los archivos que salen del dato tienen que estar
+        # commiteados: si no, la plantilla que se imprime y la netlist que
+        # mira `make test` dejan de describir la placa que se arma.
+        #
+        # También se revisa acá que la cara de abajo del STL commiteado sea
+        # un plano: eso se lee del archivo, no hace falta OpenSCAD, y es el
+        # defecto que hizo fallar la primera impresión de verdad.
+        #
+        # Lo que NO corre acá es el ruteador: el ruteo está commiteado a
+        # propósito y se rehace a mano con `make rutear`. Que no haya
+        # quedado viejo lo dice la geometría, que es más fuerte que comparar
+        # archivos: un ruteo desfasado deja una red en dos pedazos.
         run: |
           python3 tools/pcb.py --generar
           if [ -n "$(git status --porcelain firmware/test/redes.h docs/conexiones.md hardware/pcb/generado)" ]; then

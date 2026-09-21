@@ -11,8 +11,18 @@
 //   make pcb        regenera los datos y exporta el STL
 //   openscad -o nucleo-sustrato.stl sustrato.scad
 //
-// Se imprime con la cara de las canaletas HACIA ARRIBA, sin soportes: todo
-// voladizo de esta pieza es una repisa de 0,9 mm, que FDM puentea sin ayuda.
+// Se imprime con la cara de las canaletas HACIA ARRIBA, sin soportes.
+//
+// LA CARA DE ABAJO ES UN PLANO. Ni un escalon, ni un bolsillo, ni una repisa:
+// la cara que se imprime contra la cama es lisa de punta a punta, y todo lo
+// que la atraviesa —ventana, muesca de la antena, agujeros— la atraviesa
+// entera y recta. Habia dos cosas que no cumplian eso y las dos daban el
+// mismo problema: un voladizo hacia adentro que la impresora tenia que
+// puentear a ciegas sobre la primera capa. La repisa donde apoyaba la
+// pantalla (ahora la sostiene el marco de la carcasa, que es lo que ya hacia)
+// y el bolsillo del cargador (ahora el modulo apoya sobre la cara, 0,8 mm mas
+// arriba). Si alguna vez se vuelve a hundir algo en esta cara, vuelve el
+// problema.
 
 include <generado/sustrato_datos.scad>
 
@@ -65,30 +75,17 @@ module cuerpo() {
 }
 
 module ventana_pasante() {
-    // La pantalla entra desde la cara de los módulos (abajo, z=0) y apoya en
-    // una repisa; el hueco de arriba es más chico y deja pasar la luz y el
-    // aire. El voladizo de la repisa mide `ventana_repisa` y se puentea.
-    a = ventana[2]; h = ventana[3];
-    translate([ventana[0], ventana[1], 0]) {
-        translate([0, 0, ventana_prof / 2 - eps])
-            cube([a, h, ventana_prof + 2 * eps], center = true);
-        translate([0, 0, (sustrato_esp + ventana_prof) / 2])
-            cube([a - 2 * ventana_repisa, h - 2 * ventana_repisa,
-                  sustrato_esp - ventana_prof + 2 * eps], center = true);
-    }
+    // Recta y pasante, del mismo tamaño de arriba a abajo. La pantalla entra
+    // desde la cara de los módulos y la aprieta el marco de la carcasa contra
+    // el sustrato: es lo que ya la sostenía, la repisa no hacía falta.
+    translate([ventana[0], ventana[1], sustrato_esp / 2])
+        cube([ventana[2], ventana[3], sustrato_esp + 2 * eps], center = true);
 }
 
 module recortes_pasantes() {
     for (r = recortes)
         translate([r[0], r[1], sustrato_esp / 2])
             cube([r[2], r[3], sustrato_esp + 2 * eps], center = true);
-}
-
-module bolsillos_modulos() {
-    // En la cara de los módulos (z = 0): alojan el cargador y lo que venga.
-    for (b = bolsillos)
-        translate([b[0], b[1], b[4] / 2 - eps])
-            cube([b[2], b[3], b[4] + 2 * eps], center = true);
 }
 
 module agujeros_de_pads() {
@@ -121,7 +118,6 @@ module sustrato() {
             linear_extrude(canaleta_prof + eps) surcos2d();
         ventana_pasante();
         recortes_pasantes();
-        bolsillos_modulos();
         agujeros_de_pads();
         agujeros_de_tornillos();
         rotulos_grabados();

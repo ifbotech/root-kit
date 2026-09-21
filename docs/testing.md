@@ -36,14 +36,37 @@ impresa se verifica en Python, porque es geometría:
 python3 tools/pcb.py --verificar     # y dentro de `make verify` y de CI
 ```
 
-Revisa que ninguna canaleta quede a menos de 0,8 mm de otra (dos
-extrusiones: menos que eso no se imprime), que cada red quede en **una sola
-pieza** contando pistas y puentes, que nada de cobre entre en la ventana, los
-recortes o los tornillos, que se respete la zona libre de la antena y que el
-texto grabado no muerda una pista. Y CI falla si los archivos que salen del
-dato —la plantilla de corte, el diagrama de conexiones y `test/redes.h`— no
-están commiteados al día, por la misma razón que `golden.h`: una plantilla
-vieja se imprime igual de bien y arma una placa que no anda.
+Revisa que ninguna canaleta quede a menos de 0,8 mm de otra, que cada red
+quede en **una sola pieza** contando pistas y puentes, que nada de cobre
+entre en la ventana, los recortes o los tornillos, que se respete la zona
+libre de la antena y que el texto grabado no muerda una pista. Y CI falla si
+los archivos que salen del dato —la plantilla de corte, el diagrama de
+conexiones y `test/redes.h`— no están commiteados al día, por la misma razón
+que `golden.h`: una plantilla vieja se imprime igual de bien y arma una placa
+que no anda.
+
+**Las reglas que salieron de una placa impresa.** Cuatro de las catorce nacen
+de mirar una pieza real en la mesa, no de pensar:
+
+| Regla | El defecto que la trajo |
+|---|---|
+| Agujero mínimo y pared entre agujeros | con boquilla de 0,6 los agujeros de 1,0 mm salían tapados y el pin no entraba |
+| La cara de abajo es un plano | la repisa de la ventana y el bolsillo del cargador eran voladizos sobre la primera capa |
+| Ningún puente cruza la ventana | el cable quedaba apretado entre la pantalla y el plástico |
+| Ninguna canaleta pasa por el agujero de otra red | el agujero corta la cinta |
+
+Las tres primeras tienen **control negativo**: se le devuelve el defecto al
+modelo y la regla tiene que saltar. La de la base plana, por ejemplo, con la
+repisa puesta a propósito denuncia 115,9 mm² de techo colgando a 1,40 mm de
+la cama. Una prueba que nunca falló no demostró nada.
+
+**El ruteo no se verifica por fecha, se verifica por geometría.** Las pistas
+las genera `tools/ruteo.py` y viven commiteadas en
+`hardware/pcb/generado/ruteo.json`. No se regeneran en cada build —tardan y
+no hacen falta— así que no tiene sentido comparar archivos. Lo que se
+comprueba es más fuerte: un ruteo viejo, hecho para otra planta, deja una red
+en dos pedazos o dos canaletas demasiado juntas, y eso el verificador lo
+dice.
 
 ## Las pruebas que valen más que su tamaño
 

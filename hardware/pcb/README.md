@@ -8,7 +8,8 @@ encima. Uno solo para los cinco Rooties.
 
 | | |
 |---|---|
-| `nucleo.json` | **El dato.** Módulos, posiciones, redes, pistas, puentes y reglas. Es lo único que se edita a mano |
+| `nucleo.json` | **El dato.** Reglas, módulos, dónde va cada uno y qué va conectado con qué. Es lo único que se edita a mano |
+| `generado/ruteo.json` | **Por dónde** corre cada pista y cada puente. Lo escribe `tools/ruteo.py` con `make rutear`, no se edita |
 | `sustrato.scad` | El modelo paramétrico. No tiene ni un número del diseño: los lee de `generado/sustrato_datos.scad` |
 | `estampadora.scad` | El **negativo**: las mismas canaletas en relieve, para meter toda la cinta de una prensada. Va espejado en X |
 | `encaje.scad` | La prueba de que una entra en la otra: choque vacío y nervaduras llegando al fondo |
@@ -21,8 +22,15 @@ Todo lo de `generado/` sale de `nucleo.json`, y también `docs/conexiones.md`
 y `firmware/test/redes.h`. Se regenera con:
 
 ```bash
-make pcb
+make pcb        # rehace todo a partir del ruteo commiteado
+make rutear     # vuelve a rutear y después rehace todo (tarda ~20 s)
 ```
+
+**Cuándo hace falta `make rutear`:** cuando se mueve un módulo, se cambia una
+red o se toca una regla. `make pcb` solo no vuelve a rutear —el ruteo está
+commiteado a propósito— pero tampoco deja pasar uno viejo: lo revisa con la
+misma geometría de siempre, y un ruteo desfasado deja una red en dos pedazos
+o dos canaletas demasiado juntas.
 
 y CI falla si quedó desfasado. Los STL salen con las facetas
 ordenadas a propósito: OpenSCAD las escribe en el orden en que

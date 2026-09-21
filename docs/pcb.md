@@ -19,7 +19,11 @@ Es el **núcleo común**: uno solo para los cinco Rooties. La carcasa cambia
 ## De dónde sale todo
 
 ```
-hardware/pcb/nucleo.json      EL DATO: modulos, posiciones, redes y pistas
+hardware/pcb/nucleo.json      EL DATO: modulos, donde va cada uno y que
+        │                     va conectado con que. Se edita a mano
+        │
+        ├─► tools/ruteo.py ──────────────► generado/ruteo.json   POR DONDE
+        │                                    corre cada pista (make rutear)
         │
         ├─► hardware/pcb/sustrato.scad ───► generado/nucleo-sustrato.stl
         ├─► hardware/pcb/estampadora.scad ► generado/nucleo-estampadora.stl
@@ -30,7 +34,24 @@ hardware/pcb/nucleo.json      EL DATO: modulos, posiciones, redes y pistas
 ```
 
 Todo lo de la derecha se regenera con **`make pcb`**, y CI falla si quedó
-desfasado. El JSON es el único archivo que se edita.
+desfasado. El JSON es el único archivo que se edita a mano.
+
+**El ruteo se separó del dato.** En `nucleo.json` está lo que se *decide*:
+qué módulo va dónde y qué va conectado con qué. Por dónde corre cada pista lo
+calcula `tools/ruteo.py` y vive en `generado/ruteo.json`. No se regenera en
+cada build —tarda unos segundos y cambiaría con cualquier cosa— sino a mano,
+con **`make rutear`**, cuando se mueve un módulo o se toca una regla. Que no
+haya quedado viejo no se comprueba mirando la fecha del archivo: se comprueba
+con la geometría, que es más fuerte. Un ruteo desfasado deja una red en dos
+pedazos o dos canaletas demasiado juntas, y el verificador lo dice.
+
+**Por qué un ruteador y no seguir a mano.** Las 51 pistas de la v1.0 se
+dibujaron una por una. Eso funciona hasta que cambia algo de fondo —y acá
+cambiaron tres cosas a la vez: la boquilla de 0,6, los pads escalonados del
+C3 y una placa 24 % más chica—, y entonces hay que redibujarlas todas.
+Teniendo el ruteador, achicar la placa es cambiar dos números y volver a
+correrlo. Es la misma idea de siempre: el dato en el medio, el resto
+generado.
 
 **Por qué así.** Un sustrato dibujado a ojo se desincroniza del firmware en
 el segundo cambio de pin, y nadie se entera hasta que hay una placa armada
@@ -57,39 +78,128 @@ sustrato entero antes de que exista:
 | Nada de cobre en la ventana, los recortes ni los tornillos | ídem |
 | Nada de cobre nuestro en la zona libre de la antena | ídem |
 | El texto grabado no muerde ninguna canaleta | ídem |
-| Ninguna nervadura de la estampadora queda más fina de lo que imprime | ídem |
+| Ningún agujero es más chico de lo que la boquilla puede sacar | ídem |
+| Entre dos agujeros queda pared de plástico suficiente | ídem |
+| Ninguna canaleta pasa por el agujero de otra red | ídem |
+| Ningún puente cruza la ventana, la muesca ni un tornillo | ídem |
+| La cara que se imprime contra la cama **es un plano** | sobre el STL, en `make pcb` |
+| Ninguna nervadura de la estampadora queda más fina de lo que imprime | `tools/pcb.py` |
 | La estampadora **entra** en el sustrato sin tocarlo | `encaje.scad`, con OpenSCAD |
 | La estampadora **llega al fondo** de las canaletas | ídem |
 
-Son 217 comprobaciones en C y once reglas geométricas en Python. Lo que **no**
-verifica: que el módulo que llegue tenga los pines donde dice el JSON. Eso se
-mide, y está en [armado.md](armado.md), paso 1.
+Son 217 comprobaciones en C y catorce reglas geométricas en Python. Lo que
+**no** verifica: que el módulo que llegue tenga los pines donde dice el JSON.
+Eso se mide, y está en [armado.md](armado.md), paso 1.
+
+Tres de esas reglas nacieron de una placa impresa de verdad, mirándola: los
+agujeros salían tapados, había una repisa colgando en la cara de abajo y
+algún puente cruzaba la ventana. Las tres están ahora del lado de la máquina,
+y cada una tiene su control negativo —se le devuelve el defecto y la regla
+tiene que saltar— porque una prueba que nunca falló no demostró nada.
 
 ## El sustrato
 
 | | |
 |---|---|
 | Material | **PETG** (o ASA). PLA no: se ablanda a ~60 °C, y acá se suelda encima y el aparato vive al sol de una ventana |
-| Medidas | **72 × 104 × 3,0 mm** |
-| Boquilla / altura de capa | 0,4 mm / 0,2 mm, 4 perímetros |
-| Soportes | **ninguno**: el único voladizo es la repisa de la ventana, 0,9 mm, que FDM puentea |
+| Medidas | **62 × 92 × 3,0 mm** (la v1.0 medía 72 × 104: 24 % menos de placa) |
+| Boquilla / altura de capa | **0,6 mm** / 0,2 mm, 3 perímetros |
+| Soportes | **ninguno**, y no por poco: no hay un solo voladizo (ver "La base plana") |
 | Orientación | la cara de las canaletas **hacia arriba**; la cara plana en la cama |
-| Canaletas | **0,4 mm de profundidad**, 0,3 mm más anchas que la cinta |
-| Pared entre canaletas | **0,8 mm mínimo** = dos extrusiones de 0,4 |
+| Canaletas | **0,8 mm de profundidad**, 0,3 mm más anchas que la cinta |
+| Pared entre canaletas | **0,8 mm mínimo** |
+| Agujeros | 1,4 mm los pines del C3, 1,8 mm los bornes, 3,2 mm los tornillos |
 | Relleno | 25 % basta; lo que importa son los perímetros |
 
-**Por qué 0,4 mm de profundidad y no más.** La canaleta hace dos cosas: guía
-la cinta y separa las pistas. 0,4 mm alcanzan para las dos, y la cinta se
-presiona con un bruñidor sin quedar hundida donde después hay que soldar. Más
-profundo sería más difícil de pegar y no compraría nada.
+**Por qué 0,8 mm de profundidad.** La canaleta hace dos cosas: guía la cinta
+y separa las pistas. La v1.0 usaba 0,4 mm y funcionaba para lo segundo, pero
+para lo primero era poco: la cinta apoyaba casi al ras y había que sostenerla
+mientras se bruñía. Con 0,8 —cuatro capas de 0,2— la cinta **se hunde y se
+queda quieta sola**, y la pared da de guía al bisturí de punta a punta en vez
+de apenas marcarla. Debajo de la canaleta siguen quedando 2,2 mm de plástico,
+por encima de la pared mínima de 1,6 mm de [carcasas.md](carcasas.md).
 
 **Por qué 0,3 mm de holgura.** La cinta entra sin arrugarse y la pared queda
 de guía para el bisturí: se apoya una tira más ancha, se presiona y se corta
 contra la pared. Es lo que hace que dos unidades salgan iguales.
 
-**Por qué 3,0 mm de espesor.** Debajo de una canaleta quedan 2,6 mm; debajo
-del bolsillo del cargador, 2,2 mm. Los dos por encima de la pared mínima de
-1,6 mm de [carcasas.md](carcasas.md).
+**Por qué 3,0 mm de espesor.** Debajo de una canaleta quedan 2,2 mm, por
+encima de la pared mínima de 1,6 mm de [carcasas.md](carcasas.md), y es lo
+que necesita un agujero de 1,4 mm para guiar un pin derecho.
+
+### La boquilla de 0,6 manda
+
+La v1.0 se dibujó pensando en una boquilla de 0,4. Impresa con una de 0,6
+—que es la que hay— **los agujeros salieron tapados**: un agujero de 1,0 mm
+al que la impresora le pone un perímetro de 0,6 no deja casi luz, y el pin no
+entra. Así que el número de la boquilla pasó a estar en el dato
+(`reglas.boquilla`) y todo lo demás sale de él:
+
+| Regla | Valor | Por qué |
+|---|---:|---|
+| `agujero_min` | **1,4 mm** | poco más de dos boquillas; menos que eso se cierra |
+| `pared_min_agujeros` | **1,1 mm** | dos extrusiones de 0,55, que una boquilla de 0,6 saca sin despeinarse |
+| `separacion_min` | 0,8 mm | una extrusión ancha; es la pared entre dos canaletas, no una pared estructural |
+
+Los agujeros de los bornes fueron de 1,3 a **1,8 mm** (paso de 4,4 a 3,8, que
+además angosta la placa), los del condensador radial de 1,2 a 1,8, y los
+tornillos de 2,4 a **3,2**. El único que no pudo crecer tanto es el del C3, y
+tiene su propia sección.
+
+### Los pads escalonados del C3
+
+El SuperMini tiene los pines a **2,54 mm** y eso no se negocia. Hagamos la
+cuenta de lo que hay que meter entre dos pines vecinos: el agujero, el anillo
+de cobre alrededor, la holgura de la canaleta y la pared hasta el pad de al
+lado. Con una boquilla de 0,6 el agujero solo ya pide 1,4 mm, y no queda nada
+para el resto. **Un pad con su agujero adentro no entra a 2,54 mm.** No es
+cuestión de dibujarlo mejor: no da la aritmética.
+
+La salida es correr el pad **al costado del agujero** en vez de alrededor, e
+ir alternando: un pin tira su pad para afuera, el siguiente para adentro. Así
+el paso entre dos pads del mismo lado pasa a ser 5,08 mm y sobra lugar.
+
+```
+   afuera   agujero   adentro
+   ┌────┐     ( )
+   │pad │─────┤ │              IO5   el pad toca el borde del agujero
+   └────┘     ( )
+              ( )     ┌────┐
+              │ │─────│pad │    IO6   el siguiente va para el otro lado
+              ( )     └────┘
+```
+
+El pad queda **tangente al agujero**: la cinta llega justo hasta el borde. Al
+soldar, el pin asoma por el agujero y se le arrima la punta del soldador
+contra la cinta que tiene al lado; no hay que doblarlo. Es un movimiento
+distinto al de un pad con anillo, y está explicado en
+[armado.md](armado.md), paso 3.
+
+Con eso el agujero del C3 pudo ir de 1,0 a **1,4 mm** (+40 %) dejando 1,14 mm
+de pared entre agujeros vecinos, que es lo que la regla pide.
+
+### La base plana
+
+La cara que se imprime contra la cama **es un plano**. Ni un escalón, ni un
+bolsillo, ni una repisa: todo lo que la atraviesa la atraviesa entero y
+recto.
+
+La v1.0 no cumplía eso en dos lugares, y los dos daban el mismo problema: un
+techo mirando hacia abajo a media altura, que la impresora tiene que tender
+en el aire sobre la primera capa. Sale colgando y arruina la cara.
+
+- **La repisa de la ventana** (0,9 mm hacia adentro, a 1,4 mm de la cama).
+  Era para que la pantalla apoyara. Pero la pantalla ya la sujetaba el marco
+  de la carcasa: el sustrato solo la posiciona. Se fue, y la ventana es ahora
+  un hueco recto.
+- **El bolsillo del cargador** (27 × 14 mm hundidos 0,8 mm). Era para que el
+  TP4056 quedara más al ras. Se fue: el módulo apoya sobre la cara, 0,8 mm
+  más arriba, y la carcasa tiene lugar de sobra.
+
+Que no vuelva no depende de que alguien se acuerde. `make pcb` lee el STL
+terminado y busca facetas con la normal hacia abajo por encima de la cama: si
+hay una, falla y dice a qué altura y dónde. Con la repisa puesta a propósito,
+denuncia **115,9 mm² de techo colgando a 1,40 mm de la cama**.
 
 ### Las dos caras
 
@@ -106,11 +216,13 @@ en la plantilla para que nadie la use espejada.
 
 ### La ventana de la pantalla
 
-La pantalla entra **desde el frente**, apoya en una repisa de 0,9 mm y la
-carcasa la aprieta contra el marco de su propia ventana ([carcasas.md](carcasas.md)).
-El sustrato no la sujeta: la **posiciona**. Entre la repisa y el módulo va
-una tira de **espuma de 1 mm**, que absorbe la tolerancia del espesor del
-panel y evita apretar el vidrio contra dos apoyos rígidos.
+La ventana es un **hueco recto y pasante**, del mismo tamaño de arriba a
+abajo. La pantalla entra desde el frente y la carcasa la aprieta contra el
+marco de su propia ventana ([carcasas.md](carcasas.md)): el sustrato no la
+sujeta, la **posiciona**. Entre la cara del sustrato y el módulo va una tira
+de **espuma de 1 mm**, que absorbe la tolerancia del espesor del panel y
+evita apretar el vidrio contra dos apoyos rígidos. La repisa que había en la
+v1.0 hacía ese trabajo y además un voladizo: ver "La base plana".
 
 > **A medir con el módulo en la mano: dónde cae el área activa.** El módulo
 > es de 28 × 37 mm y el área activa, de 25,9 × 25,9. Los 11 mm que sobran
@@ -128,10 +240,16 @@ Cinta de cobre adhesiva de 0,035–0,07 mm. Anchos:
 
 | Clase | Ancho | Dónde |
 |---|---:|---|
-| Rieles de potencia | **2,4–3,0 mm** | masa, 3V3, VINT, el nodo de sistema |
-| Señal | **1,4 mm** | SPI, I2C, control |
-| Abanico junto a la SuperMini | **1,4 mm** | los pines están a 2,54 mm: más ancho no entra con 0,8 de pared |
-| Islas de SOT-23 | **1,2 mm** | las patas se abren 0,2 mm con una pinza |
+| Rieles de potencia | **2,4 mm** | masa, 3V3, VINT, el nodo de sistema |
+| Señal | **1,2 mm** | SPI, I2C, control |
+| Ramal de aterrizaje | el del pad | el último tramo, cuando el pad es más angosto que el riel |
+
+**Riel ancho, ramal fino.** Un riel de 2,4 mm que baja a un pad de 1,2 mm de
+un SOT-23 pasa por fuerza a 1,7 mm del pad de al lado, que está a 2,3: no
+entra. Pero angostar el tramo entero estrangularía el riel. Así que cada
+recorrido se **parte**: mientras aguanta va ancho, y la punta que entra al
+pad va del ancho del pad. Es lo que se hacía a mano, y ahora lo hace el
+ruteador solo.
 
 **La corriente no es el problema; la resistencia tampoco.** Una pista de
 1,4 mm × 0,035 mm tiene 0,35 mΩ por milímetro: los 17 mm de abanico que
@@ -147,15 +265,15 @@ flux la cinta no se despega ni el PETG se deforma; con estaño común
 punta a 260 °C, no más.
 
 **Masa.** No hay plano de masa: no se puede con una cara y cinta cortada a
-mano. Lo que hay es una **barra de masa** de 2,4 mm que recorre el sustrato
-de lado a lado a la altura de los bornes, baja por la izquierda hasta el
-fondo y vuelve por abajo. Cada borne tiene su pad de masa **sobre** la barra,
-así que no hay un solo ramal largo de masa en toda la placa.
+mano. Lo que hay es una **barra de masa** de 2,4 mm que recorre el perímetro
+y entra por los costados de la ventana. Cada borne tiene su pad de masa
+sobre ella o a un tramo corto.
 
-**Las dos barras.** Masa y 3V3 corren paralelas, y cada grupo de bornes de
-sensor es una **columna** que las cruza: VCC arriba (sobre la barra de 3V3),
-GND en el medio (sobre la de masa) y la señal abajo. Es lo que hace que
-alimentar un sensor sea cero pistas.
+**Los cinco sensores comparten la línea de masa.** Los cinco bornes de sensor
+(`J_AHT`, `J_BH`, `J_SUELO`, `J_TTP`, `J_DS`) están puestos a la **misma
+altura**, así que sus pines de GND caen todos sobre la misma recta y la barra
+los junta de una pasada en vez de ir a buscarlos de a uno. No es casualidad
+ni estética: alinearlos sacó tres puentes de la placa.
 
 ### El SPI
 
@@ -168,11 +286,33 @@ código — antes de sospechar del hardware.
 ### Los puentes
 
 Una sola cara de cobre significa que algunos cruces no se pueden evitar. Se
-resuelven con **cable aislado fino (AWG30) por arriba**: 28 puentes, todos
+resuelven con **cable aislado fino (AWG30) por arriba**: 38 puentes, todos
 listados en [conexiones.md](conexiones.md) y dibujados en la plantilla con
 línea azul de puntos. No hay ninguno que no esté en esa lista, y la prueba de
 conectividad los cuenta: si falta uno, la red queda en dos pedazos y el
 verificador lo dice por nombre.
+
+**Tres de ellos van rodeando.** El cable de un puente corre por la cara de
+los módulos, que es donde entra la pantalla. Un puente que fuera derecho de
+punta a punta cruzaría la ventana y quedaría **apretado entre el módulo y el
+plástico**. Los tres a los que les pasa eso llevan su camino anotado en el
+dato y dibujado en la plantilla, y hay una regla que no deja que aparezca un
+cuarto por descuido.
+
+**De 28 a 38, y de dónde salen los diez.** La v1.0 tenía 28. El precio está
+medido, corriendo el mismo ruteador sobre las dos plantas:
+
+| | Puentes |
+|---|---:|
+| v1.0, ruteada a mano, 72 × 104 | 28 |
+| v2.0 (boquilla 0,6, agujeros grandes, pads escalonados) a 72 × 104 | **35** |
+| v2.0 a 62 × 92 | **38** |
+
+O sea: **siete puentes los pusieron los agujeros** —crecer un agujero y
+escalonar un pad come lugar de ruteo— y **tres, achicar la placa un 24 %**.
+Achicar sale casi gratis; lo caro es que los pines entren. Son diez cables
+finos más, unos quince minutos de mesa, contra una placa que se imprime y se
+arma.
 
 Dos de ellos son de potencia y van con **cable más grueso (AWG24)**: el nodo
 de sistema al interruptor y el de la celda protegida al MOSFET de carga
@@ -207,8 +347,8 @@ el C3 en módulo y dos caras, el despeje completo sí se puede: ahí se hace.
 
 ## La estampadora
 
-Pegar cincuenta y un tramos de cinta uno por uno es media tarde y cincuenta y
-una oportunidades de correrse. La estampadora es **el negativo del sustrato**:
+Pegar setenta y seis tramos de cinta uno por uno es media tarde y setenta y
+seis oportunidades de correrse. La estampadora es **el negativo del sustrato**:
 las mismas canaletas, pero en relieve. Se apoya una hoja de cinta de cobre
 sobre el sustrato, se baja la estampadora encima y se aprieta: todas las
 pistas entran a la vez.
@@ -218,10 +358,10 @@ mañana se mueve una pista, `make pcb` rehace las dos piezas.
 
 | | |
 |---|---|
-| Medidas | **77 × 109 × 7,5 mm** (el sustrato más el faldón) |
+| Medidas | **67 × 97 × 7,5 mm** (el sustrato más el faldón) |
 | Material | PETG, o PLA: no se suelda nada encima, sólo tiene que ser rígida |
 | Espesor de la placa | **5 mm**, para que no flexione al apretar |
-| Nervaduras | **0,7 mm de alto**, 0,6 mm más finas que la canaleta |
+| Nervaduras | **1,2 mm de alto**, 0,2 mm más finas que la canaleta |
 | Faldón | 2,5 mm de alto, 0,5 mm de holgura: centra la pieza sola |
 | Orientación de impresión | nervaduras **hacia arriba**, sin soportes |
 
@@ -234,19 +374,21 @@ un pad que en el sustrato está en *x* se imprime en *(ancho − x)* y al
 voltear la pieza vuelve a caer en *x*. Es un error que no se ve mirando el
 modelo —la pieza imprime igual de bien— y por eso tiene su propia prueba.
 
-**La nervadura sobresale 0,3 mm más de lo que hunde la canaleta.** Al
+**La nervadura sobresale 0,4 mm más de lo que hunde la canaleta.** Al
 apretar, la punta toca el fondo y la cara plana de la estampadora queda
-**0,3 mm separada** de la cara del sustrato. Ese aire es el que hace que la
+**0,4 mm separada** de la cara del sustrato. Ese aire es el que hace que la
 cinta se pegue *sólo adentro de las canaletas* y no sobre las paredes que las
 separan. Si las dos caras se tocaran, la cinta quedaría pegada en todos lados
-y habría que despegarla justo donde no hay que romperla.
+y habría que despegarla justo donde no hay que romperla. Con la canaleta más
+profunda de la v2.0, la nervadura mide **1,2 mm de alto**.
 
-**La nervadura es 0,3 mm más fina por lado.** Ahí entran el espesor de la
+**La nervadura es 0,25 mm más fina por lado.** Ahí entran el espesor de la
 cinta doblada contra las dos paredes (0,035 mm cada una) y la tolerancia de
 impresión. Si midiera exactamente lo mismo que la canaleta, no entraría. La
-nervadura más fina de todo el juego mide **0,9 mm** —la de las pistas de
-1,2 mm— y el verificador falla si alguna baja de 0,8, que son dos
-extrusiones.
+nervadura más fina de todo el juego mide **1,00 mm** —la de las pistas de
+señal— y el verificador falla si alguna baja de 0,95. Con boquilla de 0,6 esa
+nervadura es una extrusión generosa; con la holgura de 0,3 de la v1.0
+hubiera quedado en 0,9 y demasiado endeble para empujar cinta.
 
 ### Cómo se comprueba que entra
 
@@ -264,9 +406,10 @@ equivocada: si las nervaduras desaparecieran, la intersección también daría
 vacía y la prueba pasaría con una pieza que no sirve para nada. Con las dos
 juntas: hoy cubren el **100 %** de la placa en los dos ejes.
 
-Y están calibradas. Corriendo la estampadora 0,5 mm, el choque salta con 707
-triángulos de contacto; volteándola sobre el eje equivocado —el error del
-espejo— salta con 1254. No es una prueba que pase sola.
+Y están calibradas. Corriendo la estampadora 0,5 mm, el choque salta con
+**1820 triángulos de contacto**; volteándola sobre el eje equivocado —el
+error del espejo, que no se ve mirando el modelo porque la pieza imprime
+igual de bien— salta con **3600**. No es una prueba que pase sola.
 
 ### Cómo se usa
 
@@ -280,7 +423,7 @@ paredes, que ya viene marcado por el canto de cada canaleta.
 > estampadora sobre el sustrato vacío: tiene que bajar hasta que el faldón
 > envuelva el borde, sin resistencia. Si hace tope antes, está al revés o la
 > impresión salió con las nervaduras gordas. **Nunca forzar**: las nervaduras
-> de 0,9 mm se parten.
+> de 1,0 mm se parten.
 
 ## Humedad, fugas y barniz
 
@@ -472,29 +615,35 @@ Para que Rocío pueda modelar las cinco alrededor del mismo núcleo:
 
 | Cota | Valor |
 |---|---|
-| Sustrato | 72 × 104 × 3,0 mm, cuatro tornillos M2 a 3 mm de cada esquina |
-| Postes de la carcasa | Ø1,7 mm, a (3, 3), (66, 3), (3, 101) y (66, 101) desde la esquina inferior izquierda, mirando el frente en espejo |
+| Sustrato | **62 × 92 × 3,0 mm**, cuatro tornillos M3 a 3,5 mm de cada esquina |
+| Postes de la carcasa | Ø2,4 mm, a (3,5, 3,5), (58,5, 3,5), (3,5, 88,5) y (58,5, 88,5) desde la esquina inferior izquierda, mirando el frente en espejo |
 | Profundidad hacia el frente | 5 mm hasta el vidrio de la pantalla; 10 mm donde está la SuperMini |
 | Profundidad hacia atrás | 6 mm libres para la cinta, los puentes y las soldaduras |
-| Centro del área activa de la pantalla | 25 mm desde el borde de abajo del sustrato, centrado a lo ancho |
+| Centro del área activa de la pantalla | 24,7 mm desde el borde de abajo del sustrato, centrado a lo ancho |
+| Apoyo de la pantalla | **lo da la carcasa**, no el sustrato: la ventana es un hueco recto |
+| Cargador TP4056 | apoya **sobre** la cara plana (ya no hay bolsillo): 0,8 mm más de altura que en la v1.0 |
 | Antena | 10 mm de aire arriba y a los costados, sin metal |
 | USB del cargador | en el borde de abajo, mirando abajo y atrás |
 | USB de la SuperMini y botón BOOT | accesibles abriendo la carcasa, no desde afuera |
 | Interruptor | en la pared, con dos cables a `J_SW` |
 | Compartimento de la celda | **separado**, detrás del sustrato, 75 × 21 × 19 mm, parada |
 
-**Volumen mínimo del producto: unos 78 × 116 × 45 mm.** Con la 18650 parada
-detrás del sustrato, el centro de masa queda a ~42 % de la altura: dentro de
-lo que pide [carcasas.md](carcasas.md), pero sin margen.
+**Volumen mínimo del producto: unos 68 × 104 × 45 mm**, contra los
+78 × 116 × 45 de la v1.0. Con la 18650 parada detrás del sustrato, el centro
+de masa queda a ~42 % de la altura: dentro de lo que pide
+[carcasas.md](carcasas.md).
 
-> **El Musgo no entra.** El "domo bajo y ancho" es el único de los cinco que
-> no puede ser de 116 mm de alto sin dejar de ser un domo bajo. Para esa
-> carcasa hay dos salidas, las dos sin tocar el firmware: acostar la celda
-> (pide 78 mm de ancho interior, que un domo ancho sí tiene) o usar la
-> **LiPo plana 103450** (50 × 34 × 10 mm), que baja el compartimento de
-> 75 mm a 40 y deja el cuerpo en ~80 mm de alto. La segunda cuesta autonomía
-> (1200 mAh contra 3000: de seis meses a dos y medio). **Es decisión de
-> producto: queda anotada para Iñaki.**
+> **El Musgo entra ahora.** En la v1.0 el "domo bajo y ancho" era el único de
+> los cinco que no podía ser de 116 mm de alto sin dejar de ser un domo bajo,
+> y quedaba a elegir entre acostar la celda o pasar a una LiPo plana con un
+> tercio de autonomía. Con el sustrato de 62 × 92 el cuerpo baja a ~104 mm y
+> **la disyuntiva desaparece**: los cinco Rooties entran con la 18650 parada.
+> Fue una de las razones para achicar la placa.
+
+> **Esto cambia lo que Rocío tiene modelado.** Las cotas de arriba son
+> distintas a las de la v1.0: la placa es más chica, los postes se movieron y
+> los tornillos pasaron de M2 a M3. Las carcasas no se tocaron desde acá —son
+> de ella— pero hay que avisarle antes de que modele sobre las viejas.
 
 ## Lo que se probó de verdad, y lo que no
 

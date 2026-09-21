@@ -5,6 +5,7 @@ La fuente de verdad es `hardware/pcb/nucleo.json`: los modulos, donde va cada
 uno, las redes y por donde corre cada pista. De ese archivo salen, sin tocar
 nada a mano:
 
+  hardware/pcb/generado/ruteo.json            por donde corre cada pista
   hardware/pcb/generado/sustrato_datos.scad   los datos que come sustrato.scad
   hardware/pcb/generado/plantilla-cinta.svg   la plantilla 1:1 para cortar cinta
   hardware/pcb/generado/nucleo-sustrato.stl   la pieza para imprimir (--stl)
@@ -18,6 +19,7 @@ Uso:
   python3 tools/pcb.py --generar      revisa y reescribe los generados
   python3 tools/pcb.py --stl          ademas exporta los STL con OpenSCAD
   python3 tools/pcb.py --encaje       comprueba que la estampadora entre
+  python3 tools/pcb.py --rutear       vuelve a rutear (tarda; ver tools/ruteo.py)
 
 Sin dependencias: solo la biblioteca estandar, igual que tools/fabrica.py.
 """
@@ -30,6 +32,7 @@ import struct
 import subprocess
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATO = os.path.join(RAIZ, "hardware", "pcb", "nucleo.json")
 GEN = os.path.join(RAIZ, "hardware", "pcb", "generado")
@@ -38,6 +41,26 @@ ESTAMPADORA = os.path.join(RAIZ, "hardware", "pcb", "estampadora.scad")
 ENCAJE = os.path.join(RAIZ, "hardware", "pcb", "encaje.scad")
 REDES_H = os.path.join(RAIZ, "firmware", "test", "redes.h")
 CONEXIONES = os.path.join(RAIZ, "docs", "conexiones.md")
+RUTEO = os.path.join(GEN, "ruteo.json")
+
+
+def cargar():
+    """El dato a mano mas el ruteo generado, que viven en archivos distintos.
+
+    En nucleo.json esta lo que se decide: que modulo va donde y que va
+    conectado con que. En generado/ruteo.json, por donde corre cada pista,
+    que lo escribe el ruteador. Separarlos es lo que permite mover un modulo
+    y que las 51 pistas se rehagan solas, en vez de redibujarlas a mano."""
+    with open(DATO, encoding="utf-8") as f:
+        d = json.load(f)
+    if os.path.exists(RUTEO):
+        with open(RUTEO, encoding="utf-8") as f:
+            r = json.load(f)
+        d["pistas"] = r.get("pistas", [])
+        d["puentes"] = r.get("puentes", [])
+    d.setdefault("pistas", [])
+    d.setdefault("puentes", [])
+    return d
 
 
 # --------------------------------------------------------------- geometria --
@@ -121,10 +144,19 @@ def dist_rect_rect(e1, e2):
 
 # ------------------------------------------------------------------ modelo --
 class Pad:
-    def __init__(self, ref, pin, x, y, w, h, rot, agujero, red):
+    """Un pad de cobre y, si lo tiene, el agujero por donde pasa su pin.
+
+    El agujero ya no esta siempre en el centro del pad: con la boquilla de
+    0,6 los pines de 2,54 mm no entran de otra manera (ver docs/pcb.md, "Los
+    pads escalonados"), asi que el pad se corre al costado y queda pegado al
+    borde del agujero."""
+
+    def __init__(self, ref, pin, x, y, w, h, rot, agujero, red, hx=None, hy=None):
         self.ref, self.pin = ref, pin
         self.x, self.y, self.w, self.h, self.rot = x, y, w, h, rot
         self.agujero = agujero
+        self.hx = x if hx is None else hx
+        self.hy = y if hy is None else hy
         self.red = red
 
     @property
@@ -194,16 +226,31 @@ class Nucleo:
                 px, py = pad[0], pad[1]
                 x = cx + px * co - py * si
                 y = cy + px * si + py * co
+                # [px, py] o [px, py, hx, hy]: el segundo par es donde cae el
+                # agujero cuando no esta en el centro del pad.
+                if len(pad) >= 4:
+                    ax, ay = pad[2], pad[3]
+                    hx = cx + ax * co - ay * si
+                    hy = cy + ax * si + ay * co
+                else:
+                    hx = hy = None
                 nodo = "%s.%s" % (ref, nombre)
                 red = nodo_red.get(nodo)
                 if red is None:
                     self.errores.append("el pad %s no esta en ninguna red" % nodo)
                 self.pads[nodo] = Pad(ref, nombre, x, y, h["pad"][0], h["pad"][1],
-                                      rot, h.get("agujero", 0.0), red)
+                                      rot, h.get("agujero", 0.0), red, hx, hy)
         for nodo in nodo_red:
             if nodo not in self.pads:
                 self.errores.append("la red %s nombra un nodo inexistente: %s"
                                     % (nodo_red[nodo], nodo))
+
+    def camino_puente(self, pu):
+        """Por donde va el cable de un puente: de pad a pad, con el rodeo que
+        haga falta para no cruzar la ventana."""
+        a, b = self.pads[pu["de"]], self.pads[pu["a"]]
+        return ([(a.x, a.y)] + [tuple(q) for q in pu.get("por", [])]
+                + [(b.x, b.y)])
 
     # -- geometria del sustrato ---------------------------------------------
     def huecos(self):
@@ -227,6 +274,8 @@ class Nucleo:
         self._v_antena()
         self._v_modulos()
         self._v_rotulos()
+        self._v_agujeros()
+        self._v_puentes()
         self._v_estampadora()
         return self.errores
 
@@ -352,17 +401,23 @@ class Nucleo:
             for e in (["n:" + n for n in nodos]
                       + ["p:%d" % i for i, _ in enumerate(pistas)]):
                 padre[e] = e
+            # Dos cobres que se solapan estan unidos, y el solape se mide
+            # entre BORDES, no entre ejes: una pista que nace al costado de
+            # otra, en T, tiene los ejes a mas de un milimetro y el cobre
+            # pisado. Midiendo por el eje, una red bien unida se leia rota.
             toque = self.reglas["holgura_canaleta"] + 0.05
             for i, pista in enumerate(pistas):
                 for n in nodos:
                     pad = self.pads[n]
-                    if any(dist_seg_rect(a, b, pad.esquinas) <= toque
+                    if any(dist_seg_rect(a, b, pad.esquinas)
+                           <= pista.ancho / 2.0 + toque
                            for a, b in pista.segmentos):
                         unir("p:%d" % i, "n:" + n)
                 for j, otra in enumerate(pistas):
                     if j <= i:
                         continue
-                    if any(dist_seg_seg(a, b, c, d) <= toque
+                    luz = (pista.ancho + otra.ancho) / 2.0 + toque
+                    if any(dist_seg_seg(a, b, c, d) <= luz
                            for a, b in pista.segmentos for c, d in otra.segmentos):
                         unir("p:%d" % i, "p:%d" % j)
             for pu in puentes:
@@ -443,6 +498,79 @@ class Nucleo:
                 if dist_rect_rect(pad.esquinas, esq) < aire:
                     self.errores.append('el rotulo "%s" muerde el pad %s'
                                         % (r["texto"], nodo))
+
+    def _v_puentes(self):
+        """Un puente es un cable por la cara de los modulos, y ahi hay cosas.
+
+        Si va de punta a punta cruzando la ventana, pasa justo por donde entra
+        la pantalla: al apretarla queda el cable atrapado entre el modulo y el
+        plastico. Lo mismo con la muesca de la antena y con los tornillos. El
+        cable se puede rodear a mano, claro, pero entonces no es el cable que
+        dice el dato, y la guia de armado quedaria mintiendo."""
+        for pu in self.puentes:
+            a, b = self.pads.get(pu["de"]), self.pads.get(pu["a"])
+            if not a or not b:
+                continue
+            # El cable puede llevar puntos intermedios: son el rodeo que hay
+            # que darle para no cruzar un hueco.
+            pts = ([(a.x, a.y)] + [tuple(q) for q in pu.get("por", [])]
+                   + [(b.x, b.y)])
+            malo = None
+            for u, v2 in zip(pts[:-1], pts[1:]):
+                for nombre, esq in self.huecos():
+                    if dist_seg_rect(u, v2, esq) <= 0.0:
+                        malo = nombre
+                        break
+                if malo:
+                    break
+            if malo:
+                self.errores.append(
+                    "el puente %s-%s cruza %s" % (pu["de"], pu["a"], malo))
+
+    def _v_agujeros(self):
+        """Los agujeros, mirados desde la boquilla.
+
+        Dos cosas los arruinan y las dos se ven en el dato. Un agujero mas
+        chico que unas dos boquillas sale tapado: el perimetro se come el
+        radio y el pin no entra. Y dos agujeros demasiado juntos dejan una
+        pared de plastico que la impresora no puede sacar, con lo que se
+        funden en uno. Tambien se mira que el cobre de una red no quede
+        colgando sobre el agujero de otra, que es una pista cortada."""
+        r = self.reglas
+        minimo = r.get("agujero_min")
+        pared = r.get("pared_min_agujeros")
+        holgura = r["holgura_canaleta"]
+        con_agujero = [(n, p) for n, p in sorted(self.pads.items())
+                       if p.agujero > 0]
+        if minimo:
+            vistos = set()
+            for nodo, pad in con_agujero:
+                if pad.agujero < minimo - 1e-9 and pad.ref not in vistos:
+                    vistos.add(pad.ref)
+                    self.errores.append(
+                        "%s: agujeros de %.1f mm (el minimo es %.1f con una "
+                        "boquilla de %.1f)"
+                        % (pad.ref, pad.agujero, minimo, r.get("boquilla", 0.4)))
+        if pared:
+            for i, (n1, a) in enumerate(con_agujero):
+                for n2, b in con_agujero[i + 1:]:
+                    d = (math.hypot(a.hx - b.hx, a.hy - b.hy)
+                         - (a.agujero + b.agujero) / 2.0)
+                    if d < pared - 1e-6:
+                        self.errores.append(
+                            "entre los agujeros de %s y %s quedan %.2f mm de "
+                            "pared (hacen falta %.2f)" % (n1, n2, d, pared))
+        for nodo, pad in con_agujero:
+            circ = rect_esquinas(pad.hx, pad.hy, pad.agujero, pad.agujero)
+            for pista in self.pistas:
+                if pista.red == pad.red:
+                    continue
+                if any(dist_seg_rect(a, b, circ) < pista.ancho / 2.0 + holgura
+                       for a, b in pista.segmentos):
+                    self.errores.append(
+                        "una canaleta de %s pasa por el agujero de %s"
+                        % (pista.red, nodo))
+                    break
 
     def _v_estampadora(self):
         """La estampadora es el negativo del sustrato: las mismas canaletas pero
@@ -537,8 +665,6 @@ def gen_scad(n):
     L.append("// [centro x, centro y, ancho, alto]")
     L.append("ventana = [%.2f, %.2f, %.2f, %.2f];"
              % (v["x"], v["y"], v["ancho"], v["alto"]))
-    L.append("ventana_repisa = %.2f;" % v["repisa"])
-    L.append("ventana_prof   = %.2f;" % v["prof"])
     L.append("")
     L.append("// [ancho, [[x,y], ...]]")
     L.append("canaletas = [")
@@ -560,13 +686,6 @@ def gen_scad(n):
     for r in s.get("recortes", []):
         L.append("  [%.2f,%.2f,%.2f,%.2f],  // %s"
                  % (r["x"], r["y"], r["ancho"], r["alto"], r["id"]))
-    L.append("];")
-    L.append("")
-    L.append("// [centro x, centro y, ancho, alto, prof] — cara de los modulos")
-    L.append("bolsillos = [")
-    for b in s.get("bolsillos", []):
-        L.append("  [%.2f,%.2f,%.2f,%.2f,%.2f],  // %s"
-                 % (b["x"], b["y"], b["ancho"], b["alto"], b["prof"], b["id"]))
     L.append("];")
     L.append("")
     L.append("// [x, y, diametro]")
@@ -676,10 +795,11 @@ def gen_svg(n):
                      'stroke="#000000" stroke-width="0.1"/>'
                      % (p.x, p.y, p.agujero / 2.0))
     for pu in n.puentes:
-        a1, b1 = n.pads[pu["de"]], n.pads[pu["a"]]
-        L.append('<path d="M %.2f %.2f L %.2f %.2f" stroke="#1a3fa8" '
-                 'stroke-width="0.45" stroke-dasharray="2 1.4" fill="none"/>'
-                 % (a1.x, a1.y, b1.x, b1.y))
+        pts = n.camino_puente(pu)
+        traza = " ".join("%s %.2f %.2f" % ("M" if i == 0 else "L", x, y)
+                         for i, (x, y) in enumerate(pts))
+        L.append('<path d="%s" stroke="#1a3fa8" stroke-width="0.45" '
+                 'stroke-dasharray="2 1.4" fill="none"/>' % traza)
     L.append('</g>')
     L.append('<g font-family="sans-serif" fill="#111111">')
     for c in n.d["componentes"]:
@@ -748,13 +868,25 @@ def gen_conexiones(n):
     L.append("pasa por arriba con un cable aislado. Son estos, y no hay más. Se")
     L.append("sueldan **después** de la cinta y **antes** de los módulos.")
     L.append("")
-    L.append("| # | Red | De | A | Largo aprox. |")
-    L.append("|---:|---|---|---|---:|")
+    L.append("Los que dicen **rodeando** no van de punta a punta: el camino")
+    L.append("derecho les cruzaría la ventana de la pantalla y el cable quedaría")
+    L.append("apretado entre el módulo y el plástico. La plantilla los dibuja por")
+    L.append("donde van.")
+    L.append("")
+    L.append("| # | Red | De | A | Cable | Largo aprox. | |")
+    L.append("|---:|---|---|---|---|---:|---|")
     for i, pu in enumerate(n.puentes, 1):
-        a1, b1 = n.pads[pu["de"]], n.pads[pu["a"]]
-        L.append("| %d | %s | `%s` | `%s` | %.0f mm |"
-                 % (i, pu["red"], pu["de"], pu["a"],
-                    math.dist((a1.x, a1.y), (b1.x, b1.y)) + 6))
+        pts = n.camino_puente(pu)
+        largo = sum(math.dist(a, b) for a, b in zip(pts[:-1], pts[1:]))
+        rodea = ("**rodeando** la ventana (ver la plantilla)"
+                 if len(pts) > 2 else "")
+        # El calibre lo declara la red, no su clase: por el camino de la celda
+        # y del cargador pasa un ampere y ahi el cable es mejor conductor que
+        # la cinta; un ramal de masa a la compuerta de un MOSFET, no.
+        calibre = n.d["redes"][pu["red"]].get("cable_puente", "AWG30")
+        calibre = "**%s**" % calibre if calibre != "AWG30" else calibre
+        L.append("| %d | %s | `%s` | `%s` | %s | %.0f mm | %s |"
+                 % (i, pu["red"], pu["de"], pu["a"], calibre, largo + 6, rodea))
     L.append("")
     L.append("## Los puntos de prueba")
     L.append("")
@@ -887,6 +1019,45 @@ def _canonizar_stl(stl):
         f.write(b"".join(facetas))
 
 
+def probar_base(stl):
+    """La cara de abajo tiene que ser un plano, y hay que comprobarlo en la
+    pieza, no en el modelo.
+
+    Un techo mirando hacia abajo a media altura es plastico que la impresora
+    tiene que tender en el aire sobre la primera capa: sale colgando, se
+    despega y arruina la cara. Es el defecto que tenian la repisa de la
+    ventana y el bolsillo del cargador. Buscarlo en el STL es barato —una
+    faceta con la normal hacia abajo por encima de la cama— y no depende de
+    acordarse de mirar el modelo."""
+    if not os.path.exists(stl):
+        return None
+    with open(stl, "rb") as f:
+        datos = f.read()
+    if len(datos) < 84:
+        return None
+    n = int.from_bytes(datos[80:84], "little")
+    peor = None
+    area = 0.0
+    for i in range(n):
+        d = struct.unpack("<12f", datos[84 + i * 50:84 + i * 50 + 48])
+        if d[2] > -0.99:                 # no mira hacia abajo
+            continue
+        zs = (d[5], d[8], d[11])
+        z = max(zs)
+        if z <= 0.01:                    # es la cara de abajo, que esta bien
+            continue
+        ax = (d[6] - d[3], d[7] - d[4])
+        bx = (d[9] - d[3], d[10] - d[4])
+        area += abs(ax[0] * bx[1] - ax[1] * bx[0]) / 2.0
+        if peor is None or z > peor[0]:
+            peor = (z, d[3], d[4])
+    if peor is None:
+        return None
+    return ("la cara de abajo no es plana: %.1f mm2 de techo colgando, el mas "
+            "alto a %.2f mm sobre la cama, cerca de (%.1f, %.1f)"
+            % (area, peor[0], peor[1], peor[2]))
+
+
 def exportar_stl(destino, fuente=None):
     fuente = fuente or SCAD
     if not os.path.exists(fuente):
@@ -912,12 +1083,18 @@ def main():
     ap.add_argument("--generar", action="store_true")
     ap.add_argument("--stl", action="store_true")
     ap.add_argument("--encaje", action="store_true")
+    ap.add_argument("--rutear", action="store_true")
     args = ap.parse_args()
-    if not (args.verificar or args.generar or args.stl or args.encaje):
+    if not (args.verificar or args.generar or args.stl or args.encaje
+            or args.rutear):
         args.verificar = True
 
-    with open(DATO, encoding="utf-8") as f:
-        d = json.load(f)
+    d = cargar()
+    if args.rutear:
+        import ruteo
+        print("  ruteando (esto tarda)")
+        ruteo.rutear_y_guardar(Nucleo(d), RUTEO)
+        d = cargar()
     n = Nucleo(d)
     errores = n.verificar()
 
@@ -932,7 +1109,13 @@ def main():
             print("    - %s" % e)
         return 1
     print("  en regla: separaciones, anchos, conectividad, antena, bordes,\n"
-          "  rotulos y nervaduras de la estampadora")
+          "  rotulos, agujeros, puentes y nervaduras de la estampadora")
+
+    mal = probar_base(os.path.join(GEN, "nucleo-sustrato.stl"))
+    if mal:
+        print("  FALLA: %s" % mal)
+        return 1
+    print("  base: la cara que se imprime contra la cama es un plano")
 
     if args.generar or args.stl:
         os.makedirs(GEN, exist_ok=True)

@@ -49,7 +49,7 @@ Medidas pensadas para una impresora de filamento común con boquilla de 0,4 mm.
 |---|---:|---|
 | Encastre a presión | **0,20 mm** | Por cara, no en total |
 | Encastre a rosca | **0,35 mm** | |
-| Poste para tornillo M2 | **Ø1,7 mm** | El tornillo hace su rosca |
+| Poste para tornillo M3 | **Ø2,4 mm** | El tornillo hace su rosca. Era M2/Ø1,7 hasta el sustrato v2.0 |
 | Paso de cable | **Ø4 mm** mínimo | Dupont con funda |
 | Pared mínima | **1,6 mm** | Cuatro perímetros a 0,4 |
 

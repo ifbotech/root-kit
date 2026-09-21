@@ -1,107 +1,87 @@
 {
- "version": "v1.0",
+ "version": "v2.0",
  "que_es": "El nucleo comun de ROOTKIT: el sustrato impreso en PETG con canaletas, la cinta de cobre que va en ellas, y donde se monta cada modulo. Uno solo para los cinco Rooties. Coordenadas en milimetros, mirando la CARA DE LAS CANALETAS (la de atras del producto): de frente al ROOTKIT, la X crece hacia la izquierda.",
  "sustrato": {
-  "ancho": 72.0,
-  "alto": 104.0,
+  "ancho": 62.0,
+  "alto": 92.0,
   "espesor": 3.0,
   "radio_borde": 2.0,
   "ventana": {
-   "x": 36.0,
-   "y": 35.0,
+   "x": 31.0,
+   "y": 29.5,
    "ancho": 28.6,
    "alto": 37.6,
-   "repisa": 0.9,
-   "prof": 1.4,
-   "nota": "La pantalla entra desde el frente y apoya en la repisa; la carcasa la aprieta contra el marco de su ventana. El area activa NO esta centrada en el modulo: queda a 14 mm del borde opuesto al conector (MEDIR con el modulo en la mano)."
+   "nota": "Pasante y recta, sin repisa: la repisa era un voladizo hacia adentro en la cara que se imprime contra la cama. La pantalla la sostiene el marco de la carcasa, que es lo que ya hacia. El area activa NO esta centrada en el modulo: queda a 14 mm del borde opuesto al conector (MEDIR con el modulo en la mano)."
   },
   "activa": {
-   "x": 36.0,
-   "y": 30.2,
+   "x": 31.0,
+   "y": 24.7,
    "lado": 25.9,
    "nota": "Donde cae el cuadrado que se ve. La ventana de la carcasa se centra ACA, no en el modulo."
   },
   "recortes": [
    {
     "id": "antena",
-    "x": 36.0,
-    "y": 98.5,
+    "x": 31.0,
+    "y": 88.92,
     "ancho": 9.0,
-    "alto": 5.0
+    "alto": 8.15
    }
   ],
   "antena": {
    "modulo": "U1",
-   "x": 36.0,
-   "y": 98.25,
+   "x": 31.0,
+   "y": 86.5,
    "ancho": 8.0,
    "alto": 4.0,
    "libre": 5.0
   },
   "tornillos": [
    {
-    "x": 3.0,
-    "y": 3.0,
-    "d": 2.4
+    "x": 3.5,
+    "y": 3.5,
+    "d": 3.2
    },
    {
-    "x": 66.0,
-    "y": 3.0,
-    "d": 2.4
+    "x": 58.5,
+    "y": 3.5,
+    "d": 3.2
    },
    {
-    "x": 3.0,
-    "y": 101.0,
-    "d": 2.4
+    "x": 3.5,
+    "y": 88.5,
+    "d": 3.2
    },
    {
-    "x": 66.0,
-    "y": 101.0,
-    "d": 2.4
-   }
-  ],
-  "bolsillos": [
-   {
-    "id": "tp4056",
-    "x": 25.0,
-    "y": 7.0,
-    "ancho": 27.0,
-    "alto": 14.0,
-    "prof": 0.8
+    "x": 58.5,
+    "y": 88.5,
+    "d": 3.2
    }
   ],
   "rotulos": [
    {
-    "x": 59.0,
-    "y": 30.0,
-    "tam": 3.0,
-    "texto": "ROOTKIT"
+    "x": 50.0,
+    "y": 3.0,
+    "tam": 1.6,
+    "texto": "ROOTKIT v2.0"
    },
    {
-    "x": 59.0,
-    "y": 25.5,
-    "tam": 2.2,
-    "texto": "v1.0"
-   },
-   {
-    "x": 36.0,
-    "y": 57.2,
-    "tam": 1.8,
-    "texto": "APAGAR ANTES DE FLASHEAR"
-   },
-   {
-    "x": 59.0,
-    "y": 20.5,
+    "x": 10.0,
+    "y": 45.5,
     "tam": 1.6,
     "texto": "ifbotech"
    }
   ]
  },
  "reglas": {
+  "boquilla": 0.6,
   "separacion_min": 0.8,
   "holgura_canaleta": 0.3,
-  "prof_canaleta": 0.4,
+  "prof_canaleta": 0.8,
   "margen_borde": 0.6,
+  "pared_min_agujeros": 1.1,
+  "agujero_min": 1.4,
+  "aire_rotulo": 0.6,
   "ancho": {
    "potencia": 4.0,
    "senal": 2.0,
@@ -111,7 +91,7 @@
    "potencia": 2.4,
    "senal": 1.2
   },
-  "porque": "0,8 mm de pared son dos extrusiones de 0,4: menos que eso no se imprime. 0,3 mm de holgura hacen que la cinta entre en la canaleta sin arrugarse. 0,4 mm de profundidad alcanzan para guiar la cinta y para que la pared sirva de guia del bisturi al recortarla."
+  "porque": "La boquilla es de 0,6: manda ella. Un agujero de menos de 1,4 mm sale tapado, porque el perimetro de 0,6 se come el radio; por eso ninguno baja de ahi y los de los bornes van a 1,8. Entre dos agujeros tiene que quedar pared: 1,1 mm son dos extrusiones de 0,55, que una boquilla de 0,6 saca sin despeinarse. 0,8 mm de pared entre canaletas es una extrusion sola y ancha, y se imprime. 0,3 mm de holgura hacen que la cinta entre sin arrugarse. Y 0,8 mm de profundidad —cuatro capas de 0,2— son el doble que antes: la cinta se hunde, se queda quieta sola y la pared guia el bisturi de punta a punta."
  },
  "rieles": [
   {
@@ -170,11 +150,11 @@
     22.5
    ],
    "pad": [
-    2.2,
-    1.4
+    2.6,
+    2.2
    ],
-   "agujero": 1.0,
-   "nota": "ESP32-C3 SuperMini, 22,5 x 18 mm, antena ceramica arriba, USB-C abajo. Dos filas de 8 pines a 2,54 mm, separadas 15,24 mm. VERIFICAR con la placa en la mano y, si no coincide, corregir aca y regenerar: es el unico componente con huella al milimetro.",
+   "agujero": 1.4,
+   "nota": "ESP32-C3 SuperMini, 22,5 x 18 mm, antena ceramica arriba, USB-C abajo. Dos filas de 8 pines a 2,54 mm, separadas 15,24 mm. Los pads van ESCALONADOS —uno afuera, el siguiente adentro— y pegados al borde de su agujero, no alrededor: a 2,54 mm de paso, con boquilla de 0,6, un anillo completo no entra (ver docs/pcb.md). VERIFICAR con la placa en la mano.",
    "pines": [
     "IO5",
     "IO6",
@@ -195,66 +175,98 @@
    ],
    "pads": [
     [
+     -9.62,
+     8.13,
      -7.62,
      8.13
     ],
     [
+     -5.62,
+     5.59,
      -7.62,
      5.59
     ],
     [
+     -9.62,
+     3.05,
      -7.62,
      3.05
     ],
     [
+     -5.62,
+     0.51,
      -7.62,
      0.51
     ],
     [
+     -9.62,
+     -2.03,
      -7.62,
      -2.03
     ],
     [
+     -5.62,
+     -4.57,
      -7.62,
      -4.57
     ],
     [
+     -9.62,
+     -7.11,
      -7.62,
      -7.11
     ],
     [
+     -5.62,
+     -9.65,
      -7.62,
      -9.65
     ],
     [
+     9.62,
+     8.13,
      7.62,
      8.13
     ],
     [
+     5.62,
+     5.59,
      7.62,
      5.59
     ],
     [
+     9.62,
+     3.05,
      7.62,
      3.05
     ],
     [
+     5.62,
+     0.51,
      7.62,
      0.51
     ],
     [
+     9.62,
+     -2.03,
      7.62,
      -2.03
     ],
     [
+     5.62,
+     -4.57,
      7.62,
      -4.57
     ],
     [
+     9.62,
+     -7.11,
      7.62,
      -7.11
     ],
     [
+     5.62,
+     -9.65,
      7.62,
      -9.65
     ]
@@ -262,10 +274,10 @@
   },
   "borne1": {
    "pad": [
-    2.8,
+    2.6,
     2.8
    ],
-   "agujero": 1.3,
+   "agujero": 1.8,
    "pines": [
     "1"
    ],
@@ -278,31 +290,31 @@
   },
   "borne2h": {
    "pad": [
-    2.8,
+    2.6,
     2.8
    ],
-   "agujero": 1.3,
+   "agujero": 1.8,
    "pines": [
     "1",
     "2"
    ],
    "pads": [
     [
-     -2.2,
-     0
+     -1.9,
+     0.0
     ],
     [
-     2.2,
-     0
+     1.9,
+     0.0
     ]
    ]
   },
   "borne6h": {
    "pad": [
-    2.8,
+    2.6,
     2.8
    ],
-   "agujero": 1.3,
+   "agujero": 1.8,
    "pines": [
     "1",
     "2",
@@ -313,37 +325,37 @@
    ],
    "pads": [
     [
-     -11,
-     0
+     -9.5,
+     0.0
     ],
     [
-     -6.6,
-     0
+     -5.7,
+     0.0
     ],
     [
-     -2.2,
-     0
+     -1.9,
+     0.0
     ],
     [
-     2.2,
-     0
+     1.9,
+     0.0
     ],
     [
-     6.6,
-     0
+     5.7,
+     0.0
     ],
     [
-     11,
-     0
+     9.5,
+     0.0
     ]
    ]
   },
   "borne8h": {
    "pad": [
-    2.8,
+    2.6,
     2.8
    ],
-   "agujero": 1.3,
+   "agujero": 1.8,
    "pines": [
     "1",
     "2",
@@ -356,36 +368,36 @@
    ],
    "pads": [
     [
-     -15.4,
-     0
+     -13.3,
+     0.0
     ],
     [
-     -11,
-     0
+     -9.5,
+     0.0
     ],
     [
-     -6.6,
-     0
+     -5.7,
+     0.0
     ],
     [
-     -2.2,
-     0
+     -1.9,
+     0.0
     ],
     [
-     2.2,
-     0
+     1.9,
+     0.0
     ],
     [
-     6.6,
-     0
+     5.7,
+     0.0
     ],
     [
-     11,
-     0
+     9.5,
+     0.0
     ],
     [
-     15.4,
-     0
+     13.3,
+     0.0
     ]
    ]
   },
@@ -460,8 +472,8 @@
   },
   "sma": {
    "pad": [
-    2.2,
-    1.8
+    2.6,
+    2.6
    ],
    "agujero": 0.0,
    "pines": [
@@ -498,30 +510,30 @@
   "borne2v": {
    "pad": [
     2.8,
-    2.8
+    2.6
    ],
-   "agujero": 1.3,
+   "agujero": 1.8,
    "pines": [
     "1",
     "2"
    ],
    "pads": [
     [
-     0,
-     2.2
+     0.0,
+     -1.9
     ],
     [
-     0,
-     -2.2
+     0.0,
+     1.9
     ]
    ]
   },
   "col4": {
    "pad": [
     2.8,
-    2.8
+    2.6
    ],
-   "agujero": 1.3,
+   "agujero": 1.8,
    "pines": [
     "VCC",
     "GND",
@@ -550,9 +562,9 @@
   "col3": {
    "pad": [
     2.8,
-    2.8
+    2.6
    ],
-   "agujero": 1.3,
+   "agujero": 1.8,
    "pines": [
     "VCC",
     "GND",
@@ -576,9 +588,9 @@
   "col3s": {
    "pad": [
     2.8,
-    2.8
+    2.6
    ],
-   "agujero": 1.3,
+   "agujero": 1.8,
    "pines": [
     "GND",
     "AOUT",
@@ -630,7 +642,7 @@
     3.4,
     3.4
    ],
-   "agujero": 1.2,
+   "agujero": 1.8,
    "pines": [
     "1",
     "2"
@@ -678,8 +690,8 @@
    "ref": "U1",
    "huella": "esp32c3",
    "pos": [
-    36.0,
-    89.0
+    31.0,
+    77.25
    ],
    "rotular_pines": true,
    "desc": "ESP32-C3 SuperMini",
@@ -690,8 +702,8 @@
    "ref": "J_TFT",
    "huella": "borne8h",
    "pos": [
-    36.0,
-    73.5
+    31.0,
+    56.5
    ],
    "rotular_pines": true,
    "desc": "bornes de la pantalla TFT 1,44\"",
@@ -712,8 +724,8 @@
    "ref": "J_AHT",
    "huella": "col4",
    "pos": [
-    9.0,
-    61.0
+    4.0,
+    34.0
    ],
    "rotular_pines": true,
    "desc": "bornes del AHT20 (aire)",
@@ -730,8 +742,8 @@
    "ref": "J_BH",
    "huella": "col4",
    "pos": [
-    14.0,
-    61.0
+    8.4,
+    34.0
    ],
    "rotular_pines": true,
    "desc": "bornes del BH1750 (luz)",
@@ -748,8 +760,8 @@
    "ref": "J_TTP",
    "huella": "col3",
    "pos": [
-    53.0,
-    61.0
+    49.0,
+    34.0
    ],
    "rotular_pines": true,
    "desc": "bornes del TTP223 (toque)",
@@ -765,8 +777,8 @@
    "ref": "J_DS",
    "huella": "col3",
    "pos": [
-    58.0,
-    61.0
+    53.5,
+    34.0
    ],
    "rotular_pines": true,
    "desc": "bornes del DS18B20 (tierra)",
@@ -782,8 +794,8 @@
    "ref": "J_SUELO",
    "huella": "col3s",
    "pos": [
-    19.0,
-    61.0
+    12.8,
+    34.0
    ],
    "rotular_pines": true,
    "desc": "bornes del capacitivo de suelo",
@@ -799,8 +811,8 @@
    "ref": "J_TP",
    "huella": "borne6h",
    "pos": [
-    25.0,
-    8.0
+    17.0,
+    7.0
    ],
    "rotular_pines": true,
    "desc": "bornes del modulo TP4056 + DW01A",
@@ -819,8 +831,8 @@
    "ref": "J_CELDA",
    "huella": "borne2h",
    "pos": [
-    25.0,
-    2.5
+    17.0,
+    3.0
    ],
    "rotular_pines": true,
    "desc": "bornes del portapilas 18650",
@@ -835,8 +847,8 @@
    "ref": "J_SW",
    "huella": "borne2v",
    "pos": [
-    65.5,
-    12.0
+    57.5,
+    17.0
    ],
    "rotular_pines": true,
    "desc": "bornes del interruptor deslizante",
@@ -851,8 +863,8 @@
    "ref": "D1",
    "huella": "sma",
    "pos": [
-    41.0,
-    6.5
+    33.0,
+    8.0
    ],
    "desc": "SS34 (Schottky 3 A, SMA)",
    "donde": "en el sustrato",
@@ -866,8 +878,8 @@
    "ref": "Q1",
    "huella": "sot23",
    "pos": [
-    54.0,
-    8.0
+    42.0,
+    7.0
    ],
    "desc": "AO3401 (P, SOT-23) — carga compartida",
    "donde": "en el sustrato",
@@ -883,8 +895,8 @@
    "ref": "R3",
    "huella": "r1206",
    "pos": [
-    47.0,
-    10.5
+    48.5,
+    8.0
    ],
    "desc": "100 k — compuerta de Q1 a masa",
    "donde": "en el sustrato",
@@ -898,8 +910,8 @@
    "ref": "Q2",
    "huella": "sot23",
    "pos": [
-    10.0,
-    44.0
+    5.0,
+    18.8
    ],
    "desc": "AO3401 (P) — riel conmutado de sensores",
    "donde": "en el sustrato",
@@ -915,8 +927,8 @@
    "ref": "R4",
    "huella": "r1206v",
    "pos": [
-    5.5,
-    44.0
+    11.0,
+    18.8
    ],
    "desc": "100 k — compuerta a fuente de Q2",
    "donde": "en el sustrato",
@@ -930,8 +942,8 @@
    "ref": "R5",
    "huella": "r1206v",
    "pos": [
-    11.3,
-    38.0
+    5.0,
+    12.2
    ],
    "desc": "100 k — purga del riel conmutado",
    "donde": "en el sustrato",
@@ -945,8 +957,8 @@
    "ref": "C4",
    "huella": "r1206v",
    "pos": [
-    16.0,
-    38.0
+    11.0,
+    12.2
    ],
    "desc": "100 nF — desacople del riel conmutado",
    "donde": "en el sustrato",
@@ -961,7 +973,7 @@
    "huella": "sot23",
    "pos": [
     8.0,
-    84.0
+    79.0
    ],
    "desc": "AO3400 (N) — etapa de la luz de fondo",
    "donde": "en el sustrato",
@@ -978,7 +990,7 @@
    "huella": "sot23",
    "pos": [
     8.0,
-    94.0
+    86.0
    ],
    "desc": "AO3401 (P) — llave del lado alto de la luz de fondo",
    "donde": "en el sustrato",
@@ -994,8 +1006,8 @@
    "ref": "R8",
    "huella": "r1206",
    "pos": [
-    13.5,
-    82.7
+    14.5,
+    79.0
    ],
    "desc": "100 k — compuerta de Q3 a masa",
    "donde": "en el sustrato",
@@ -1009,8 +1021,8 @@
    "ref": "R9",
    "huella": "r1206",
    "pos": [
-    13.5,
-    92.7
+    14.5,
+    86.0
    ],
    "desc": "10 k — compuerta de Q4 a 3V3",
    "donde": "en el sustrato",
@@ -1024,8 +1036,8 @@
    "ref": "R10",
    "huella": "r1206",
    "pos": [
-    10.0,
-    72.0
+    5.0,
+    65.0
    ],
    "desc": "100 k — el nodo BL a masa",
    "donde": "en el sustrato",
@@ -1039,8 +1051,8 @@
    "ref": "JP_BL",
    "huella": "selector3",
    "pos": [
-    14.0,
-    79.0
+    11.0,
+    72.0
    ],
    "rotular_pines": true,
    "desc": "selector del lado de conmutacion de la luz de fondo",
@@ -1056,8 +1068,8 @@
    "ref": "R6",
    "huella": "r1206v",
    "pos": [
-    62.0,
-    50.0
+    54.5,
+    79.0
    ],
    "desc": "4,7 k — pull-up del 1-Wire a 3V3 fijo",
    "donde": "en el sustrato",
@@ -1071,8 +1083,8 @@
    "ref": "R7",
    "huella": "r1206v",
    "pos": [
-    44.0,
-    66.0
+    49.5,
+    79.0
    ],
    "desc": "10 k — RES de la pantalla a 3V3",
    "donde": "en el sustrato",
@@ -1086,7 +1098,7 @@
    "ref": "R1",
    "huella": "r1206v",
    "pos": [
-    48.0,
+    44.5,
     86.0
    ],
    "desc": "470 k — rama de arriba del divisor",
@@ -1101,8 +1113,8 @@
    "ref": "R2",
    "huella": "r1206v",
    "pos": [
-    48.0,
-    80.5
+    44.5,
+    80.0
    ],
    "desc": "470 k — rama de abajo del divisor",
    "donde": "en el sustrato",
@@ -1116,8 +1128,8 @@
    "ref": "C1",
    "huella": "r1206v",
    "pos": [
-    54.0,
-    80.5
+    49.5,
+    86.0
    ],
    "desc": "100 nF — filtro del divisor",
    "donde": "en el sustrato",
@@ -1131,8 +1143,8 @@
    "ref": "C2",
    "huella": "radial5",
    "pos": [
-    58.0,
-    88.0
+    52.0,
+    73.5
    ],
    "desc": "220–470 uF 6,3 V bajo ESR — 3V3",
    "donde": "en el sustrato",
@@ -1146,8 +1158,8 @@
    "ref": "C3",
    "huella": "r1206v",
    "pos": [
-    51.2,
-    88.6
+    54.5,
+    86.0
    ],
    "desc": "100 nF — desacople de 3V3",
    "donde": "en el sustrato",
@@ -1161,8 +1173,8 @@
    "ref": "TP1",
    "huella": "punto_prueba",
    "pos": [
-    7.0,
-    20.0
+    49.0,
+    45.0
    ],
    "desc": "masa (la punta negra del tester vive aca)",
    "pines": [
@@ -1173,7 +1185,7 @@
    "ref": "TP2",
    "huella": "punto_prueba",
    "pos": [
-    33.0,
+    23.5,
     3.0
    ],
    "desc": "celda protegida (OUT+ del TP4056)",
@@ -1185,7 +1197,7 @@
    "ref": "TP3",
    "huella": "punto_prueba",
    "pos": [
-    52.0,
+    35.0,
     3.0
    ],
    "desc": "nodo de sistema (VSYS)",
@@ -1197,8 +1209,8 @@
    "ref": "TP4",
    "huella": "punto_prueba",
    "pos": [
-    69.5,
-    20.0
+    57.5,
+    10.0
    ],
    "desc": "riel del interruptor (VINT); tambien la toma de VIN del amplificador, el dia del sonido",
    "pines": [
@@ -1209,8 +1221,8 @@
    "ref": "TP5",
    "huella": "punto_prueba",
    "pos": [
-    40.0,
-    68.0
+    59.0,
+    80.0
    ],
    "desc": "3V3 fijo",
    "pines": [
@@ -1282,7 +1294,8 @@
     "J_CELDA.-",
     "J_TP.B-"
    ],
-   "ancho_minimo": 2.4
+   "ancho_minimo": 2.4,
+   "cable_puente": "AWG24"
   },
   "VBAT": {
    "clase": "potencia",
@@ -1291,7 +1304,8 @@
    "nodos": [
     "J_CELDA.+",
     "J_TP.B+"
-   ]
+   ],
+   "cable_puente": "AWG24"
   },
   "V5": {
    "clase": "potencia",
@@ -1302,7 +1316,8 @@
     "D1.A",
     "Q1.G",
     "R3.1"
-   ]
+   ],
+   "cable_puente": "AWG24"
   },
   "VBATP": {
    "clase": "potencia",
@@ -1312,7 +1327,8 @@
     "J_TP.OUT+",
     "Q1.D",
     "TP2.1"
-   ]
+   ],
+   "cable_puente": "AWG24"
   },
   "VSYS": {
    "clase": "potencia",
@@ -1324,7 +1340,8 @@
     "J_SW.1",
     "TP3.1"
    ],
-   "ancho_minimo": 1.2
+   "ancho_minimo": 1.2,
+   "cable_puente": "AWG24"
   },
   "VINT": {
    "clase": "potencia",
@@ -1669,996 +1686,10 @@
    "RK_REPOSO_OBJETIVO_UA": "80"
   }
  },
- "pistas": [
-  {
-   "red": "3V3",
-   "ancho": 1.4,
-   "puntos": [
-    [
-     43.62,
-     92.05
-    ],
-    [
-     45.0,
-     92.05
-    ]
-   ]
-  },
-  {
-   "red": "3V3",
-   "ancho": 1.4,
-   "puntos": [
-    [
-     45.0,
-     92.05
-    ],
-    [
-     60.5,
-     92.05
-    ],
-    [
-     60.5,
-     90.0
-    ]
-   ]
-  },
-  {
-   "red": "3V3",
-   "ancho": 2.4,
-   "puntos": [
-    [
-     60.5,
-     90.0
-    ],
-    [
-     60.5,
-     68.0
-    ]
-   ]
-  },
-  {
-   "red": "3V3",
-   "ancho": 2.4,
-   "puntos": [
-    [
-     2.5,
-     68.0
-    ],
-    [
-     60.5,
-     68.0
-    ]
-   ]
-  },
-  {
-   "red": "GND",
-   "ancho": 1.4,
-   "puntos": [
-    [
-     43.62,
-     94.59
-    ],
-    [
-     45.0,
-     94.59
-    ]
-   ]
-  },
-  {
-   "red": "GND",
-   "ancho": 1.4,
-   "puntos": [
-    [
-     45.0,
-     94.59
-    ],
-    [
-     65.5,
-     94.59
-    ],
-    [
-     65.5,
-     92.0
-    ]
-   ]
-  },
-  {
-   "red": "GND",
-   "ancho": 2.4,
-   "puntos": [
-    [
-     65.5,
-     92.0
-    ],
-    [
-     65.5,
-     61.0
-    ]
-   ]
-  },
-  {
-   "red": "GND",
-   "ancho": 2.4,
-   "puntos": [
-    [
-     2.2,
-     61.0
-    ],
-    [
-     65.5,
-     61.0
-    ]
-   ]
-  },
-  {
-   "red": "GND",
-   "ancho": 2.4,
-   "puntos": [
-    [
-     2.2,
-     61.0
-    ],
-    [
-     2.2,
-     13.8
-    ]
-   ]
-  },
-  {
-   "red": "GND",
-   "ancho": 2.4,
-   "puntos": [
-    [
-     2.2,
-     13.8
-    ],
-    [
-     48.7,
-     13.8
-    ]
-   ]
-  },
-  {
-   "red": "GND",
-   "ancho": 1.4,
-   "puntos": [
-    [
-     2.2,
-     20.0
-    ],
-    [
-     7.0,
-     20.0
-    ]
-   ]
-  },
-  {
-   "red": "GND",
-   "ancho": 1.4,
-   "puntos": [
-    [
-     14.0,
-     13.8
-    ],
-    [
-     14.0,
-     9.0
-    ]
-   ]
-  },
-  {
-   "red": "GND",
-   "ancho": 1.4,
-   "puntos": [
-    [
-     18.4,
-     13.8
-    ],
-    [
-     18.4,
-     9.0
-    ]
-   ]
-  },
-  {
-   "red": "GND",
-   "ancho": 1.4,
-   "puntos": [
-    [
-     48.7,
-     13.8
-    ],
-    [
-     48.7,
-     11.5
-    ]
-   ]
-  },
-  {
-   "red": "GND",
-   "ancho": 1.4,
-   "puntos": [
-    [
-     2.2,
-     36.3
-    ],
-    [
-     16.0,
-     36.3
-    ]
-   ]
-  },
-  {
-   "red": "GND",
-   "ancho": 1.4,
-   "puntos": [
-    [
-     48.0,
-     78.8
-    ],
-    [
-     54.0,
-     78.8
-    ]
-   ]
-  },
-  {
-   "red": "GND",
-   "ancho": 1.2,
-   "puntos": [
-    [
-     54.0,
-     78.8
-    ],
-    [
-     56.8,
-     78.8
-    ],
-    [
-     56.8,
-     88.0
-    ],
-    [
-     56.0,
-     88.0
-    ]
-   ]
-  },
-  {
-   "red": "VINT",
-   "ancho": 1.4,
-   "puntos": [
-    [
-     43.62,
-     97.13
-    ],
-    [
-     45.0,
-     97.13
-    ]
-   ]
-  },
-  {
-   "red": "VINT",
-   "ancho": 1.4,
-   "puntos": [
-    [
-     45.0,
-     97.13
-    ],
-    [
-     69.8,
-     97.13
-    ],
-    [
-     69.8,
-     94.0
-    ]
-   ]
-  },
-  {
-   "red": "VINT",
-   "ancho": 2.4,
-   "puntos": [
-    [
-     69.8,
-     94.0
-    ],
-    [
-     69.8,
-     9.8
-    ]
-   ]
-  },
-  {
-   "red": "VINT",
-   "ancho": 1.4,
-   "puntos": [
-    [
-     69.8,
-     9.8
-    ],
-    [
-     66.9,
-     9.8
-    ]
-   ]
-  },
-  {
-   "red": "SCK",
-   "ancho": 1.4,
-   "puntos": [
-    [
-     28.38,
-     94.59
-    ],
-    [
-     27.0,
-     94.59
-    ]
-   ]
-  },
-  {
-   "red": "SCK",
-   "ancho": 1.4,
-   "puntos": [
-    [
-     27.0,
-     94.59
-    ],
-    [
-     21.0,
-     94.59
-    ],
-    [
-     21.0,
-     74.0
-    ]
-   ]
-  },
-  {
-   "red": "MOSI",
-   "ancho": 1.4,
-   "puntos": [
-    [
-     28.38,
-     92.05
-    ],
-    [
-     27.0,
-     92.05
-    ]
-   ]
-  },
-  {
-   "red": "MOSI",
-   "ancho": 1.4,
-   "puntos": [
-    [
-     27.0,
-     92.05
-    ],
-    [
-     25.0,
-     92.05
-    ],
-    [
-     25.0,
-     74.0
-    ]
-   ]
-  },
-  {
-   "red": "TFT_CS",
-   "ancho": 1.4,
-   "puntos": [
-    [
-     28.38,
-     81.89
-    ],
-    [
-     37.0,
-     81.89
-    ]
-   ]
-  },
-  {
-   "red": "TFT_CS",
-   "ancho": 1.2,
-   "puntos": [
-    [
-     37.0,
-     81.89
-    ],
-    [
-     37.0,
-     76.8
-    ],
-    [
-     29.4,
-     76.8
-    ],
-    [
-     29.4,
-     74.0
-    ]
-   ]
-  },
-  {
-   "red": "3V3",
-   "ancho": 1.4,
-   "puntos": [
-    [
-     47.0,
-     68.0
-    ],
-    [
-     47.0,
-     74.0
-    ]
-   ]
-  },
-  {
-   "red": "RIEL",
-   "ancho": 1.4,
-   "puntos": [
-    [
-     43.62,
-     81.89
-    ],
-    [
-     48.0,
-     81.89
-    ]
-   ]
-  },
-  {
-   "red": "RIEL",
-   "ancho": 1.4,
-   "puntos": [
-    [
-     48.0,
-     82.2
-    ],
-    [
-     54.0,
-     82.2
-    ]
-   ]
-  },
-  {
-   "red": "RIEL",
-   "ancho": 1.4,
-   "puntos": [
-    [
-     48.0,
-     82.2
-    ],
-    [
-     48.0,
-     84.3
-    ]
-   ]
-  },
-  {
-   "red": "3V3",
-   "ancho": 1.4,
-   "puntos": [
-    [
-     60.5,
-     92.05
-    ],
-    [
-     61.0,
-     92.05
-    ],
-    [
-     61.0,
-     89.0
-    ]
-   ]
-  },
-  {
-   "red": "3V3",
-   "ancho": 1.4,
-   "puntos": [
-    [
-     51.2,
-     92.05
-    ],
-    [
-     51.2,
-     90.3
-    ]
-   ]
-  },
-  {
-   "red": "OW",
-   "ancho": 1.4,
-   "puntos": [
-    [
-     62.0,
-     48.3
-    ],
-    [
-     58.0,
-     48.3
-    ],
-    [
-     58.0,
-     54.8
-    ]
-   ]
-  },
-  {
-   "red": "SENS_EN",
-   "ancho": 1.2,
-   "puntos": [
-    [
-     5.5,
-     42.3
-    ],
-    [
-     8.4,
-     42.3
-    ]
-   ]
-  },
-  {
-   "red": "3V3S",
-   "ancho": 1.4,
-   "puntos": [
-    [
-     11.3,
-     44.0
-    ],
-    [
-     11.3,
-     39.7
-    ]
-   ]
-  },
-  {
-   "red": "3V3S",
-   "ancho": 1.4,
-   "puntos": [
-    [
-     11.3,
-     39.7
-    ],
-    [
-     16.0,
-     39.7
-    ]
-   ]
-  },
-  {
-   "red": "3V3S",
-   "ancho": 1.4,
-   "puntos": [
-    [
-     11.3,
-     44.0
-    ],
-    [
-     11.3,
-     47.0
-    ],
-    [
-     19.0,
-     47.0
-    ],
-    [
-     19.0,
-     50.0
-    ]
-   ]
-  },
-  {
-   "red": "BL_G",
-   "ancho": 1.2,
-   "puntos": [
-    [
-     9.15,
-     82.6
-    ],
-    [
-     11.8,
-     82.6
-    ]
-   ]
-  },
-  {
-   "red": "BL_M",
-   "ancho": 1.2,
-   "puntos": [
-    [
-     9.15,
-     92.6
-    ],
-    [
-     11.8,
-     92.6
-    ]
-   ]
-  },
-  {
-   "red": "BL_M",
-   "ancho": 1.2,
-   "puntos": [
-    [
-     9.15,
-     92.6
-    ],
-    [
-     9.15,
-     90.0
-    ],
-    [
-     18.5,
-     90.0
-    ],
-    [
-     18.5,
-     79.0
-    ],
-    [
-     17.6,
-     79.0
-    ]
-   ]
-  },
-  {
-   "red": "BL_M",
-   "ancho": 1.2,
-   "puntos": [
-    [
-     8.0,
-     85.4
-    ],
-    [
-     8.0,
-     87.0
-    ],
-    [
-     18.5,
-     87.0
-    ]
-   ]
-  },
-  {
-   "red": "BL_A",
-   "ancho": 1.2,
-   "puntos": [
-    [
-     8.0,
-     95.4
-    ],
-    [
-     4.0,
-     95.4
-    ],
-    [
-     4.0,
-     79.0
-    ],
-    [
-     10.4,
-     79.0
-    ]
-   ]
-  },
-  {
-   "red": "BL",
-   "ancho": 1.2,
-   "puntos": [
-    [
-     14.0,
-     78.0
-    ],
-    [
-     14.0,
-     72.0
-    ],
-    [
-     12.65,
-     72.0
-    ]
-   ]
-  },
-  {
-   "red": "VBAT",
-   "ancho": 2.4,
-   "puntos": [
-    [
-     22.8,
-     2.5
-    ],
-    [
-     22.8,
-     7.0
-    ]
-   ]
-  },
-  {
-   "red": "BMIN",
-   "ancho": 2.4,
-   "puntos": [
-    [
-     27.2,
-     2.5
-    ],
-    [
-     27.2,
-     7.0
-    ]
-   ]
-  },
-  {
-   "red": "V5",
-   "ancho": 2.4,
-   "puntos": [
-    [
-     36.0,
-     8.0
-    ],
-    [
-     36.0,
-     6.5
-    ],
-    [
-     38.7,
-     6.5
-    ]
-   ]
-  },
-  {
-   "red": "V5",
-   "ancho": 1.4,
-   "puntos": [
-    [
-     38.7,
-     6.5
-    ],
-    [
-     38.7,
-     10.5
-    ],
-    [
-     45.3,
-     10.5
-    ]
-   ]
-  },
-  {
-   "red": "VBATP",
-   "ancho": 2.4,
-   "puntos": [
-    [
-     31.6,
-     7.0
-    ],
-    [
-     31.6,
-     5.6
-    ]
-   ]
-  },
-  {
-   "red": "VBATP",
-   "ancho": 1.4,
-   "puntos": [
-    [
-     31.6,
-     5.6
-    ],
-    [
-     31.6,
-     5.0
-    ],
-    [
-     33.0,
-     5.0
-    ],
-    [
-     33.0,
-     4.0
-    ]
-   ]
-  },
-  {
-   "red": "VSYS",
-   "ancho": 1.2,
-   "puntos": [
-    [
-     52.85,
-     6.6
-    ],
-    [
-     52.0,
-     6.6
-    ],
-    [
-     52.0,
-     4.5
-    ]
-   ]
-  }
- ],
- "puentes": [
-  {
-   "red": "SCL",
-   "de": "U1.IO5",
-   "a": "J_AHT.SCL",
-   "porque": "cruza las dos barras"
-  },
-  {
-   "red": "SCL",
-   "de": "J_AHT.SCL",
-   "a": "J_BH.SCL",
-   "porque": "el bus sigue al segundo modulo"
-  },
-  {
-   "red": "SDA",
-   "de": "U1.IO4",
-   "a": "J_AHT.SDA",
-   "porque": "cruza las dos barras"
-  },
-  {
-   "red": "SDA",
-   "de": "J_AHT.SDA",
-   "a": "J_BH.SDA",
-   "porque": "el bus sigue al segundo modulo"
-  },
-  {
-   "red": "TOQUE",
-   "de": "U1.IO3",
-   "a": "J_TTP.IO",
-   "porque": "cruza las dos barras"
-  },
-  {
-   "red": "OW",
-   "de": "U1.IO8",
-   "a": "J_DS.DQ",
-   "porque": "cruza las dos barras"
-  },
-  {
-   "red": "SUELO",
-   "de": "U1.IO0",
-   "a": "J_SUELO.AOUT",
-   "porque": "cruza las dos barras"
-  },
-  {
-   "red": "SENS_EN",
-   "de": "U1.IO2",
-   "a": "R4.1",
-   "porque": "cruza las dos barras"
-  },
-  {
-   "red": "BL_G",
-   "de": "U1.IO21",
-   "a": "Q3.G",
-   "porque": "cruza las bajadas del SPI"
-  },
-  {
-   "red": "BL",
-   "de": "JP_BL.C",
-   "a": "J_TFT.BL",
-   "porque": "cruza las bajadas del SPI"
-  },
-  {
-   "red": "TFT_RST",
-   "de": "R7.1",
-   "a": "J_TFT.RES",
-   "porque": "cruza la barra de 3V3"
-  },
-  {
-   "red": "GND",
-   "de": "J_TTP.GND",
-   "a": "C1.1",
-   "porque": "la barra de masa pasa por debajo de la de 3V3"
-  },
-  {
-   "red": "GND",
-   "de": "J_AHT.GND",
-   "a": "R10.1",
-   "porque": "idem, del lado de la luz de fondo"
-  },
-  {
-   "red": "GND",
-   "de": "C3.1",
-   "a": "C2.1",
-   "porque": "une los dos desacoples"
-  },
-  {
-   "red": "3V3",
-   "de": "J_AHT.VCC",
-   "a": "R9.2",
-   "porque": "la barra pasa por debajo del bloque de la luz"
-  },
-  {
-   "red": "3V3",
-   "de": "J_AHT.VCC",
-   "a": "R4.2",
-   "porque": "la barra pasa por encima del bloque del riel"
-  },
-  {
-   "red": "3V3",
-   "de": "J_DS.VCC",
-   "a": "R6.2",
-   "porque": "la barra pasa por encima del pull-up"
-  },
-  {
-   "red": "3V3",
-   "de": "J_DS.VCC",
-   "a": "Q2.S",
-   "porque": "idem, para la fuente del P-MOSFET"
-  },
-  {
-   "red": "3V3",
-   "de": "R9.2",
-   "a": "Q4.S",
-   "porque": "cierra la fuente del P-MOSFET de la luz"
-  },
-  {
-   "red": "VINT",
-   "de": "R1.2",
-   "a": "TP4.1",
-   "porque": "cruza las bajadas de 3V3 y de masa"
-  },
-  {
-   "red": "VBATP",
-   "de": "TP2.1",
-   "a": "Q1.D",
-   "porque": "cruza la pista de 5 V"
-  },
-  {
-   "red": "VSYS",
-   "de": "D1.K",
-   "a": "Q1.S",
-   "porque": "el nodo de sistema, con cable grueso"
-  },
-  {
-   "red": "VSYS",
-   "de": "TP3.1",
-   "a": "J_SW.1",
-   "porque": "al interruptor, con cable grueso"
-  },
-  {
-   "red": "V5",
-   "de": "D1.A",
-   "a": "Q1.G",
-   "porque": "cruza el nodo de sistema"
-  },
-  {
-   "red": "GND",
-   "de": "R10.1",
-   "a": "Q3.S",
-   "porque": "masa de la etapa de la luz de fondo"
-  },
-  {
-   "red": "GND",
-   "de": "Q3.S",
-   "a": "R8.2",
-   "porque": "idem"
-  },
-  {
-   "red": "TFT_DC",
-   "de": "U1.IO10",
-   "a": "J_TFT.DC",
-   "porque": "cruzaria la bajada del CS; una sola cara"
-  },
-  {
-   "red": "GND",
-   "de": "J_TFT.GND",
-   "a": "J_TTP.GND",
-   "porque": "la barra de masa pasa por debajo de la de 3V3"
-  }
- ],
  "estampadora": {
   "que_es": "La estampadora: el negativo del sustrato. Las mismas canaletas pero en relieve, para meter toda la cinta de cobre de una sola prensada en vez de tramo por tramo. Se imprime con las nervaduras hacia arriba y se usa dada vuelta, asi que la geometria va ESPEJADA en X.",
-  "holgura_lateral": 0.3,
-  "sobresalir": 0.3,
+  "holgura_lateral": 0.25,
+  "sobresalir": 0.4,
   "base_extra": 0.2,
   "base_alto": 0.25,
   "espesor": 5.0,
@@ -2666,10 +1697,10 @@
   "faldon_pared": 2.0,
   "faldon_holgura": 0.5,
   "relieve_hueco": 0.6,
-  "ancho_min_nervadura": 0.8,
+  "ancho_min_nervadura": 0.95,
   "rotulo": {
    "tam": 5.0,
-   "texto": "ESTAMPADORA v1.0"
+   "texto": "ESTAMPADORA v2.0"
   }
  }
 }

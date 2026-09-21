@@ -206,12 +206,17 @@ Objetivo: el flujo completo con placa real, enchufada a USB.
       conexiones generado ([conexiones.md](conexiones.md)) y la guía de
       armado ([armado.md](armado.md)). Falta imprimirla y armar una
 - [ ] Comprar lo de la [lista de compras](hardware.md#lista-de-compras-del-prototipo)
-- [ ] **Cupón de canaletas**: 40 × 40 mm con canaletas de 1,2 / 1,4 / 2,4 /
-      3,0 mm, para confirmar que la cinta entra y se corta contra la pared
-      antes de imprimir el sustrato entero
+- [ ] **Cupón de canaletas y agujeros**: 40 × 40 mm con canaletas de 1,2 y
+      2,4 mm y agujeros de 1,4 y 1,8 mm, para confirmar con la boquilla de
+      0,6 que la cinta entra, se corta contra la pared y que un pin de tira
+      macho pasa suelto, antes de imprimir el sustrato entero
 - [ ] **Probar la estampadora** ([pcb.md](pcb.md)): que entre en seco, que
       meta la cinta de una prensada y que no quede cinta pegada sobre las
-      paredes. Si el sobresalir de 0,3 mm no alcanza, subirlo en el JSON
+      paredes. Si el sobresalir de 0,4 mm no alcanza, subirlo en el JSON
+- [ ] **Avisarle a Rocío del sustrato v2.0**: la placa pasó de 72 × 104 a
+      62 × 92, los postes se movieron y los tornillos son M3. Las cotas
+      nuevas están en [pcb.md](pcb.md), "Lo que el sustrato le pide a la
+      carcasa"
 - [ ] **Una unión soldada de prueba** con Sn42Bi58 sobre cinta pegada en
       PETG, y tirar: si el PETG se marca, bajar la punta o pasar a remaches
 - [ ] **Medir los cuatro números que el diseño no pudo medir**
