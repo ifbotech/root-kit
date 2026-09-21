@@ -644,7 +644,13 @@ def gen_redes_h(n):
     L.append("#define RK_REDES_N ((int)(sizeof RK_REDES / sizeof RK_REDES[0]))")
     L.append("")
     L.append("/* Lo que el sustrato le promete al firmware, en numeros. */")
+    # La version sale del dato, no de la lista de promesas: escrita a mano en
+    # dos lados, se desincroniza sola —y de hecho lo hizo: el sustrato paso a
+    # v2.0 y el firmware siguio afirmando v1.0.
+    L.append('#define %-26s "%s"' % ("RK_SUSTRATO_VERSION", n.d["version"]))
     for k, v in n.d["esp32"]["promesas"].items():
+        if k == "RK_SUSTRATO_VERSION":
+            continue
         L.append("#define %-26s %s" % (k, v))
     L.append("")
     L.append("#endif /* ROOTKIT_REDES_H */")

@@ -707,7 +707,13 @@ def rutear_y_guardar(n, destino, paso=0.20, coste_giro=12, charla=True):
         "puentes": puentes,
     }
     os.makedirs(os.path.dirname(destino), exist_ok=True)
-    with open(destino, "w", encoding="utf-8") as f:
+    # newline="
+" a proposito: sin eso, en Windows el archivo sale con
+    # CRLF y el repo marca los generados como modificados aunque el ruteo
+    # sea identico, con lo que CI pide "correr make pcb y commitear" por
+    # un cambio que no existe.
+    with open(destino, "w", encoding="utf-8", newline="
+") as f:
         json.dump(doc, f, ensure_ascii=False, indent=1)
         f.write("\n")
     return pistas, puentes, informe

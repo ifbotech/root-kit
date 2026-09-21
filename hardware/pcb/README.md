@@ -2,7 +2,7 @@
 
 El núcleo común de ROOTKIT: una placa de PETG impresa en 3D con canaletas,
 cinta de cobre pegada y soldada dentro de ellas, y los módulos montados
-encima. Uno solo para los cinco Rooties.
+encima. Uno solo para los cuatro Rooties.
 
 **Qué es cada archivo:**
 

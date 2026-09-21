@@ -1,6 +1,6 @@
 {
  "version": "v2.0",
- "que_es": "El nucleo comun de ROOTKIT: el sustrato impreso en PETG con canaletas, la cinta de cobre que va en ellas, y donde se monta cada modulo. Uno solo para los cinco Rooties. Coordenadas en milimetros, mirando la CARA DE LAS CANALETAS (la de atras del producto): de frente al ROOTKIT, la X crece hacia la izquierda.",
+ "que_es": "El nucleo comun de ROOTKIT: el sustrato impreso en PETG con canaletas, la cinta de cobre que va en ellas, y donde se monta cada modulo. Uno solo para los cuatro Rooties. Coordenadas en milimetros, mirando la CARA DE LAS CANALETAS (la de atras del producto): de frente al ROOTKIT, la X crece hacia la izquierda.",
  "sustrato": {
   "ancho": 62.0,
   "alto": 92.0,
@@ -1677,7 +1677,6 @@
    }
   ],
   "promesas": {
-   "RK_SUSTRATO_VERSION": "\"v1.0\"",
    "RK_SUELO_DIVISOR_NUM": "1",
    "RK_SUELO_DIVISOR_DEN": "1",
    "RK_RIEL_R_ARRIBA_OHM": "470000u",

@@ -6,7 +6,7 @@ cobre** pegada dentro de esas canaletas y soldada en cada unión. Encima van
 los módulos: el ESP32, la pantalla, el cargador y los bornes de todo lo que
 vive repartido por la carcasa.
 
-Es el **núcleo común**: uno solo para los cinco Rooties. La carcasa cambia
+Es el **núcleo común**: uno solo para los cuatro Rooties. La carcasa cambia
 (es decisión de arte); lo de adentro es igual.
 
 - El diagrama de conexiones, red por red, está en
@@ -633,12 +633,16 @@ Para que Rocío pueda modelar las cinco alrededor del mismo núcleo:
 de masa queda a ~42 % de la altura: dentro de lo que pide
 [carcasas.md](carcasas.md).
 
-> **El Musgo entra ahora.** En la v1.0 el "domo bajo y ancho" era el único de
-> los cinco que no podía ser de 116 mm de alto sin dejar de ser un domo bajo,
-> y quedaba a elegir entre acostar la celda o pasar a una LiPo plana con un
-> tercio de autonomía. Con el sustrato de 62 × 92 el cuerpo baja a ~104 mm y
-> **la disyuntiva desaparece**: los cinco Rooties entran con la 18650 parada.
-> Fue una de las razones para achicar la placa.
+> **Por qué se achicó, y qué queda por confirmar.** La razón original fue un
+> personaje del elenco anterior —un domo bajo y ancho que no podía medir
+> 116 mm de alto sin dejar de ser un domo— y la disyuntiva entre acostar la
+> celda o pasar a una LiPo plana con un tercio de autonomía. Ese elenco ya no
+> existe: ahora son **Kip, Nori, Blink y Plum**, y sus cuerpos son otros. La
+> decisión de achicar sigue siendo buena por sí sola (24 % menos de placa,
+> ~104 mm de alto de producto), pero **la comprobación hay que rehacerla**
+> contra las carcasas nuevas cuando se modelen: ninguno de los cuatro tiene
+> todavía una carcasa, y el personaje de la app no sirve de referencia porque
+> es otro objeto ([carcasas.md](carcasas.md)).
 
 > **Esto cambia lo que Rocío tiene modelado.** Las cotas de arriba son
 > distintas a las de la v1.0: la placa es más chica, los postes se movieron y
@@ -688,6 +692,8 @@ de idea es editar el JSON y correr `make pcb`.
 2. **¿Celda reemplazable por el usuario?** Se diseñó con carga USB-C y celda
    de servicio. Recomendación: dejarlo así y corregir `decisiones.md`, que
    quedó viejo.
-3. **¿El Musgo lleva 18650 o LiPo plana?** Se diseñó el núcleo para 18650.
-   Recomendación: LiPo plana sólo para el Musgo, si su silueta no llega a
-   116 mm.
+3. **¿Algún Rooti necesita LiPo plana en vez de 18650?** Se diseñó el núcleo
+   para 18650. La pregunta quedó planteada para un personaje que ya no está
+   en el elenco; hay que volver a hacérsela a Kip, Nori, Blink y Plum cuando
+   tengan carcasa. Recomendación: 18650 para todos, y LiPo plana sólo si
+   alguna silueta no llega a los ~104 mm de alto.
