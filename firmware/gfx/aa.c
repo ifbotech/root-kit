@@ -352,6 +352,98 @@ void rk_aa_pintar(rk_fb_t *fb, const rk_forma_t *formas, int n,
     }
 }
 
+/* El color de un relleno en un punto. Para el lineal es la proyección sobre
+ * el eje; para el radial, la distancia al centro. Los dos devuelven una
+ * fracción de 0 a 255 que mezcla los dos colores. */
+static rk_color_t color_en(const rk_relleno_t *r, int32_t px, int32_t py)
+{
+    int32_t t;
+
+    if (r->tipo == RK_RELLENO_PLANO) {
+        return r->a;
+    }
+    if (r->tipo == RK_RELLENO_RADIAL) {
+        int32_t dx = px - r->x0, dy = py - r->y0;
+        int32_t rad = r->x1 > 0 ? r->x1 : 1;
+        /* Se compara en cuadrados hasta el final para no sacar dos raíces. */
+        int64_t d2 = (int64_t)dx * dx + (int64_t)dy * dy;
+        int64_t r2 = (int64_t)rad * rad;
+        if (d2 >= r2) {
+            return r->b;
+        }
+        t = (int32_t)(255 * rk_isqrt64(d2) / rad);
+    } else {
+        int32_t ex = r->x1 - r->x0, ey = r->y1 - r->y0;
+        int64_t largo2 = (int64_t)ex * ex + (int64_t)ey * ey;
+        int64_t proy;
+        if (largo2 <= 0) {
+            return r->a;
+        }
+        proy = (int64_t)(px - r->x0) * ex + (int64_t)(py - r->y0) * ey;
+        t = (int32_t)(255 * proy / largo2);
+        if (t < 0) { t = 0; }
+        if (t > 255) { t = 255; }
+    }
+    return rk_mix(r->a, r->b, (uint8_t)t);
+}
+
+void rk_aa_pintar_relleno(rk_fb_t *fb, const rk_forma_t *formas, int n,
+                          const rk_relleno_t *relleno, uint8_t alfa,
+                          int clip_x0, int clip_y0, int clip_x1, int clip_y1)
+{
+    int x0, y0, x1, y1, i, x, y;
+
+    if (fb == NULL || fb->px == NULL || formas == NULL || n <= 0 || alfa == 0
+        || relleno == NULL) {
+        return;
+    }
+    if (relleno->tipo == RK_RELLENO_PLANO) {
+        rk_aa_pintar(fb, formas, n, relleno->a, alfa, clip_x0, clip_y0, clip_x1, clip_y1);
+        return;
+    }
+
+    x0 = clip_x0 < 0 ? 0 : clip_x0;
+    y0 = clip_y0 < 0 ? 0 : clip_y0;
+    x1 = clip_x1 > fb->w ? fb->w : clip_x1;
+    y1 = clip_y1 > fb->h ? fb->h : clip_y1;
+    for (i = 0; i < n; i++) {
+        int bx0, by0, bx1, by1;
+        if (rk_forma_caja(&formas[i], &bx0, &by0, &bx1, &by1)) {
+            if (bx0 > x0) { x0 = bx0; }
+            if (by0 > y0) { y0 = by0; }
+            if (bx1 < x1) { x1 = bx1; }
+            if (by1 < y1) { y1 = by1; }
+        }
+    }
+    if (x0 >= x1 || y0 >= y1) {
+        return;
+    }
+
+    for (y = y0; y < y1; y++) {
+        rk_color_t *fila = &fb->px[(size_t)y * (size_t)fb->w];
+        int32_t py = RK_Q4C(y);
+        for (x = x0; x < x1; x++) {
+            int32_t px = RK_Q4C(x);
+            uint8_t cob = 255;
+            rk_color_t col;
+            for (i = 0; i < n && cob > 0; i++) {
+                uint8_t c = rk_forma_cobertura(&formas[i], px, py);
+                if (c < cob) {
+                    cob = c;
+                }
+            }
+            if (cob == 0) {
+                continue;
+            }
+            if (alfa != 255) {
+                cob = (uint8_t)((uint16_t)cob * alfa / 255);
+            }
+            col = color_en(relleno, px, py);
+            fila[x] = (cob == 255) ? col : rk_mix(fila[x], col, cob);
+        }
+    }
+}
+
 void rk_aa_elipse(rk_fb_t *fb, int32_t cx, int32_t cy, int32_t rx, int32_t ry,
                   rk_color_t c)
 {

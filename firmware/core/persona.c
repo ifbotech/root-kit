@@ -37,9 +37,9 @@ const rk_persona_t rk_persona_table[] = {
      * ya es una actitud. La boca sube de un lado nomás —media sonrisa de
      * quien acaba de clavar una pirueta— y el rubor es de carrera, no de
      * timidez. Paleta Fiery Red Sunset. */
-    RK_OJOS_RASGADOS, RK_BRILLO_SIMPLE, 15, 14, 23, -4,
-    RK_CEJA_GRUESA, -8, 7,
-    RK_BOCA_LADEADA, 10, 23,
+    RK_OJOS_RASGADOS, RK_BRILLO_SIMPLE, 21, 19, 25, -6,
+    RK_CEJA_GRUESA, -8, 9,
+    RK_BOCA_LADEADA, 15, 27,
     RK_MEJILLA_CIRCULO,
     {
         { "Naranja Piloto", RK_HEX(0xFAA307), RK_HEX(0x03071E), RK_HEX(0xFAA307), RK_HEX(0xFF4D4D), RK_HEX(0xD00000), 0u },
@@ -56,9 +56,9 @@ const rk_persona_t rk_persona_table[] = {
      * una sonrisa entera le sacaría el filo. Paleta Deep Sea Blue; el rostro
      * es un azul claro de la misma familia, para que el ojo marino se lea.
      * El rubor es azul, no rosa: no se sonroja, se enfría. */
-    RK_OJOS_ALMENDRA, RK_BRILLO_DOBLE, 16, 16, 22, -3,
-    RK_CEJA_FINA, -4, 9,
-    RK_BOCA_SOBRIA, 9, 23,
+    RK_OJOS_ALMENDRA, RK_BRILLO_DOBLE, 21, 20, 25, -5,
+    RK_CEJA_FINA, -4, 10,
+    RK_BOCA_SOBRIA, 14, 27,
     RK_MEJILLA_PECAS,
     {
         { "Azul Marea", RK_HEX(0xB8D0EA), RK_HEX(0x023E7D), RK_HEX(0xB8D0EA), RK_HEX(0x0466C8), RK_HEX(0x023E7D), 0u },
@@ -74,9 +74,9 @@ const rk_persona_t rk_persona_table[] = {
      * casi siempre—. Vive en su propio plano positivo y siempre sale ileso;
      * cuando algo no le cierra no se asusta: ladea la cabeza. Los dientes de
      * sierra son su única mueca, y dura poco. Paleta Royal Gold & Saffron. */
-    RK_OJOS_UNICO, RK_BRILLO_DOBLE, 30, 29, 0, -2,
-    RK_CEJA_GRUESA, 0, 8,
-    RK_BOCA_SIERRA, 11, 27,
+    RK_OJOS_UNICO, RK_BRILLO_DOBLE, 34, 32, 0, -4,
+    RK_CEJA_GRUESA, 0, 9,
+    RK_BOCA_SIERRA, 15, 31,
     RK_MEJILLA_CIRCULO,
     {
         { "Sol", RK_HEX(0xFFE169), RK_HEX(0x6B4A0B), RK_HEX(0xFFE169), RK_HEX(0xEDC531), RK_HEX(0xC9A227), 0u },
@@ -92,9 +92,9 @@ const rk_persona_t rk_persona_table[] = {
      * asustadiza: es tímida y leal. Cuando la planta está en apuros pone
      * ojos de súplica y se le caen los hombros, y da culpa no regar. Paleta
      * Vivid Nightfall. */
-    RK_OJOS_REDONDOS, RK_BRILLO_CACHORRO, 17, 18, 22, -3,
-    RK_CEJA_FINA, 6, 9,
-    RK_BOCA_SUAVE, 7, 23,
+    RK_OJOS_REDONDOS, RK_BRILLO_CACHORRO, 22, 22, 25, -5,
+    RK_CEJA_FINA, 6, 10,
+    RK_BOCA_SUAVE, 13, 28,
     RK_MEJILLA_SUAVE,
     {
         { "Malva", RK_HEX(0xE0AAFF), RK_HEX(0x10002B), RK_HEX(0xE0AAFF), RK_HEX(0xC77DFF), RK_HEX(0x5A189A), 0u },

@@ -107,6 +107,59 @@ void rk_aa_pintar(rk_fb_t *fb, const rk_forma_t *formas, int n,
                   rk_color_t color, uint8_t alfa,
                   int clip_x0, int clip_y0, int clip_x1, int clip_y1);
 
+/* --------------------------------------------------------- rellenos --- */
+/* Un relleno puede ser un color plano o un DEGRADADO, y esa es la diferencia
+ * entre una forma y un dibujo: un iris con un degradado de ámbar a ocre se
+ * lee como un ojo húmedo, y el mismo iris en color plano se lee como un
+ * círculo. Cuesta una multiplicación por pixel.
+ *
+ *   RK_RELLENO_PLANO    un color, como siempre
+ *   RK_RELLENO_LINEAL   de `a` en (x0,y0) a `b` en (x1,y1)
+ *   RK_RELLENO_RADIAL   `a` en el centro y `b` a `r` de distancia
+ */
+typedef enum {
+    RK_RELLENO_PLANO = 0,
+    RK_RELLENO_LINEAL,
+    RK_RELLENO_RADIAL
+} rk_relleno_tipo_t;
+
+typedef struct {
+    rk_relleno_tipo_t tipo;
+    rk_color_t a, b;
+    int32_t x0, y0, x1, y1;   /* Q4: el eje del lineal, o el centro y el radio */
+} rk_relleno_t;
+
+static inline rk_relleno_t rk_plano(rk_color_t c)
+{
+    rk_relleno_t r;
+    r.tipo = RK_RELLENO_PLANO; r.a = c; r.b = c;
+    r.x0 = 0; r.y0 = 0; r.x1 = 0; r.y1 = 0;
+    return r;
+}
+
+static inline rk_relleno_t rk_lineal(int32_t x0, int32_t y0, int32_t x1, int32_t y1,
+                                     rk_color_t a, rk_color_t b)
+{
+    rk_relleno_t r;
+    r.tipo = RK_RELLENO_LINEAL; r.a = a; r.b = b;
+    r.x0 = x0; r.y0 = y0; r.x1 = x1; r.y1 = y1;
+    return r;
+}
+
+static inline rk_relleno_t rk_radial(int32_t cx, int32_t cy, int32_t rad,
+                                     rk_color_t centro, rk_color_t borde)
+{
+    rk_relleno_t r;
+    r.tipo = RK_RELLENO_RADIAL; r.a = centro; r.b = borde;
+    r.x0 = cx; r.y0 = cy; r.x1 = rad; r.y1 = 0;
+    return r;
+}
+
+/* Igual que rk_aa_pintar, con un relleno en vez de un color. */
+void rk_aa_pintar_relleno(rk_fb_t *fb, const rk_forma_t *formas, int n,
+                          const rk_relleno_t *relleno, uint8_t alfa,
+                          int clip_x0, int clip_y0, int clip_x1, int clip_y1);
+
 /* Atajos para los casos de una sola forma, sin recorte extra. */
 void rk_aa_elipse(rk_fb_t *fb, int32_t cx, int32_t cy, int32_t rx, int32_t ry,
                   rk_color_t c);
