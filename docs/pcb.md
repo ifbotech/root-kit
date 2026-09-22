@@ -613,11 +613,17 @@ En [armado.md](armado.md), paso 2. Son cuatro movimientos:
 2. **Se prensa con la estampadora**, hasta que el faldón envuelve el borde y
    se hace tope. Las nervaduras hunden la cinta al fondo de cada canaleta y
    la marcan contra los dos bordes.
-3. **Se levanta y se lija la cara**, al ras, con lija fina sobre un taco
-   plano. El cobre de la superficie —el que está apoyado sobre las paredes
-   entre canaletas— se va; el que está 1,2 mm más abajo, adentro de los
-   canales, no lo toca la lija. Ahí es donde se separan de verdad las pistas.
-4. **Se controla con el tester**, canaleta contra canaleta vecina: tiene que
+3. **Se levanta y se pela lo que salga solo**: si la nervadura marcó bien, la
+   lámina de la superficie se desgarra contra el borde de cada canaleta y
+   sale en pedazos grandes.
+4. **Se lija la cara**, al ras, con **lija al agua de carburo de silicio de
+   400 y después 600, sobre un taco rígido y plano**, a 45° de las canaletas.
+   El cobre de la superficie —el que está apoyado sobre las paredes— se va;
+   el que está 1,2 mm más abajo, adentro de los canales, la lija no lo toca:
+   el taco rígido apoya sobre las paredes y **puentea** las canaletas, así
+   que es geometría y no pulso. Ahí es donde se separan de verdad las pistas,
+   y el paso está detallado en [armado.md](armado.md), "Cómo se lija".
+5. **Se controla con el tester**, canaleta contra canaleta vecina: tiene que
    dar abierto. Si alguna da continuidad, faltó lija en ese tramo.
 
 Ese orden —cubrir todo, prensar, lijar— es lo que hace que no haya que

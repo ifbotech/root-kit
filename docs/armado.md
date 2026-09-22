@@ -37,7 +37,9 @@ media.
 |---|---|
 | Soldador con punta fina, 260 °C | más caliente marca el PETG |
 | Estaño **Sn42Bi58** (138 °C) y flux | el común de 183 °C también va, con toques cortos |
-| Lija al agua de 400 y 600 y un taco plano | **es la herramienta que separa las pistas**: ver el paso 2 |
+| Lija **al agua** (carburo de silicio, la negra) de 400 y 600 | **es la herramienta que separa las pistas**: ver el paso 2. La de carpintería, naranja, no sirve: se tapa de cobre en dos pasadas |
+| Un taco **rígido y plano**: un vidrio, un azulejo o una regla de acero | manda más que el grano. Con la lija en los dedos se redondean los bordes de las canaletas, que es justo donde el cobre tiene que cortarse |
+| Alcohol isopropílico | entre pasada y pasada, y antes de soldar |
 | Bisturí o trincheta con hoja nueva | sólo para recortar la hoja de cinta al contorno |
 | **La estampadora impresa** | mete toda la cinta de una prensada (paso 2) |
 | Bruñidor o el mango de una cuchara | para presionar la cinta en la canaleta |
@@ -217,17 +219,67 @@ entonces se separa lo que sobra **lijando**, no cortando. La cinta que queda
    del cuerpo, quince segundos. Presión repartida, no un punto. Las
    nervaduras hunden la cinta al fondo de cada canaleta y la **marcan**
    contra los dos bordes.
-5. **Levantar y lijar la cara**, al ras, con lija de 400 sobre un taco plano
-   y movimientos largos en las dos diagonales. El cobre que está apoyado
-   sobre las paredes entre canaletas se va; el que está adentro de los
-   canales, no. Terminar con 600 hasta que la cara se vea de PETG parejo, sin
-   islas de cobre entre canaletas.
-6. **Soplar y limpiar con alcohol.** El polvo de cobre de la lija es
+5. **Levantar y PELAR lo que salga solo.** Antes de tocar la lija: levantar
+   una esquina del sobrante con la uña y tirar despacio, en diagonal. Si la
+   estampadora marcó bien, la lámina de la superficie se desgarra sola contra
+   el borde de cada canaleta y sale en pedazos grandes, dejando el cobre de
+   adentro en su lugar. Lo que salga acá es lo que no hay que lijar. **Si
+   algo tironea de adentro de una canaleta, parar y lijar esa zona**: no
+   insistir.
+6. **Lijar el resto.** Es el paso que decide si la placa sirve, y tiene su
+   propia sección abajo.
+7. **Soplar y limpiar con alcohol.** El polvo de cobre de la lija es
    conductor: si queda en el fondo de una canaleta no molesta, pero si queda
    sobre una pared es exactamente el puente que se acaba de lijar.
-7. **Cada esquina y cada empalme lleva una gota de estaño.** El adhesivo no
+8. **Cada esquina y cada empalme lleva una gota de estaño.** El adhesivo no
    es una conexión. Toque corto: apoyar, estañar, retirar, contar hasta tres
    antes del siguiente.
+
+### Cómo se lija
+
+Lo que hay que sacar es una lámina de **0,035 a 0,07 mm** de cobre pegada
+sobre PETG. Es poquísimo material, y el riesgo no es quedarse corto: es
+pasarse y redondear el borde de las canaletas, que es justo donde el cobre
+tiene que quedar cortado. Todo lo de abajo apunta a eso.
+
+| | |
+|---|---|
+| **Grano** | **400 al agua** para el grueso, **600 al agua** para terminar |
+| **Tipo** | **Carburo de silicio** ("lija al agua", la negra o gris oscura). La de óxido de aluminio —la naranja de carpintería— se tapa de cobre y adhesivo en dos pasadas y a partir de ahí bruñe en vez de cortar |
+| **Nunca** | por debajo de **320**: muerde el PETG y redondea el borde de la canaleta. Ni por encima de **800**: no corta el cobre, lo pule |
+| **Taco** | **rígido y plano**, con la lija pegada o envuelta: un pedazo de vidrio, un azulejo, una regla de acero ancha. Nunca en los dedos ni sobre una esponja |
+| **Mojada** | agua con una gota de detergente. El PETG se ablanda a ~80 °C, y lijar en seco y rápido lo calienta, lo embarra y le incrusta el cobre |
+| **Presión** | el peso del taco y nada más. Apretar no acelera: calienta y redondea |
+| **Dirección** | a **45° de las canaletas**, cruzando en las dos diagonales. Nunca a lo largo de una canaleta: eso arrastra cobre hacia adentro |
+| **Cuándo parar** | cuando la cara se ve de PETG parejo y el cobre queda sólo en los canales. Mirarla a contraluz y de costado: el cobre que sobra aparece como una raya brillante sobre una pared |
+
+**Por qué a 45° y con taco rígido.** El taco rígido apoya sobre las paredes y
+**puentea** las canaletas: la lija no llega al fondo por geometría, no por
+pulso. A 45° el taco está siempre apoyado sobre varias paredes a la vez,
+mientras que paralelo a las canaletas puede caer dentro de las más anchas
+(2,5 mm) y tocar el cobre bueno.
+
+**Cuánto se puede sacar.** Menos de **0,1 mm**. La canaleta tiene 1,2 mm de
+profundidad, así que hay margen de sobra para el cobre, pero cada décima que
+se lija es una décima menos de placa y de largo de agujero. Si después de dos
+minutos con la de 400 todavía hay cobre, no es que falte presión: es que la
+lija se tapó. Enjuagarla.
+
+> **El enemigo no es el cobre, es el adhesivo.** El acrílico de la cinta
+> empasta cualquier lija en seco. Mojada se va con el agua. Si la lija se
+> pone marrón y empieza a resbalar, enjuagarla bajo la canilla y seguir.
+
+> **Lo que NO usar.** Minitorno o Dremel: se come una pared de 0,8 mm en un
+> parpadeo. Esponja abrasiva o taco de espuma: se amolda y redondea los
+> bordes. Lana de acero: deja fibras de hierro entre las pistas, que es una
+> fuga y además se oxida. Lima: demasiado agresiva para 0,05 mm.
+
+**Después de lijar, antes de soldar: limpiar con alcohol isopropílico** y un
+cepillo blando, y secar. Quedan dos cosas: polvo de cobre y restos de
+adhesivo. El polvo entre dos canaletas es el puente que se acaba de sacar, y
+el adhesivo sobre el cobre bueno es lo que hace que el estaño no moje. Este
+proyecto se juega los meses de batería en microamperios de fuga
+(`RK_REPOSO_OBJETIVO_UA`), así que la limpieza no es prolijidad.
 
 > **Por qué lijar y no cortar.** Hasta la v2.0 había que pasar el bisturí por
 > el canto de cada una de las 76 canaletas. Con canaletas de 1,2 mm de
