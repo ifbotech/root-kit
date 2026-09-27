@@ -160,6 +160,33 @@ void rk_aa_pintar_relleno(rk_fb_t *fb, const rk_forma_t *formas, int n,
                           const rk_relleno_t *relleno, uint8_t alfa,
                           int clip_x0, int clip_y0, int clip_x1, int clip_y1);
 
+/* -------------------------------------------------------- polígonos --- */
+/* Un polígono cualquiera, cóncavo o convexo, relleno con la regla de "no
+ * cero" y con el borde suavizado.
+ *
+ * Es lo que hace falta para dibujar como dibuja una persona: una ceja
+ * tupida, un trazo de pincel que engorda en el medio y se afina en la
+ * punta, una boca en media luna. Todo eso es un contorno, no una
+ * intersección de formas convexas, y con elipses y semiplanos solos quedaba
+ * geométrico.
+ *
+ * `xy` son `n` vértices (x0, y0, x1, y1, ...) en Q4. La cobertura se mide
+ * con RK_AA_POLI_SUB líneas por fila de pixeles y exacta a lo ancho, que es
+ * lo que pide un borde casi horizontal —un párpado, una boca— para no
+ * escalonarse.
+ *
+ * `recorte` son formas opcionales (pueden ser NULL con `nrecorte` 0) que se
+ * intersectan con el polígono: con eso un iris circular queda adentro de un
+ * ojo dibujado a mano. Más de RK_AA_POLI_MAX vértices, o un lienzo más ancho
+ * que RK_AA_POLI_ANCHO, no se pintan de más: se recortan. */
+#define RK_AA_POLI_MAX    192
+#define RK_AA_POLI_ANCHO  512
+#define RK_AA_POLI_SUB      8
+
+void rk_aa_poligono(rk_fb_t *fb, const int32_t *xy, int n,
+                    const rk_relleno_t *relleno, uint8_t alfa,
+                    const rk_forma_t *recorte, int nrecorte);
+
 /* Atajos para los casos de una sola forma, sin recorte extra. */
 void rk_aa_elipse(rk_fb_t *fb, int32_t cx, int32_t cy, int32_t rx, int32_t ry,
                   rk_color_t c);

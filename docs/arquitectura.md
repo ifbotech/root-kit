@@ -46,9 +46,14 @@ core/persona.c  CÓMO lo muestra ojos, cejas, boca y 3 pieles (5 Rooties)
 art/face.c      los cruza y dibuja
 ```
 
-Cinco Rooties por tres pieles por once ánimos son ciento sesenta y cinco
+Cuatro Rooties por tres pieles por once ánimos son ciento treinta y dos
 caras, más parpadeo, mirada y respiración, y salen del mismo código porque la
 cara es procedural. Un personaje nuevo es una fila de `persona.c`.
+
+El que ya tiene lámina de la artista se dibuja con la suya: Kip sale de
+`art/kip.c`, con sus ojos, sus cejas, sus bocas y sus animaciones medidas de
+los dibujos de Rocío. Sigue siendo procedural y sigue leyendo su fila de
+`persona.c` (medidas y colores); lo que cambia es de dónde salen las poses.
 
 ### Ilustración, no pixel art
 
@@ -106,7 +111,7 @@ segunda implementación que se pueda desincronizar.
  esp32/     main · pantalla · sensores_hw · almacen · portal · red · energia
  ─────────────────────────────────────────────────────────── (sólo hardware)
  ui/        cara · despertar · qr
- art/       look · face
+ art/       look · face · kip
  gfx/       fb · aa · font
  net/       json · nube
  nodo/      sensores · soil · power · sampler · historial
@@ -114,8 +119,8 @@ segunda implementación que se pueda desincronizar.
 ```
 
 Todo lo que está debajo de la línea es C99 portable y se prueba en el
-escritorio: 2225 comprobaciones, incluida la regresión visual de las 165
-caras.
+escritorio: 2277 comprobaciones, incluida la regresión visual de las 132
+caras y la fluidez de las animaciones de Kip.
 
 ## Decisiones que conviene no revisitar sin leer esto
 

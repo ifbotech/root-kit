@@ -1,7 +1,7 @@
 # Pruebas
 
 ```bash
-make test        # 2012 comprobaciones del firmware, sin placa ni SDL
+make test        # 2277 comprobaciones del firmware, sin placa ni SDL
 make verify      # lo que corre CI: pruebas, referencias visuales y sustrato
 make pcb         # verifica el sustrato impreso y regenera lo que sale de él
 make placa       # compila el producto (c3-144) y el banco (devkit-144)
@@ -171,10 +171,10 @@ la tarea dos horas; si la planta sigue seca después, reaparece.
 ## Regresión visual
 
 `test/golden.h` guarda un FNV-1a del framebuffer de **cada Rooti con cada piel
-en cada ánimo**: 165 hashes. Si un cambio altera cualquier pixel, la suite
+en cada ánimo**: 132 hashes. Si un cambio altera cualquier pixel, la suite
 `cara` lo marca.
 
-Son 165 y no 11 a propósito. El rig es procedural y cada familia de ojos toma
+Son 132 y no 11 a propósito. El rig es procedural y cada familia de ojos toma
 un camino distinto, así que un cambio puede romper la medialuna del Musgo sin
 tocar los ojos redondos del Brote, y una piel con aura sin tocar la común.
 La tabla está ordenada por modelo, y eso hace que el diff diga qué pasó: once
@@ -191,6 +191,33 @@ El archivo se versiona en vez de ignorarse porque **el diff del archivo
 generado es la revisión del cambio visual**.
 
 `make verify` —y CI— regeneran los hashes y fallan si el árbol queda sucio.
+
+## Kip: que sea fluido y que sea su lámina
+
+Kip no pasa por el rig: se dibuja con la lámina de Rocío (`art/kip.c`), y
+cada ánimo es una pista de claves que se interpola. La regresión visual fija
+cómo se ve un instante; la suite `kip` (`test/test_kip.c`) fija cómo se
+mueve, sin mirar un pixel:
+
+- **Ningún ciclo salta.** Cada ánimo se recorre dos vueltas de a 10 ms y
+  ninguna parte de la cara (ojos, cejas, boca, mirada) puede moverse más de
+  un tope entre dos muestras. Los topes son generosos —un parpadeo es rápido
+  y una mirada salta—: lo que buscan es un corte, una clave que no empalma
+  con la siguiente o un ciclo que no vuelve a donde empezó.
+- **Ninguna transición salta.** De cada ánimo a cada otro (121 pares), de a
+  un por ciento.
+- **La boca cambia de forma sólo cerrada**, en los ciclos y en las
+  transiciones: una boca teal no se vuelve una con dientes a mitad de camino.
+- **Las cejas saltan**: al subir se pasan de largo y vuelven.
+- **La lámina está en la pista.** Contento guiña y sonríe en teal y con
+  dientes; ahogándose, el agua le llega a los ojos todo el ciclo, boquea y
+  mira el agua; con calor saca la lengua, jadea, sopla, tira el beso y hace
+  la mueca ondulada; a oscuras busca la luz arriba y a los costados; con el
+  aire seco mira de reojo con los ojos en rendija. Si alguien cambia una
+  pista y se le pierde un dibujo de ella, esto lo dice.
+- Cada efecto (el agua, las grietas, el sudor, la nieve...) es de su ánimo y
+  de ninguno más, y con una piel ajena —la gris de la cara dormida— los
+  colores de Kip pasan a gris.
 
 ## Qué NO cubre
 

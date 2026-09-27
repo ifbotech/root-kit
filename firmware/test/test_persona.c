@@ -83,11 +83,16 @@ static void test_catalogo(void)
             const rk_piel_t *pl = rk_persona_piel(p, r);
             snprintf(lbl, sizeof lbl, "%s %s tiene nombre", p->id, rk_rareza_id((rk_rareza_t)r));
             CHECK_TRUE(lbl, pl->nombre != NULL && pl->nombre[0] != '\0');
-            /* Ojos oscuros sobre fondo claro: la diferencia de luminancia es
-             * lo que hace que la cara se lea a un metro. */
-            snprintf(lbl, sizeof lbl, "%s %s: los ojos se leen sobre el fondo (%d)",
-                     p->id, rk_rareza_id((rk_rareza_t)r), luma(pl->fondo) - luma(pl->ojos));
-            CHECK_TRUE(lbl, luma(pl->fondo) - luma(pl->ojos) >= 120);
+            /* Los ojos se recortan del cuerpo: oscuros sobre un cuerpo claro
+             * en las caras del rig, blancos sobre el rojo de Kip. La
+             * diferencia de luminancia es lo que hace que la cara se lea a un
+             * metro, y vale para los dos lados. */
+            {
+                int d = luma(pl->fondo) - luma(rk_face_color_ojo(p, (uint8_t)r));
+                snprintf(lbl, sizeof lbl, "%s %s: los ojos se leen sobre el fondo (%d)",
+                         p->id, rk_rareza_id((rk_rareza_t)r), d);
+                CHECK_TRUE(lbl, d >= 120 || d <= -120);
+            }
             /* La cara va pintada sobre el cuerpo: el fondo de la pantalla es
              * el color del cuerpo, o en el 3D de la app se vería un parche. */
             snprintf(lbl, sizeof lbl, "%s %s: el fondo de la cara es el cuerpo",

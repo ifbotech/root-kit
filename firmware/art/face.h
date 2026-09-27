@@ -30,6 +30,14 @@
  * Todo es función pura del tiempo: el mismo instante da el mismo cuadro, y
  * por eso se testea por hash.
  *
+ * LOS QUE TIENEN LÁMINA PROPIA
+ *
+ * Kip ya no pasa por el rig: Rocío entregó sus láminas y art/kip.c las
+ * dibuja, con sus ojos, sus cejas, sus bocas y sus animaciones. Las
+ * funciones de este archivo lo despachan solas —el que llama no se entera—, y
+ * todo lo de afuera (la transición, el cierre del despertar, el mimo, la
+ * mirada, las pieles y sus adornos) le llega igual.
+ *
  * LA TRANSICIÓN ENTRE ÁNIMOS
  *
  * La expresión se separa en GEOMETRÍA (rk_face_geom_t: cuánto abre el ojo,
@@ -132,5 +140,11 @@ uint8_t rk_face_adornos_etapa(int etapa);
 /* Color de fondo de la cara para un Rooti, una piel y un ánimo, con el tinte
  * y la penumbra ya aplicados. */
 rk_color_t rk_face_fondo(const rk_persona_t *p, uint8_t rareza, rk_mood_t mood);
+
+/* El color con el que el ojo de un Rooti se recorta contra su cuerpo: el
+ * trazo oscuro en las caras del rig, el blanco del ojo en las que tienen
+ * lámina propia (Kip). Es lo que tiene que leerse a un metro, y
+ * test/test_persona.c lo mide. */
+rk_color_t rk_face_color_ojo(const rk_persona_t *p, uint8_t rareza);
 
 #endif /* ROOTKIT_FACE_H */

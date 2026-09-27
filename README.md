@@ -10,10 +10,12 @@ planta— vive en **ROOTLAB**, la app del teléfono.
 
 ![Los cuatro Rooties en los once ánimos](tools/preview/sheet.png)
 
-Kip tiene cejas tupidas y ojos rasgados; Nori, ojos almendrados y pecas;
-Blink, UN ojo enorme; Plum, ojos de cachorro. Cuando la planta se ahoga el
-visor se le llena de agua hasta la mitad, y cuando el aire está seco la cara
-se cuartea.
+Kip es rojo, con cejas negras tupidas que saltan y ojos blancos de iris
+ámbar, y ya se dibuja y se mueve como en las láminas de Rocío: cada ánimo es
+una secuencia de sus dibujos, interpolada cuadro a cuadro. Nori tiene ojos
+almendrados y pecas; Blink, UN ojo enorme; Plum, ojos de cachorro. Cuando la
+planta se ahoga el agua le llega a los ojos, y cuando el aire está seco la
+cara se cuartea.
 
 La figura define qué Rooti es; el cofre de la app sortea su **piel**: común
 (70 %), rara (25 %) o épica (5 %). Las tres comparten la paleta del personaje
@@ -80,7 +82,7 @@ impreso en 3D con canaletas y cinta de cobre— está en
 ## Empezar
 
 ```bash
-make test         # 2012 comprobaciones del firmware, sin placa
+make test         # 2277 comprobaciones del firmware, sin placa
 make sim          # los cinco Rooties en una ventana, en vivo
 make sheet        # 8 Rooties × 11 ánimos
 make transicion   # el cambio de ánimo, cuadro a cuadro
@@ -111,7 +113,7 @@ En Windows el firmware se compila y prueba dentro de WSL. Ver
 firmware/
   core/        ánimo, especies, Rooties, vínculo, enlace, código, SHA-256
   gfx/         framebuffer, antialiasing en punto fijo, tipografía
-  art/         expresiones y el rig de caras
+  art/         expresiones, el rig de caras y la lámina de Kip
   ui/          cara, cara dormida, despertar y QR
   nodo/        sensores, suelo, batería, muestreo adaptativo, historial
   net/         JSON y el contrato con la nube

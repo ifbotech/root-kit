@@ -97,7 +97,10 @@ la pantalla (sólo el QR y los ojos):
 - [x] **Protocolo de fábrica** por el puerto serie y `tools/fabrica.py`
       ([fabrica.md](fabrica.md))
 - [x] **Modo calibración**: con la app calibrando, mide y cuenta cada 5 s
-- [x] 2225 comprobaciones en el escritorio, regresión visual de las 165 caras
+- [x] 2277 comprobaciones en el escritorio, regresión visual de las 132 caras
+- [x] **Kip dibujado con la lámina de Rocío** (`art/kip.c`): los once ánimos
+      como secuencias de sus dibujos, interpoladas, con las cejas que saltan
+      y la boca que cambia de forma cerrada
 - [x] El renderer compilado a WebAssembly para la app y el emulador
 
 ### ROOTLAB: app y nube (`root-lab`)
@@ -365,6 +368,10 @@ Opciones de hardware y pines en [hardware.md](hardware.md#sonido).
 - [ ] Estación de fábrica: grabar secreto y Rooti en NVS, imprimir la
       etiqueta con el código de respaldo
 - [ ] **Iterar el arte con Rocío**: ajustar caras y pieles
+- [ ] **Las láminas de Nori, Blink y Plum**: cuando las entregue, cada uno
+      pasa del rig a su propio dibujante, como Kip. De Kip faltan dibujados
+      por ella sed, frío, sol, dormido, sin datos y desconectado: hoy salen
+      de su mismo vocabulario, y conviene que los mire
       (`core/persona.c`), figuras 3D (`public/lib/rooti3d/formas.mjs`), voces
       (`public/lib/voz.mjs`) y personalidades (`server/ficha.mjs`)
 - [ ] Medir: cuántos terminan el alta, dónde abandonan, cuántas
