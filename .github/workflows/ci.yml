@@ -90,7 +90,10 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        entorno: [c3-144, devkit-144]
+        # banco-nodemcu es el firmware de banco del prototipo NodeMCU
+        # (docs/banco.md): no es el producto, pero se compila igual para que
+        # no se rompa sin que nadie se entere.
+        entorno: [c3-144, devkit-144, banco-nodemcu]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

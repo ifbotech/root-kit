@@ -103,6 +103,39 @@ uint32_t rk_bh1750_lux(uint16_t cuenta, uint8_t mtreg)
     return (uint32_t)(((uint64_t)cuenta * 345u + (uint64_t)(3u * mtreg)) / (6u * (uint32_t)mtreg));
 }
 
+/* La GL5528 tabulada por década y media: R = 15 kΩ * (10 / lux)^0,7. */
+static const struct {
+    uint32_t r;
+    uint32_t lux;
+} LDR_CURVA[] = {
+    { 75180u, 1u }, { 34850u, 3u }, { 15000u, 10u }, { 6951u, 30u },
+    { 2993u, 100u }, { 1387u, 300u }, { 597u, 1000u }, { 277u, 3000u },
+    { 119u, 10000u }, { 55u, 30000u },
+};
+
+uint32_t rk_ldr_lux(uint16_t ao_mv, uint16_t vcc_mv)
+{
+    const size_t n = sizeof LDR_CURVA / sizeof LDR_CURVA[0];
+    uint32_t r;
+    size_t i;
+
+    if (vcc_mv == 0u || ao_mv >= vcc_mv) {
+        return 0u;
+    }
+    r = (uint32_t)((uint64_t)RK_LDR_R_FIJA * ao_mv / (uint32_t)(vcc_mv - ao_mv));
+    if (r >= LDR_CURVA[0].r) {
+        return 0u;
+    }
+    for (i = 0; i + 1u < n; i++) {
+        if (r >= LDR_CURVA[i + 1u].r) {
+            uint32_t ra = LDR_CURVA[i].r, rb = LDR_CURVA[i + 1u].r;
+            uint32_t la = LDR_CURVA[i].lux, lb = LDR_CURVA[i + 1u].lux;
+            return la + (uint32_t)((uint64_t)(lb - la) * (ra - r) / (ra - rb));
+        }
+    }
+    return LDR_CURVA[n - 1u].lux;
+}
+
 uint8_t rk_crc8_maxim(const uint8_t *b, int n)
 {
     uint8_t crc = 0u;

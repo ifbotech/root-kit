@@ -142,6 +142,33 @@ static void test_bh1750_y_riel(void)
     CHECK_TRUE("4,6 V es USB", rk_riel_usb(4600u));
 }
 
+/* La LDR del prototipo de banco: AO baja con la luz, y la curva es
+ * aproximada, así que se prueban rangos y la forma, no un número. */
+static void test_ldr(void)
+{
+    uint32_t antes = 0xFFFFFFFFu;
+    int mv, sube = 0;
+
+    CHECK_INT("AO en VCC es oscuridad total", 0, (long)rk_ldr_lux(3300u, 3300u));
+    CHECK_INT("AO por encima de VCC tambien", 0, (long)rk_ldr_lux(3400u, 3300u));
+    CHECK_INT("sin VCC no hay lectura", 0, (long)rk_ldr_lux(1000u, 0u));
+    CHECK_TRUE("casi en VCC es de noche (menos de 15 lux)", rk_ldr_lux(3250u, 3300u) < 15u);
+    CHECK_TRUE("a mitad de camino, la LDR vale lo que la fija: luz de living a oscuras",
+               rk_ldr_lux(1650u, 3300u) >= 10u && rk_ldr_lux(1650u, 3300u) <= 40u);
+    CHECK_TRUE("con AO en 300 mV, una ventana (300 a 1000 lux)",
+               rk_ldr_lux(300u, 3300u) >= 300u && rk_ldr_lux(300u, 3300u) <= 1000u);
+    CHECK_TRUE("con AO casi en cero, sol (mas de 10000 lux)", rk_ldr_lux(30u, 3300u) > 10000u);
+    CHECK_INT("AO en cero satura, no revienta", 30000, (long)rk_ldr_lux(0u, 3300u));
+    for (mv = 0; mv <= 3300; mv += 5) {
+        uint32_t l = rk_ldr_lux((uint16_t)mv, 3300u);
+        if (l > antes) {
+            sube++;
+        }
+        antes = l;
+    }
+    CHECK_INT("mas tension en AO nunca es mas luz", 0, sube);
+}
+
 static void test_ds18b20(void)
 {
     static const uint8_t ROM[8] = { 0x02, 0x1C, 0xB8, 0x01, 0x00, 0x00, 0x00, 0xA2 };
@@ -358,6 +385,7 @@ void suite_sensores(void)
     test_aht20();
     test_sht21();
     test_bh1750_y_riel();
+    test_ldr();
     test_ds18b20();
     test_telemetria();
     test_animo_con_fallas();

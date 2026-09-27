@@ -35,6 +35,7 @@
 #include "../esp32/placa.h"
 
 void devkit_verificar(void);   /* test_placa_devkit.c */
+void nodemcu_verificar(void);  /* test_placa_nodemcu.c */
 
 static const rk_red_t *red_de(int gpio)
 {
@@ -180,6 +181,7 @@ void suite_placa(void)
     CHECK_STR("la placa del producto", "c3-supermini", RK_PLACA_NOMBRE);
 
     devkit_verificar();
+    nodemcu_verificar();
 
     RK_SUITE_END();
 }

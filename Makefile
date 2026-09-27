@@ -14,6 +14,7 @@
 #   make rutear     vuelve a rutear la placa (despues de mover un modulo)
 #   make cupon      el cupon de prueba de canaletas y su estampadora
 #   make placa      compila el producto (c3-144) y el banco (devkit-144)
+#   make banco      compila el firmware de banco del prototipo NodeMCU
 #   make bench      costo de renderizar una cara
 #   make golden     regenera las referencias visuales
 #   make verify     lo que corre CI: pruebas + referencias al dia
@@ -33,7 +34,7 @@ OPENSCAD := $(shell command -v openscad 2> /dev/null \
                  || ls "/c/Program Files/OpenSCAD/openscad.exe" 2> /dev/null)
 export OPENSCAD
 
-.PHONY: all test sim sheet pieles etapas despertar pantallas capturas wasm placa pcb rutear cupon bench golden verify clean
+.PHONY: all test sim sheet pieles etapas despertar pantallas capturas wasm placa banco pcb rutear cupon bench golden verify clean
 
 all: test
 
@@ -54,6 +55,9 @@ capturas:
 
 placa:
 	@cd firmware && python3 -m platformio run -e c3-144 -e devkit-144
+
+banco:
+	@cd firmware && python3 -m platformio run -e banco-nodemcu
 
 # El sustrato impreso: verifica separaciones, anchos, conectividad y la zona
 # libre de la antena, y reescribe lo que se genera del dato (la plantilla de

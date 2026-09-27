@@ -70,6 +70,24 @@ uint8_t rk_crc8_sht2x(const uint8_t *b, int n);
  * placa puede bajar MTreg a 31 para sol pleno y pasarlo acá. */
 uint32_t rk_bh1750_lux(uint16_t cuenta, uint8_t mtreg);
 
+/* ------------------------------------------------------------------ LDR -- */
+/* El sensor de luz del prototipo de banco: un módulo "MH-Sensor-Series" con
+ * una fotorresistencia GL55xx, un comparador LM393 (la salida DO) y la salida
+ * analógica AO. No es un BH1750: no mide lux, mide una resistencia.
+ *
+ * En el módulo la LDR va de AO a masa y una resistencia fija de 10 kΩ de VCC
+ * a AO, así que AO BAJA cuando hay más luz:
+ *
+ *     R_ldr = R_fija * V_ao / (VCC - V_ao)
+ *
+ * y de la resistencia a lux sale con la curva de la GL5528 (15 kΩ a 10 lux,
+ * pendiente 0,7 en escala log-log), tabulada. Es APROXIMADO —una LDR varía el
+ * doble entre unidades y con la temperatura— pero alcanza para lo que el
+ * ánimo necesita saber: si es de noche, si falta luz, si le da el sol.
+ * Devuelve 0 con AO en VCC (oscuridad total o módulo sin alimentar). */
+#define RK_LDR_R_FIJA 10000u
+uint32_t rk_ldr_lux(uint16_t ao_mv, uint16_t vcc_mv);
+
 /* -------------------------------------------------------------- DS18B20 -- */
 /* Scratchpad de 9 bytes con CRC Maxim en el último. Devuelve false si el
  * CRC falla, si la línea está suelta (todo 0xFF) o si es el 85,0 °C que el

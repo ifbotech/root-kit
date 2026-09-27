@@ -1,9 +1,12 @@
 /* placa.h — los pines de cada placa y el panel de cada variante.
  *
- * Dos placas soportadas, elegidas en platformio.ini:
+ * Tres placas soportadas, elegidas en platformio.ini:
  *
- *   RK_PLACA_C3       ESP32-C3 SuperMini   (la del producto)
- *   RK_PLACA_DEVKIT   ESP32 DevKit 30 pines (la del banco de pruebas)
+ *   RK_PLACA_C3         ESP32-C3 SuperMini   (la del producto)
+ *   RK_PLACA_DEVKIT     ESP32 DevKit 30 pines (la del banco de pruebas)
+ *   RK_PLACA_NODEMCU38  NodeMCU ESP32 38 pines (el prototipo que soldó Rocío,
+ *                       con LDR en vez de BH1750; corre el firmware de
+ *                       banco, banco/banco.cpp, no el del producto)
  *
  * y un panel:
  *
@@ -76,8 +79,32 @@
   #define RK_PIN_TFT_BL        4
   #define RK_PIN_TFT_RST       17
   #define RK_SPI_HOST          VSPI_HOST
+#elif defined(RK_PLACA_NODEMCU38)
+  /* El prototipo soldado de Rocío, pin por pin como está cableado. No tiene
+   * toque, ni MOSFET de sensores, ni divisor del riel, ni sonda de tierra, y
+   * la luz es una LDR analógica en vez del BH1750: por eso corre el firmware
+   * de banco y no el del producto. Los pines que no existen van en -1. */
+  #define RK_PLACA_NOMBRE      "nodemcu-38"
+  #define RK_PIN_SUELO_ADC     34   /* ADC1_CH6: AOUT del capacitivo v2.0     */
+  #define RK_PIN_LUZ_ADC       35   /* ADC1_CH7: AO del módulo LDR            */
+  #define RK_PIN_LUZ_DIG       32   /* DO del módulo LDR (LM393)              */
+  #define RK_PIN_SDA           21   /* HTU21D                                 */
+  #define RK_PIN_SCL           22
+  #define RK_PIN_SCK           18   /* VSPI                                   */
+  #define RK_PIN_MOSI          23
+  #define RK_PIN_MISO          19   /* cableado, pero el panel sólo se escribe */
+  #define RK_PIN_TFT_CS        5
+  #define RK_PIN_TFT_DC        2    /* de arranque, y el LED de la placa: titila */
+  #define RK_PIN_TFT_RST       4
+  #define RK_PIN_TFT_BL        -1   /* LED del panel directo a 3,3 V          */
+  #define RK_PIN_BOTON         0    /* BOOT de la placa                       */
+  #define RK_PIN_TOQUE         -1
+  #define RK_PIN_SENSORES_EN   -1
+  #define RK_PIN_RIEL_ADC      -1
+  #define RK_PIN_UNOWIRE       -1
+  #define RK_SPI_HOST          VSPI_HOST
 #else
-  #error "Definir RK_PLACA_C3 o RK_PLACA_DEVKIT (ver platformio.ini)"
+  #error "Definir RK_PLACA_C3, RK_PLACA_DEVKIT o RK_PLACA_NODEMCU38 (ver platformio.ini)"
 #endif
 
 #if defined(RK_PANEL_ST7735_128)
@@ -111,6 +138,10 @@
 #endif
 #ifndef RK_TFT_BGR
   #define RK_TFT_BGR 0
+#endif
+/* 0 con la tira de pines del panel abajo, 2 si queda al revés. */
+#ifndef RK_TFT_ROTACION
+  #define RK_TFT_ROTACION 0
 #endif
 
 /* Polaridad de la luz de fondo. Por defecto 0: el GPIO en alto enciende, que
