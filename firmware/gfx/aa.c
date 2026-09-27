@@ -444,6 +444,160 @@ void rk_aa_pintar_relleno(rk_fb_t *fb, const rk_forma_t *formas, int n,
     }
 }
 
+/* ---------------------------------------------------------- polígonos --- */
+/* Suma a `acc` la cobertura de un tramo [xa, xb) de una sub-línea, en Q8 (256
+ * por pixel). Cada sub-línea aporta como mucho 256 / RK_AA_POLI_SUB por
+ * pixel, así que la fila entera cubierta suma 256. */
+static void tramo(uint16_t *acc, int32_t xa, int32_t xb, int x0, int x1)
+{
+    const int32_t pleno = 256 / RK_AA_POLI_SUB;
+    int32_t lo = (int32_t)x0 * 256, hi = (int32_t)x1 * 256;
+    int ia, ib, k;
+
+    if (xa < lo) { xa = lo; }
+    if (xb > hi) { xb = hi; }
+    if (xa >= xb) {
+        return;
+    }
+    ia = (int)(xa >> 8);
+    ib = (int)(xb >> 8);
+    if (ia == ib) {
+        acc[ia] = (uint16_t)(acc[ia] + (xb - xa) * pleno / 256);
+        return;
+    }
+    acc[ia] = (uint16_t)(acc[ia] + (256 - (xa & 255)) * pleno / 256);
+    for (k = ia + 1; k < ib; k++) {
+        acc[k] = (uint16_t)(acc[k] + pleno);
+    }
+    if (ib < x1 && (xb & 255) != 0) {
+        acc[ib] = (uint16_t)(acc[ib] + (xb & 255) * pleno / 256);
+    }
+}
+
+void rk_aa_poligono(rk_fb_t *fb, const int32_t *xy, int n,
+                    const rk_relleno_t *relleno, uint8_t alfa,
+                    const rk_forma_t *recorte, int nrecorte)
+{
+    static uint16_t acc[RK_AA_POLI_ANCHO + 1];
+    static int32_t  cx[RK_AA_POLI_MAX];
+    static int8_t   cs[RK_AA_POLI_MAX];
+    int32_t minx, maxx, miny, maxy;
+    int x0, y0, x1, y1, i, x, y, s;
+
+    if (fb == NULL || fb->px == NULL || xy == NULL || relleno == NULL
+        || n < 3 || alfa == 0) {
+        return;
+    }
+    if (n > RK_AA_POLI_MAX) {
+        n = RK_AA_POLI_MAX;
+    }
+    minx = maxx = xy[0];
+    miny = maxy = xy[1];
+    for (i = 1; i < n; i++) {
+        if (xy[2 * i] < minx) { minx = xy[2 * i]; }
+        if (xy[2 * i] > maxx) { maxx = xy[2 * i]; }
+        if (xy[2 * i + 1] < miny) { miny = xy[2 * i + 1]; }
+        if (xy[2 * i + 1] > maxy) { maxy = xy[2 * i + 1]; }
+    }
+    x0 = piso_px(minx);
+    y0 = piso_px(miny);
+    x1 = techo_px(maxx) + 1;
+    y1 = techo_px(maxy) + 1;
+    if (x0 < 0) { x0 = 0; }
+    if (y0 < 0) { y0 = 0; }
+    if (x1 > fb->w) { x1 = fb->w; }
+    if (y1 > fb->h) { y1 = fb->h; }
+    if (x1 > RK_AA_POLI_ANCHO) { x1 = RK_AA_POLI_ANCHO; }
+    for (i = 0; i < nrecorte && recorte != NULL; i++) {
+        int bx0, by0, bx1, by1;
+        if (rk_forma_caja(&recorte[i], &bx0, &by0, &bx1, &by1)) {
+            if (bx0 > x0) { x0 = bx0; }
+            if (by0 > y0) { y0 = by0; }
+            if (bx1 < x1) { x1 = bx1; }
+            if (by1 < y1) { y1 = by1; }
+        }
+    }
+    if (x0 >= x1 || y0 >= y1) {
+        return;
+    }
+
+    for (y = y0; y < y1; y++) {
+        rk_color_t *fila = &fb->px[(size_t)y * (size_t)fb->w];
+        int32_t py = RK_Q4C(y);
+
+        for (x = x0; x <= x1; x++) {
+            acc[x] = 0u;
+        }
+        /* RK_AA_POLI_SUB líneas por fila, centradas en su franja. */
+        for (s = 0; s < RK_AA_POLI_SUB; s++) {
+            int32_t sy = (int32_t)y * 16 + (2 * s + 1) * 16 / (2 * RK_AA_POLI_SUB);
+            int nc = 0, k, giro;
+            int32_t desde = 0;
+
+            for (i = 0; i < n; i++) {
+                int j = (i + 1 == n) ? 0 : i + 1;
+                int32_t ax = xy[2 * i], ay = xy[2 * i + 1];
+                int32_t bx = xy[2 * j], by = xy[2 * j + 1];
+                int32_t lo = ay < by ? ay : by, hi = ay < by ? by : ay;
+                int32_t xq;
+                int8_t sentido;
+
+                if (ay == by || sy < lo || sy >= hi) {
+                    continue;
+                }
+                sentido = by > ay ? 1 : -1;
+                xq = (int32_t)((int64_t)ax * 16
+                               + (int64_t)(sy - ay) * (bx - ax) * 16 / (by - ay));
+                /* Inserción ordenada: son pocos cruces por línea. */
+                k = nc;
+                while (k > 0 && cx[k - 1] > xq) {
+                    cx[k] = cx[k - 1];
+                    cs[k] = cs[k - 1];
+                    k--;
+                }
+                cx[k] = xq;
+                cs[k] = sentido;
+                nc++;
+            }
+            giro = 0;
+            for (k = 0; k < nc; k++) {
+                int antes = giro;
+                giro += cs[k];
+                if (antes == 0 && giro != 0) {
+                    desde = cx[k];
+                } else if (antes != 0 && giro == 0) {
+                    tramo(acc, desde, cx[k], x0, x1);
+                }
+            }
+        }
+
+        for (x = x0; x < x1; x++) {
+            int32_t px;
+            uint16_t cob = acc[x] > 255u ? 255u : acc[x];
+            rk_color_t col;
+
+            if (cob == 0u) {
+                continue;
+            }
+            px = RK_Q4C(x);
+            for (i = 0; i < nrecorte && recorte != NULL && cob > 0u; i++) {
+                uint8_t c = rk_forma_cobertura(&recorte[i], px, py);
+                if (c < cob) {
+                    cob = c;
+                }
+            }
+            if (cob == 0u) {
+                continue;
+            }
+            if (alfa != 255) {
+                cob = (uint16_t)(cob * alfa / 255u);
+            }
+            col = color_en(relleno, px, py);
+            fila[x] = (cob == 255u) ? col : rk_mix(fila[x], col, (uint8_t)cob);
+        }
+    }
+}
+
 void rk_aa_elipse(rk_fb_t *fb, int32_t cx, int32_t cy, int32_t rx, int32_t ry,
                   rk_color_t c)
 {

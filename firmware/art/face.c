@@ -1,5 +1,6 @@
 #include "face.h"
 #include "look.h"
+#include "kip.h"
 #include "../gfx/aa.h"
 #include <stddef.h>
 #include <string.h>
@@ -36,6 +37,8 @@ typedef struct {
     rk_color_t acento;      /* destellos, aura, luces                      */
     rk_color_t lengua;
     rk_color_t pecas;
+    /* Los de Kip, que tiene lámina propia (art/kip.h). */
+    rk_kip_colores_t kip;
 } cara_t;
 
 /* La expresión concreta de un cuadro: lo que el ánimo pidió, pasado por la
@@ -101,6 +104,35 @@ uint8_t rk_face_ease(uint8_t t_pct)
 #define COL_HIELO RK_HEX(0xCFF3FF)
 #define COL_FUEGO RK_HEX(0xFF7A1A)
 
+/* ------------------------------------------------------ con lámina --- */
+/* Kip ya tiene lámina de Rocío y se dibuja con la suya (art/kip.c): sus
+ * ojos, sus cejas, sus bocas y sus animaciones. Los demás Rooties siguen
+ * pasando por el rig de este archivo hasta que tengan la propia. */
+static bool con_lamina(const rk_persona_t *p)
+{
+    return p != NULL && p->id != NULL && strcmp(p->id, "kip") == 0;
+}
+
+/* El tinte, la penumbra y la respiración de cada ánimo: los de Kip son los
+ * de su lámina, los del resto salen de art/look.c. */
+static const rk_look_t *look_de(const rk_persona_t *p, rk_mood_t mood)
+{
+    return con_lamina(p) ? rk_kip_look(mood) : rk_look(mood);
+}
+
+/* ¿Es una de las pieles del Rooti, o una de afuera (la gris de la cara
+ * dormida)? */
+static bool piel_propia(const rk_persona_t *p, const rk_piel_t *pl)
+{
+    int r;
+    for (r = 0; r < (int)RK_RAREZA_COUNT; r++) {
+        if (pl == &p->pieles[r]) {
+            return true;
+        }
+    }
+    return false;
+}
+
 /* -------------------------------------------------------------- color --- */
 /* Tinte y penumbra se aplican a TODOS los colores por igual. Si se aplicaran
  * sólo al fondo, los párpados —que se pintan del color del fondo— dejarían de
@@ -135,6 +167,18 @@ static void pintura(cara_t *c, const rk_piel_t *pl, const rk_look_t *lk)
     c->acento = rk_mix(rubor, ojos, 70);
     c->lengua = rk_mix(tratar(COL_LENGUA, lk), rubor, 80);
     c->pecas  = rk_mix(rubor, ojos, 120);
+    if (con_lamina(c->p)) {
+        int i;
+        rk_kip_paleta(&c->kip, pl, piel_propia(c->p, pl));
+        for (i = 0; i < RK_KIP_COLORES; i++) {
+            c->kip.c[i] = tratar(c->kip.c[i], lk);
+        }
+        /* Los adornos de las pieles (los destellos, el aura, las luces)
+         * brillan en el ámbar de sus ojos: sobre el rojo, el rosa del rubor
+         * no se vería. */
+        c->acento = rk_mix(c->kip.c[RK_KIP_IRIS], c->kip.c[RK_KIP_BLANCO], 90);
+        c->blanco = c->kip.c[RK_KIP_BLANCO];
+    }
 }
 
 /* dst = a mezclado hacia b en `t` (0 = a, 255 = b), color por color. */
@@ -149,6 +193,12 @@ static void fundir(cara_t *dst, const cara_t *a, const cara_t *b, uint8_t t)
     r.acento = rk_mix(a->acento, b->acento, t);
     r.lengua = rk_mix(a->lengua, b->lengua, t);
     r.pecas  = rk_mix(a->pecas,  b->pecas,  t);
+    {
+        int i;
+        for (i = 0; i < RK_KIP_COLORES; i++) {
+            r.kip.c[i] = rk_mix(a->kip.c[i], b->kip.c[i], t);
+        }
+    }
     *dst = r;
 }
 
@@ -157,7 +207,23 @@ rk_color_t rk_face_fondo(const rk_persona_t *p, uint8_t rareza, rk_mood_t mood)
     if (p == NULL) {
         p = rk_persona_at(0);
     }
-    return tratar(rk_persona_piel(p, rareza)->fondo, rk_look(mood));
+    return tratar(rk_persona_piel(p, rareza)->fondo, look_de(p, mood));
+}
+
+rk_color_t rk_face_color_ojo(const rk_persona_t *p, uint8_t rareza)
+{
+    const rk_piel_t *pl;
+
+    if (p == NULL) {
+        p = rk_persona_at(0);
+    }
+    pl = rk_persona_piel(p, rareza);
+    if (con_lamina(p)) {
+        rk_kip_colores_t k;
+        rk_kip_paleta(&k, pl, true);
+        return k.c[RK_KIP_BLANCO];
+    }
+    return pl->ojos;
 }
 
 /* ---------------------------------------------------------- expresión --- */
@@ -1108,6 +1174,43 @@ static void adornos(cara_t *c, const expr_t *e, uint8_t set, int32_t ex_izq,
     }
 }
 
+/* ------------------------------------------------------- con lámina --- */
+/* Los rasgos de un Rooti con lámina propia, y encima los adornos de su piel
+ * y de su etapa, que son los de todos. */
+static void dibujar_lamina(cara_t *c, rk_mood_t desde, rk_mood_t hacia, uint8_t t_pct,
+                           uint8_t cierre, uint8_t mimo_pct,
+                           const rk_face_mirada_t *mirada, uint8_t set, uint32_t t)
+{
+    rk_kip_escena_t esc;
+    rk_kip_pose_t pose;
+    expr_t nada;
+    int32_t ry = PQ(c, c->p->ojo_ry), dx = PQ(c, c->p->ojo_dx);
+
+    memset(&esc, 0, sizeof esc);
+    esc.desde = desde;
+    esc.hacia = hacia;
+    esc.mezcla = t_pct;
+    esc.cierre = cierre;
+    esc.mimo = mimo_pct;
+    esc.t_ms = t;
+    if (mirada != NULL) {
+        esc.mira_x = mirada->mira_x;
+        esc.mira_y = mirada->mira_y;
+        esc.preocupado = mirada->preocupado;
+    }
+    rk_kip_pose(&pose, &esc);
+
+    memset(&nada, 0, sizeof nada);
+    if (set & RK_ADORNO_AURA) {
+        adornos(c, &nada, RK_ADORNO_AURA, c->cx - dx, c->cx + dx, ry);
+    }
+    /* Los acabados van DETRÁS de los rasgos: el fuego de la épica lame el
+       borde de abajo, y encima de la boca o del agua quedaba pegado. */
+    acabados(c, set);
+    rk_kip_dibujar(c->fb, c->p, &c->kip, &pose, c->cx, c->cy, c->u, t);
+    adornos(c, &nada, (uint8_t)(set & (uint8_t)~RK_ADORNO_AURA), c->cx - dx, c->cx + dx, ry);
+}
+
 /* ---------------------------------------------------------------- cara --- */
 /* La respiración mueve la cara entera, de a fracciones de pixel. */
 static int32_t respiracion(const cara_t *c, const rk_look_t *lk, uint32_t t)
@@ -1130,9 +1233,9 @@ static void dibujar(rk_fb_t *fb, const rk_persona_t *p, const rk_piel_t *piel,
                     uint8_t adornos_extra, uint8_t cierre, uint8_t mimo_pct,
                     const rk_face_mirada_t *mirada, uint32_t t)
 {
-    const rk_look_t *lk = rk_look(hacia);
-    const rk_look_t *lka = rk_look(desde);
+    const rk_look_t *lk, *lka;
     bool mezcla = desde != hacia && t_pct < 100u;
+    bool lamina;
     expr_t e;
     cara_t c;
     int32_t rx, ry, dx, bob, temblor;
@@ -1147,6 +1250,9 @@ static void dibujar(rk_fb_t *fb, const rk_persona_t *p, const rk_piel_t *piel,
     if (piel == NULL) {
         piel = rk_persona_piel(p, RK_RAREZA_COMUN);
     }
+    lamina = con_lamina(p);
+    lk = look_de(p, hacia);
+    lka = look_de(p, desde);
     if (mezcla && t_pct == 0u) {
         /* El principio es exactamente el ánimo de origen. */
         lk = lka;
@@ -1170,7 +1276,7 @@ static void dibujar(rk_fb_t *fb, const rk_persona_t *p, const rk_piel_t *piel,
         /* El mimo trae los colores de contento: la penumbra de una cara
          * triste se levanta mientras la acarician. */
         cara_t cm = c;
-        pintura(&cm, piel, rk_look(RK_MOOD_HAPPY));
+        pintura(&cm, piel, look_de(p, RK_MOOD_HAPPY));
         fundir(&c, &c, &cm, (uint8_t)((uint32_t)mimo_pct * 255u / 100u));
     }
 
@@ -1178,8 +1284,10 @@ static void dibujar(rk_fb_t *fb, const rk_persona_t *p, const rk_piel_t *piel,
     /* El rostro no es un fondo plano: es una cabeza, y una cabeza tiene luz
        arriba y sombra abajo. Un radial suave sobre toda la pantalla es lo que
        la saca de "dibujo vectorial" y la mete en "ilustración", y cuesta una
-       multiplicación por pixel. */
-    {
+       multiplicación por pixel.
+       Kip no: en la lámina de Rocío el rojo es plano, y ahí la ilustración la
+       ponen el trazo y el acting, no el volumen. */
+    if (!lamina) {
         int32_t u = (int32_t)c.u * 16;
         rk_forma_t todo = rk_elipse_q4(c.cx, c.cy, u, u);
         rk_relleno_t vol = rk_radial(c.cx - u * 22 / 100, c.cy - u * 30 / 100,
@@ -1214,6 +1322,12 @@ static void dibujar(rk_fb_t *fb, const rk_persona_t *p, const rk_piel_t *piel,
     }
     c.oy = c.cy + PQ(&c, p->ojo_dy);
     c.by = c.cy + PQ(&c, p->boca_dy);
+
+    if (lamina) {
+        dibujar_lamina(&c, desde, hacia, mezcla ? t_pct : 100u, cierre, mimo_pct,
+                       mirada, (uint8_t)(adornos_extra | piel->adornos), t);
+        return;
+    }
 
     if (mezcla) {
         expr_t ea = expresion(p, desde, lka, t, cierre);

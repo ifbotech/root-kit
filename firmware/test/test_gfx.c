@@ -321,6 +321,92 @@ static void test_aa_pintado(void)
                g_mem[GUARD + 12 * W + 16] != 0x0000);
 }
 
+/* El polígono: lo que usan los trazos de pincel de las caras con lámina. */
+static void test_aa_poligono(void)
+{
+    rk_relleno_t blanco = rk_plano(0xFFFF);
+    int i, mezclas = 0;
+
+    /* Un cuadrado alineado a la grilla: adentro pleno, afuera intacto, y
+     * sin bordes a medias porque sus lados caen justo entre pixeles. */
+    {
+        static const int32_t cuadro[] = {
+            RK_Q4(4), RK_Q4(4), RK_Q4(12), RK_Q4(4), RK_Q4(12), RK_Q4(10), RK_Q4(4), RK_Q4(10)
+        };
+        arena_init();
+        rk_aa_poligono(&g_fb, cuadro, 4, &blanco, 255, NULL, 0);
+        CHECK_INT("el cuadrado cubre exactamente su area", 8 * 6, contar(0xFFFF));
+        CHECK_INT("y no deja medios tonos", W * H - 8 * 6, contar(0x0000));
+    }
+    /* El mismo cuadrado recorrido al revés: la regla de no cero no mira el
+     * sentido. */
+    {
+        static const int32_t cuadro[] = {
+            RK_Q4(4), RK_Q4(10), RK_Q4(12), RK_Q4(10), RK_Q4(12), RK_Q4(4), RK_Q4(4), RK_Q4(4)
+        };
+        arena_init();
+        rk_aa_poligono(&g_fb, cuadro, 4, &blanco, 255, NULL, 0);
+        CHECK_INT("recorrido al reves cubre lo mismo", 8 * 6, contar(0xFFFF));
+    }
+    /* Un triángulo inclinado tiene borde suavizado. */
+    {
+        static const int32_t tri[] = {
+            RK_Q4(2), RK_Q4(20), RK_Q4(16), RK_Q4(2), RK_Q4(30), RK_Q4(20)
+        };
+        arena_init();
+        rk_aa_poligono(&g_fb, tri, 3, &blanco, 255, NULL, 0);
+        for (i = 0; i < W * H; i++) {
+            rk_color_t v = g_mem[GUARD + i];
+            if (v != 0x0000 && v != 0xFFFF) { mezclas++; }
+        }
+        CHECK_TRUE("el borde inclinado tiene medios tonos", mezclas >= 20);
+        CHECK_HEX("el interior es pleno", 0xFFFF, g_mem[GUARD + 15 * W + 16]);
+        CHECK_HEX("y la esquina queda afuera", 0x0000, g_mem[GUARD + 1 * W + 2]);
+    }
+    /* Cóncavo: una U. El hueco del medio no se pinta. */
+    {
+        static const int32_t u[] = {
+            RK_Q4(4), RK_Q4(4), RK_Q4(10), RK_Q4(4), RK_Q4(10), RK_Q4(14),
+            RK_Q4(20), RK_Q4(14), RK_Q4(20), RK_Q4(4), RK_Q4(26), RK_Q4(4),
+            RK_Q4(26), RK_Q4(20), RK_Q4(4), RK_Q4(20)
+        };
+        arena_init();
+        rk_aa_poligono(&g_fb, u, 8, &blanco, 255, NULL, 0);
+        CHECK_HEX("la U pinta sus brazos", 0xFFFF, g_mem[GUARD + 8 * W + 6]);
+        CHECK_HEX("y su base", 0xFFFF, g_mem[GUARD + 17 * W + 15]);
+        CHECK_HEX("pero no el hueco", 0x0000, g_mem[GUARD + 8 * W + 15]);
+    }
+    /* Recortado por un círculo: el iris adentro del ojo. */
+    {
+        static const int32_t cuadro[] = {
+            RK_Q4(0), RK_Q4(0), RK_Q4(16), RK_Q4(0), RK_Q4(16), RK_Q4(24), RK_Q4(0), RK_Q4(24)
+        };
+        rk_forma_t c = rk_circulo_q4(RK_Q4(16), RK_Q4(12), RK_Q4(6));
+        arena_init();
+        rk_aa_poligono(&g_fb, cuadro, 4, &blanco, 255, &c, 1);
+        CHECK_HEX("el recorte deja la mitad del circulo que cae adentro", 0xFFFF,
+                  g_mem[GUARD + 12 * W + 13]);
+        CHECK_HEX("y no la que cae afuera del poligono", 0x0000,
+                  g_mem[GUARD + 12 * W + 19]);
+        CHECK_HEX("ni lo del poligono que no es circulo", 0x0000,
+                  g_mem[GUARD + 2 * W + 2]);
+    }
+    /* Nada se sale del buffer, ni con vértices gigantes ni degenerados. */
+    {
+        static const int32_t enorme[] = {
+            RK_Q4(-90), RK_Q4(-90), RK_Q4(200), RK_Q4(-40), RK_Q4(40), RK_Q4(300)
+        };
+        static const int32_t plano[] = { 0, RK_Q4(5), RK_Q4(30), RK_Q4(5), RK_Q4(15), RK_Q4(5) };
+        arena_init();
+        rk_aa_poligono(&g_fb, enorme, 3, &blanco, 255, NULL, 0);
+        rk_aa_poligono(&g_fb, plano, 3, &blanco, 255, NULL, 0);
+        rk_aa_poligono(&g_fb, enorme, 2, &blanco, 255, NULL, 0);
+        rk_aa_poligono(NULL, enorme, 3, &blanco, 255, NULL, 0);
+        rk_aa_poligono(&g_fb, NULL, 3, &blanco, 255, NULL, 0);
+        CHECK_TRUE("ningun poligono se sale del framebuffer", guards_intactos());
+    }
+}
+
 void suite_gfx(void)
 {
     RK_SUITE("graficos");
@@ -331,5 +417,6 @@ void suite_gfx(void)
     test_tipografia();
     test_aa_cobertura();
     test_aa_pintado();
+    test_aa_poligono();
     RK_SUITE_END();
 }

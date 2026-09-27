@@ -32,19 +32,26 @@ const rk_persona_t rk_persona_table[] = {
 {
     "kip", "Kip", "carcasas/kip.stl",
     "Si sale mal, por lo menos sale rápido.",
-    /* EL PILOTO AUDAZ. Cresta de tres rulos, cejas negras tupidas y ojos
-     * rasgados de corte angular: con esas cejas, medio grado de inclinación
-     * ya es una actitud. La boca sube de un lado nomás —media sonrisa de
-     * quien acaba de clavar una pirueta— y el rubor es de carrera, no de
-     * timidez. Paleta Fiery Red Sunset. */
-    RK_OJOS_RASGADOS, RK_BRILLO_SIMPLE, 21, 19, 25, -6,
-    RK_CEJA_GRUESA, -8, 9,
-    RK_BOCA_LADEADA, 15, 27,
+    /* EL PILOTO AUDAZ. Rojo entero, con cejas negras tupidas que saltan
+     * —con esas cejas, medio grado de inclinación ya es una actitud—, ojos
+     * blancos grandes de iris ámbar y la boca teal. Así lo dibujó Rocío, y
+     * su cara ya no sale del rig: sale de su lámina (art/kip.c). De esta
+     * fila usa las medidas —dónde van los ojos, qué tan grandes, dónde van
+     * las cejas y la boca— y los colores; la familia, el brillo, la ceja,
+     * la boca y la mejilla quedan para el rig genérico.
+     *
+     * Las tres pieles son el mismo rojo de la lámina, apenas movido: la
+     * rara es brasa, la épica es llamarada y trae el fuego. La tinta es el
+     * negro de sus cejas, y lo de arriba (la cresta, en el 3D) también es
+     * pelo: negro. El rubor es el rosado de los ojos irritados del calor. */
+    RK_OJOS_RASGADOS, RK_BRILLO_SIMPLE, 17, 11, 25, -7,
+    RK_CEJA_GRUESA, 0, 15,
+    RK_BOCA_LADEADA, 20, 25,
     RK_MEJILLA_CIRCULO,
     {
-        { "Naranja Piloto", RK_HEX(0xFAA307), RK_HEX(0x03071E), RK_HEX(0xFAA307), RK_HEX(0xFF4D4D), RK_HEX(0xD00000), 0u },
-        { "Ascua", RK_HEX(0xFFBA08), RK_HEX(0x03071E), RK_HEX(0xFFBA08), RK_HEX(0xFF4D4D), RK_HEX(0xD00000), RK_ADORNO_BRILLOS },
-        { "Llamarada", RK_HEX(0xFFBA08), RK_HEX(0x03071E), RK_HEX(0xFFBA08), RK_HEX(0xD00000), RK_HEX(0xD00000), RK_ADORNO_FUEGO | RK_ADORNO_BRILLOS },
+        { "Rojo Piloto", RK_HEX(0xCE4F3C), RK_HEX(0x0B0706), RK_HEX(0xCE4F3C), RK_HEX(0xF2A194), RK_HEX(0x1A1110), 0u },
+        { "Brasa", RK_HEX(0xD8583E), RK_HEX(0x0B0706), RK_HEX(0xD8583E), RK_HEX(0xF2A194), RK_HEX(0x1A1110), RK_ADORNO_BRILLOS },
+        { "Llamarada", RK_HEX(0xC9442F), RK_HEX(0x0B0706), RK_HEX(0xC9442F), RK_HEX(0xF7B0A2), RK_HEX(0x1A1110), RK_ADORNO_FUEGO | RK_ADORNO_BRILLOS },
     }
 },
 {

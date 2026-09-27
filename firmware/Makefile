@@ -22,7 +22,7 @@ BUILD    = build
 CORE     = core/species.c core/mood.c core/vinculo.c core/persona.c core/node.c \
            core/sha256.c core/codigo.c core/enlace.c core/ota.c core/fabrica.c
 GFX      = gfx/fb.c gfx/aa.c gfx/font.c gfx/panel.c
-ART      = art/look.c art/face.c
+ART      = art/look.c art/kip.c art/face.c
 UI       = ui/cara.c ui/despertar.c ui/qr.c
 NET      = net/json.c net/nube.c
 NODO     = nodo/soil.c nodo/power.c nodo/sampler.c nodo/sensores.c nodo/historial.c
@@ -33,7 +33,7 @@ LIB      = $(CORE) $(GFX) $(ART) $(UI) $(NET) $(NODO) $(TERCEROS)
 
 TESTSRC  = test/rk_test.c test/golden_util.c \
            test/test_mood.c test/test_nodo.c test/test_sensores.c \
-           test/test_gfx.c test/test_render.c test/test_persona.c \
+           test/test_gfx.c test/test_render.c test/test_persona.c test/test_kip.c \
            test/test_enlace.c test/test_red.c test/test_qr.c test/test_ota.c \
            test/test_placa.c test/test_placa_devkit.c test/main.c
 
@@ -100,7 +100,7 @@ pantallas: $(BUILD)/rootkit_sim
 # ---- las caras para la app web ------------------------------------------------
 # El mismo renderer, compilado a WebAssembly sin libc. Necesita clang y lld
 # (apt install clang lld). La app de root-lab lo carga desde public/caras/.
-WASM_SRC = gfx/fb.c gfx/aa.c gfx/font.c art/look.c art/face.c core/persona.c \
+WASM_SRC = gfx/fb.c gfx/aa.c gfx/font.c art/look.c art/kip.c art/face.c core/persona.c \
            core/mood.c core/species.c core/vinculo.c core/sha256.c core/codigo.c \
            core/enlace.c nodo/power.c nodo/soil.c ui/cara.c ui/despertar.c ui/qr.c \
            third_party/qrcodegen/qrcodegen.c wasm/caras.c

@@ -240,6 +240,18 @@ familia —redondos, rasgados, fieros, visor, único, pesados— y el ánimo eli
 la forma dentro de esa familia. Dibujar sesenta y seis caras a mano sería un
 mes de trabajo, y agregar un modelo costaría once caras más.
 
+**Kip sale de su lámina, no del rig.** El rig cruza una tabla de
+expresiones con una fila de proporciones, y eso da once ánimos para
+cualquier personaje sin dibujar ninguno: sirve mientras no haya dibujos.
+Cuando Rocío entregó las láminas de Kip, forzarlas dentro del rig las
+convertía en otra cosa —ojos de compás, cejas de palito, bocas de programa,
+"muy de anime"—, así que Kip tiene su propio dibujante (`art/kip.c`) con sus
+dibujos como tablas y sus secuencias como pistas de claves. Sigue siendo
+procedural (no son imágenes: un cuadro son un par de docenas de polígonos, y
+entre dibujo y dibujo todo se interpola) y sigue leyendo su fila de
+`persona.c`. El precio es código por personaje; se paga una vez por lámina,
+y el día que lleguen las de Nori, Blink y Plum, cada una se suma igual.
+
 **Los rasgos se miden en centésimas del ancho del panel, no en pixeles.** Así
 la misma tabla de modelos sirve para cualquier panel futuro sin tocar un
 número, y quien ajusta el arte edita proporciones y no coordenadas.

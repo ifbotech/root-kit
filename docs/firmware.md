@@ -25,7 +25,7 @@ lugar equivocado.
 |---|---|
 | `core/` | ánimo, especies, personajes, vínculo, **enlace** (la máquina de estados del flujo), **código** de vinculación, SHA-256 |
 | `gfx/` | framebuffer RGB565, **antialiasing en punto fijo**, tipografía |
-| `art/` | la tabla de expresiones y el rig de caras |
+| `art/` | la tabla de expresiones, el rig de caras y la lámina de Kip |
 | `ui/` | la **cara**, la cara **dormida**, el **despertar** y la pantalla del **QR** |
 | `nodo/` | **sensores** (bytes → unidades), calibración de suelo, batería, muestreo adaptativo, **historial** |
 | `net/` | **JSON** y el contrato con la **nube** |
@@ -200,6 +200,47 @@ FPU.
 El fondo es liso, del color de la pantalla de la piel, y los párpados se
 pintan del mismo color: un párpado que baja es fondo que tapa el ojo. Por eso
 no hay degradé.
+
+### Kip, con lámina propia
+
+Kip no pasa por el rig: Rocío entregó sus láminas cuadro por cuadro, y
+`art/kip.c` las dibuja. Es la hoja de modelo hecha datos:
+
+- **Los rasgos** son trazos de pincel: contornos que engordan en el medio y
+  se afinan en la punta, rellenos con `rk_aa_poligono` (`gfx/aa.h`), que
+  suaviza cualquier polígono y lo puede recortar con una forma (el iris
+  circular queda adentro de un ojo dibujado a mano). Cuerpo rojo plano, sin
+  el volumen radial del rig: en la lámina el rojo es plano.
+- **Las poses** son tablas: `OJOS`, `CEJAS` y `BOCAS`, una fila por dibujo de
+  la lámina, con el cuadro del que sale ("feliz 9", "calor 4"...). Un ojo son
+  dos curvas que se juntan en las comisuras; una ceja, un trazo grueso con el
+  borde de arriba despeinado; una boca, una de ocho formas (línea, media
+  luna teal, dientes, jadeo, sumergida, "o", beso y onda).
+- **Las animaciones** son hojas de exposición: por ánimo, una pista de claves
+  (en tal milisegundo, estos ojos, estas cejas, esta boca, esta mirada), que
+  sigue el orden en que ella numeró los cuadros, más sus parpadeos y sus
+  "cejazos". Entre clave y clave todo se interpola: los ojos y la boca con
+  una curva suave, la mirada rápida (salta y fija) y **las cejas con una
+  curva que se pasa y vuelve**, que es lo que las hace saltonas.
+- **La boca cambia de forma sólo cerrada**: entre dos formas distintas, la
+  primera mitad del tramo se cierra y la segunda se abre con la nueva. Lo
+  mismo en la transición entre ánimos, que para Kip es una interpolación de
+  poses: el agua sube o se escurre, las grietas crecen o se borran.
+- **Los efectos** —el agua hasta los ojos, las grietas, la gota de sudor, el
+  garabato del calor, los zzz, la nieve, el "?", los tres puntitos, el
+  resplandor, la gota vacía de la sed— son de su lámina o de su vocabulario:
+  las grietas y el garabato están calcados de sus dibujos, y los garabatos
+  "hierven" ocho veces por segundo, como una línea hecha a mano.
+
+De su fila de `persona.c` usa las medidas (dónde van los ojos, qué tan
+grandes, dónde van las cejas y la boca) y los colores de las tres pieles. El
+resto de sus colores (el blanco del ojo, el ámbar, el teal, el lila de la
+boca bajo el agua, el gris del agua) son de Kip y no cambian con la rareza.
+Los adornos y acabados de las pieles son los de todos; el fuego de la épica
+va detrás de los rasgos.
+
+Dibuja un cuadro en 0,46 ms en la PC del bench, contra ~1,8 ms de los otros
+tres: no lleva el degradado de pantalla completa.
 
 ### Los cinco Rooties y sus pieles
 

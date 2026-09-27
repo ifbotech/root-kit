@@ -19,6 +19,7 @@ int main(void)
     suite_gfx();
     suite_render();
     suite_persona();
+    suite_kip();
     suite_qr();
     suite_enlace();
     suite_red();
