@@ -91,6 +91,14 @@ make wasm         # el renderer para la app (necesita clang y lld)
 make placa        # compila el producto (c3-144) y el banco (devkit-144) con PlatformIO
 ```
 
+El prototipo NodeMCU que soldó Rocío corre el **firmware de banco**: arranca
+directo en la cara de Kip, que reacciona a los sensores, y muestra sus
+lecturas ([docs/banco.md](docs/banco.md)):
+
+```bash
+cd firmware && pio run -e banco-nodemcu -t upload && pio device monitor
+```
+
 Flashear una placa:
 
 ```bash
@@ -119,6 +127,7 @@ firmware/
   net/         JSON y el contrato con la nube
   esp32/       la placa: pantalla, sensores, portal, red (con certificados), energía
   wasm/        el núcleo compilado para el navegador
+  banco/       el firmware de banco del prototipo NodeMCU (sensores + Kip)
   sim/ test/   simulador y pruebas
   third_party/ qrcodegen (MIT)
 hardware/pcb/  el sustrato impreso: el dato, el modelo y lo que se genera
@@ -143,4 +152,5 @@ tools/         capturas, estación de fábrica y el generador del sustrato
 | [carcasas.md](docs/carcasas.md) | Diseño e impresión de las carcasas |
 | [decisiones.md](docs/decisiones.md) | Lo que se decidió, lo que se revisó y por qué |
 | [testing.md](docs/testing.md) | Qué cubren las pruebas |
+| [banco.md](docs/banco.md) | **El firmware de banco** del prototipo NodeMCU: flashearlo y probar cada sensor |
 | [entorno.md](docs/entorno.md) | Herramientas y simulador |

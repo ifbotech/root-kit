@@ -56,6 +56,7 @@ public:
             cfg.bus_shared = false;
             _panel.config(cfg);
         }
+#if RK_PIN_TFT_BL >= 0
         {
             auto cfg = _luz.config();
             cfg.pin_bl = RK_PIN_TFT_BL;
@@ -65,6 +66,10 @@ public:
             _luz.config(cfg);
             _panel.setLight(&_luz);
         }
+#endif
+        /* Sin pin de luz (el LED del panel va directo a 3,3 V) el panel no
+         * tiene de dónde regular el brillo: está siempre prendido, y apagar
+         * es dormir el controlador. */
         setPanel(&_panel);
     }
 };
@@ -72,27 +77,39 @@ public:
 static PanelRootkit g_tft;
 static rk_fb_t      g_fb;
 static uint32_t    *g_hash_filas;
-static int          g_oy;          /* dónde empieza el cuadrado en el panel  */
+static int          g_ox, g_oy;    /* dónde empieza el cuadrado en el panel  */
 static bool         g_todo = true;
+static bool         g_franjas_ajenas;
 static rk_color_t   g_fondo_franjas;
 static uint8_t      g_brillo;
 
 bool pantalla_iniciar(uint8_t brillo_inicial)
 {
     int lado = RK_TFT_W < RK_TFT_H ? RK_TFT_W : RK_TFT_H;
-    rk_color_t *px;
+    rk_color_t *px = NULL;
 
-    px = (rk_color_t *)heap_caps_malloc((size_t)lado * (size_t)lado * sizeof(rk_color_t),
-                                        MALLOC_CAP_8BIT);
+    /* El cuadrado entero si entra; si no, de a 8 pixeles menos hasta que
+     * entre. En el C3 y con el panel de 1,44" entra siempre a la primera. */
+    for (; lado >= 96; lado -= 8) {
+        px = (rk_color_t *)heap_caps_malloc((size_t)lado * (size_t)lado * sizeof(rk_color_t),
+                                            MALLOC_CAP_8BIT);
+        if (px != NULL) {
+            break;
+        }
+    }
+    if (px == NULL) {
+        return false;
+    }
     g_hash_filas = (uint32_t *)calloc((size_t)lado, sizeof(uint32_t));
-    if (px == NULL || g_hash_filas == NULL) {
+    if (g_hash_filas == NULL) {
         return false;
     }
     rk_fb_init(&g_fb, px, lado, lado);
+    g_ox = (RK_TFT_W - lado) / 2;
     g_oy = (RK_TFT_H - lado) / 2;
 
     g_tft.init();
-    g_tft.setRotation(0);
+    g_tft.setRotation(RK_TFT_ROTACION);
     g_tft.fillScreen(0x0000);
     g_brillo = 0;
     if (brillo_inicial > 0) {
@@ -113,6 +130,37 @@ void pantalla_invalidar(void)
     g_todo = true;
 }
 
+int pantalla_lado(void)
+{
+    return g_fb.w;
+}
+
+int pantalla_x0(void)
+{
+    return g_ox;
+}
+
+int pantalla_y0(void)
+{
+    return g_oy;
+}
+
+void pantalla_reservar_franjas(bool reservar)
+{
+    g_franjas_ajenas = reservar;
+    g_todo = true;
+}
+
+void pantalla_rect(int x, int y, int w, int h, const rk_color_t *px)
+{
+    if (px == NULL || g_brillo == 0 || w <= 0 || h <= 0) {
+        return;
+    }
+    g_tft.startWrite();
+    g_tft.pushImage(x, y, w, h, (const lgfx::rgb565_t *)px);
+    g_tft.endWrite();
+}
+
 static uint32_t hash_fila(const rk_color_t *p, int n)
 {
     uint32_t h = 2166136261u;
@@ -130,9 +178,15 @@ void pantalla_presentar(rk_color_t fondo)
         return;
     }
     g_tft.startWrite();
-    if (g_oy > 0 && (g_todo || fondo != g_fondo_franjas)) {
-        g_tft.fillRect(0, 0, RK_TFT_W, g_oy, (lgfx::rgb565_t)fondo);
-        g_tft.fillRect(0, g_oy + h, RK_TFT_W, RK_TFT_H - g_oy - h, (lgfx::rgb565_t)fondo);
+    if ((g_oy > 0 || g_ox > 0) && (g_todo || fondo != g_fondo_franjas)) {
+        if (g_oy > 0 && !g_franjas_ajenas) {
+            g_tft.fillRect(0, 0, RK_TFT_W, g_oy, (lgfx::rgb565_t)fondo);
+            g_tft.fillRect(0, g_oy + h, RK_TFT_W, RK_TFT_H - g_oy - h, (lgfx::rgb565_t)fondo);
+        }
+        if (g_ox > 0) {
+            g_tft.fillRect(0, g_oy, g_ox, h, (lgfx::rgb565_t)fondo);
+            g_tft.fillRect(g_ox + w, g_oy, RK_TFT_W - g_ox - w, h, (lgfx::rgb565_t)fondo);
+        }
         g_fondo_franjas = fondo;
     }
     /* Tramos contiguos de filas cambiadas, cada uno en una sola ráfaga. */
@@ -147,7 +201,7 @@ void pantalla_presentar(rk_color_t fondo)
         if (cambio && desde < 0) {
             desde = y;
         } else if (!cambio && desde >= 0) {
-            g_tft.pushImage(0, g_oy + desde, w, y - desde,
+            g_tft.pushImage(g_ox, g_oy + desde, w, y - desde,
                             (const lgfx::rgb565_t *)(g_fb.px + desde * w));
             desde = -1;
         }
