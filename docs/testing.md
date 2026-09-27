@@ -209,8 +209,8 @@ mueve, sin mirar un pixel:
 - **La boca cambia de forma sólo cerrada**, en los ciclos y en las
   transiciones: una boca teal no se vuelve una con dientes a mitad de camino.
 - **Las cejas saltan**: al subir se pasan de largo y vuelven.
-- **La lámina está en la pista.** Contento guiña y sonríe en teal y con
-  dientes; ahogándose, el agua le llega a los ojos todo el ciclo, boquea y
+- **La lámina está en la pista.** Contento guiña y sonríe grande, en
+  blanco; ahogándose, el agua le llega a los ojos todo el ciclo, boquea y
   mira el agua; con calor saca la lengua, jadea, sopla, tira el beso y hace
   la mueca ondulada; a oscuras busca la luz arriba y a los costados; con el
   aire seco mira de reojo con los ojos en rendija. Si alguien cambia una

@@ -16,7 +16,7 @@
  *   - LOS RASGOS SON LOS DE LA LÁMINA. Cuerpo rojo plano, cejas negras
  *     tupidas que saltan, ojos blancos con un contorno de tinta más grueso
  *     arriba que abajo, iris ámbar con su aro, su pupila y un brillo, y la
- *     boca teal. Todo sale de trazos de pincel: contornos que engordan en
+ *     sonrisa blanca. Todo sale de trazos de pincel: contornos que engordan en
  *     el medio y se afinan en la punta (gfx/aa.h, rk_aa_poligono).
  *
  *   - LAS POSES SON LAS DE LA LÁMINA. Cada ojo, cada ceja y cada boca que

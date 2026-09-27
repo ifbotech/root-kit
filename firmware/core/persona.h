@@ -23,7 +23,7 @@
  * EL ELENCO
  *
  *   kip    el piloto audaz: rojo, cresta de tres rulos, cejas negras
- *          tupidas que saltan, ojos blancos de iris ámbar y la boca teal.
+ *          tupidas que saltan, ojos blancos de iris ámbar y la sonrisa blanca.
  *          Impetuoso y dramático. Ya tiene lámina de Rocío: su cara la
  *          dibuja art/kip.c, no el rig.
  *   nori   la crítica sofisticada: corte bob, pecas, ojos almendrados de

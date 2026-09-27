@@ -206,7 +206,7 @@ static void test_cejas_saltonas(void)
 
 /* --------------------------------------------- la lámina, en la pista --- */
 typedef struct {
-    bool guino, teal, dientes, linea, grito_grande, lengua, o, beso, onda, rojo;
+    bool guino, grande, dientes, linea, grito_grande, lengua, o, beso, onda, rojo;
     bool siempre_agua, siempre_sumergida, siempre_mira_abajo, siempre_cerrados;
     bool cerrado_alguna_vez;
     int abre_min, abre_max, mira_x_min, mira_x_max, mira_y_max, a_max, rendija_max;
@@ -233,7 +233,7 @@ static void recorrer(recorrido_t *r, rk_mood_t m)
         if (cerrado(&p.ojo[0]) != cerrado(&p.ojo[1])) { r->guino = true; }
         if (cerrado(&p.ojo[0]) || cerrado(&p.ojo[1])) { r->cerrado_alguna_vez = true; }
         if (!cerrado(&p.ojo[0]) || !cerrado(&p.ojo[1])) { r->siempre_cerrados = false; }
-        if (b->estilo == RK_KIP_BOCA_TEAL && b->abre >= 80) { r->teal = true; }
+        if (b->estilo == RK_KIP_BOCA_DIENTES && b->abre >= 80) { r->grande = true; }
         if (b->estilo == RK_KIP_BOCA_DIENTES && b->abre >= 40) { r->dientes = true; }
         if (b->estilo == RK_KIP_BOCA_LINEA) { r->linea = true; }
         if (b->estilo == RK_KIP_BOCA_GRITO && b->abre >= 180) { r->grito_grande = true; }
@@ -269,7 +269,7 @@ static void test_la_lamina_esta_en_la_pista(void)
     /* Feliz, cuadros 1 a 10. */
     recorrer(&r, RK_MOOD_HAPPY);
     CHECK_TRUE("contento: guina un ojo (feliz 4 y 5)", r.guino);
-    CHECK_TRUE("contento: la sonrisa teal (feliz 5 y 10)", r.teal);
+    CHECK_TRUE("contento: la sonrisa grande, en blanco (feliz 5 y 10)", r.grande);
     CHECK_TRUE("contento: la sonrisa con dientes (feliz 9)", r.dientes);
     CHECK_TRUE("contento: la sonrisa de linea (feliz 3, 4 y 8)", r.linea);
 
@@ -363,7 +363,7 @@ static void test_escena(void)
     rk_kip_pose(&q, &e);
     CHECK_TRUE("acariciado cierra los ojos en ^ ^",
                cerrado(&q.ojo[0]) && cerrado(&q.ojo[1]) && q.ojo[0].b < 0 && q.ojo[1].b < 0);
-    CHECK_INT("y sonrie en teal", RK_KIP_BOCA_TEAL, q.boca.estilo);
+    CHECK_INT("y sonrie en blanco", RK_KIP_BOCA_DIENTES, q.boca.estilo);
     CHECK_INT("y se le va la sed", 0, q.fx[RK_KIP_FX_SED]);
     e.mimo = 250u;
     rk_kip_pose(&p, &e);

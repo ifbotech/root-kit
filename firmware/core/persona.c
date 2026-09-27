@@ -34,7 +34,7 @@ const rk_persona_t rk_persona_table[] = {
     "Si sale mal, por lo menos sale rápido.",
     /* EL PILOTO AUDAZ. Rojo entero, con cejas negras tupidas que saltan
      * —con esas cejas, medio grado de inclinación ya es una actitud—, ojos
-     * blancos grandes de iris ámbar y la boca teal. Así lo dibujó Rocío, y
+     * blancos grandes de iris ámbar y la sonrisa blanca. Así lo dibujó Rocío, y
      * su cara ya no sale del rig: sale de su lámina (art/kip.c). De esta
      * fila usa las medidas —dónde van los ojos, qué tan grandes, dónde van
      * las cejas y la boca— y los colores; la familia, el brillo, la ceja,

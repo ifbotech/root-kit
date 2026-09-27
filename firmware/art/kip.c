@@ -190,8 +190,8 @@ static const rk_kip_ceja_t CEJAS[C_COUNT] = {
 };
 
 enum {
-    B_TEAL_GRANDE = 0, /* feliz 10                                          */
-    B_TEAL_GUINO,      /* feliz 5                                           */
+    B_SONRISA_GRANDE = 0, /* feliz 10, en blanco                             */
+    B_SONRISA_GUINO,      /* feliz 5, en blanco                              */
     B_SONRISA,         /* feliz 8                                           */
     B_SOBRADOR,        /* feliz 3 y 4: sube de un lado                      */
     B_DIENTES,         /* feliz 9                                           */
@@ -233,8 +233,8 @@ enum {
 
 static const rk_kip_boca_t BOCAS[B_COUNT] = {
 /*                     est ancho curva abre ladeo  dx   dy lengua labio comis */
-/* TEAL_GRANDE    */ { TEA, 255,   95, 115,   12,  20,   0,    0,  700,  900 },
-/* TEAL_GUINO     */ { TEA, 250,   95,  90,   20,  25,   0,    0,  700,  900 },
+/* SONRISA_GRANDE */ { DIE, 255,   95, 115,   12,  20,   0,    0,  700,  900 },
+/* SONRISA_GUINO  */ { DIE, 250,   95,  90,   20,  25,   0,    0,  700,  900 },
 /* SONRISA        */ { LIN, 165,   42,   0,    0,   0,   0,    0,  800,  600 },
 /* SOBRADOR       */ { LIN, 200,   55,   0,   35,  25,   0,    0,  800,  750 },
 /* DIENTES        */ { DIE, 205,   70,  60,  -25, -10,  10,    0,  800,  800 },
@@ -261,7 +261,7 @@ static const rk_kip_boca_t BOCAS[B_COUNT] = {
 /* MUECA_DIENTES  */ { DIE, 175,  -45,  48,   10,   0, -10,    0,    0,  900 },
 /* HMM            */ { LIN,  70,  -12,   0,   22,  45, -20,    0,    0,  500 },
 /* HMM_OTRO       */ { LIN,  70,  -12,   0,  -22, -45, -20,    0,    0,  500 },
-/* MIMO           */ { TEA, 250,  100, 100,    0,   0,   0,    0,  700,  900 },
+/* MIMO           */ { DIE, 250,  100, 100,    0,   0,   0,    0,  700,  900 },
 };
 
 #undef LIN
@@ -297,23 +297,28 @@ typedef struct {
 #define N(a) ((uint8_t)(sizeof(a) / sizeof((a)[0])))
 
 /* CONTENTO — la lámina de feliz, en el orden en que la numeró: sereno, el
- * costado canchero, el guiño con la sonrisa teal, el ojo que se vuelve a
- * abrir, la sonrisa pícara con dientes y de vuelta a la sonrisa grande. */
+ * costado canchero, el guiño con la sonrisa grande, el ojo que se vuelve a
+ * abrir, la sonrisa pícara con dientes y de vuelta a la sonrisa grande.
+ *
+ * Las sonrisas abiertas van en BLANCO. En la lámina las de los cuadros 5 y
+ * 10 son teal, pero en la pantalla se leían como una mancha verde: se
+ * decidió que toda sonrisa abierta sea blanca, como la del cuadro 9. El teal
+ * queda para la boca plana de "desconectado" y la de abajo del agua. */
 static const clave_t K_FELIZ[] = {
-    {    0, O_CONTENTO, O_CONTENTO, C_ARCO,   C_ARCO,   B_TEAL_GRANDE,    0,    0 },
-    { 1400, O_CONTENTO, O_CONTENTO, C_ARCO,   C_ARCO,   B_TEAL_GRANDE,  350, -150 },
-    { 2600, O_CONTENTO, O_CONTENTO, C_ARCO,   C_ARCO,   B_TEAL_GRANDE,  350, -150 },
+    {    0, O_CONTENTO, O_CONTENTO, C_ARCO,   C_ARCO,   B_SONRISA_GRANDE,    0,    0 },
+    { 1400, O_CONTENTO, O_CONTENTO, C_ARCO,   C_ARCO,   B_SONRISA_GRANDE,  350, -150 },
+    { 2600, O_CONTENTO, O_CONTENTO, C_ARCO,   C_ARCO,   B_SONRISA_GRANDE,  350, -150 },
     { 3000, O_PLANO,    O_PLANO,    C_RECTA,  C_RECTA,  B_SONRISA,        0,  100 },
     { 4100, O_PLANO,    O_PLANO,    C_RECTA,  C_RECTA,  B_SONRISA,        0,  100 },
     { 4500, O_CANCHERO, O_CANCHERO, C_ARCO,   C_ARCO,   B_SOBRADOR,    -500,  200 },
     { 5300, O_CANCHERO, O_CANCHERO, C_ARCO,   C_ARCO,   B_SOBRADOR,    -500,  200 },
     { 5550, O_GUINO,    O_ABIERTO,  C_BAJA,   C_ALZADA, B_SOBRADOR,       0,    0 },
-    { 5800, O_GUINO,    O_ABIERTO,  C_BAJA,   C_ALZADA, B_TEAL_GUINO,     0,    0 },
-    { 6900, O_GUINO,    O_ABIERTO,  C_BAJA,   C_ALZADA, B_TEAL_GUINO,     0,    0 },
-    { 7150, O_ASOMA,    O_ABIERTO,  C_ARCO,   C_ALZADA, B_TEAL_GUINO,     0,    0 },
+    { 5800, O_GUINO,    O_ABIERTO,  C_BAJA,   C_ALZADA, B_SONRISA_GUINO,     0,    0 },
+    { 6900, O_GUINO,    O_ABIERTO,  C_BAJA,   C_ALZADA, B_SONRISA_GUINO,     0,    0 },
+    { 7150, O_ASOMA,    O_ABIERTO,  C_ARCO,   C_ALZADA, B_SONRISA_GUINO,     0,    0 },
     { 7450, O_GRANDE,   O_GRANDE,   C_PICARA, C_PICARA, B_DIENTES,        0,    0 },
     { 9000, O_GRANDE,   O_GRANDE,   C_PICARA, C_PICARA, B_DIENTES,     -250,    0 },
-    { 9450, O_CONTENTO, O_CONTENTO, C_ARCO,   C_ARCO,   B_TEAL_GRANDE,    0,    0 },
+    { 9450, O_CONTENTO, O_CONTENTO, C_ARCO,   C_ARCO,   B_SONRISA_GRANDE,    0,    0 },
 };
 static const uint16_t P_FELIZ[] = { 900, 3600, 10300 };
 static const uint16_t S_FELIZ[] = { 2000, 8200, 11000 };
@@ -687,8 +692,8 @@ static void pose_de_animo(rk_kip_pose_t *o, rk_mood_t mood, uint32_t t)
     o->mira_y = (int16_t)(o->mira_y + rk_sin8((uint8_t)(t / 97u + 40u)) * 25 / 127);
 }
 
-/* Lo que pone cuando lo acarician: ^ ^, las cejas arriba y la sonrisa teal
- * grande. Los efectos se van: acariciado no se ahoga. */
+/* Lo que pone cuando lo acarician: ^ ^, las cejas arriba y la sonrisa
+ * blanca grande. Los efectos se van: acariciado no se ahoga. */
 static void pose_mimo(rk_kip_pose_t *o)
 {
     static const int16_t nada[RK_KIP_FX_COUNT] = { 0 };
